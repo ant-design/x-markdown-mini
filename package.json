@@ -1,0 +1,41 @@
+{
+  "name": "@ant-design/x-markdown-mini",
+  "version": "0.1.0",
+  "description": "多小程序场景下的高性能、强扩展、流式友好的 Markdown 渲染器",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": [
+    "markdown",
+    "miniprogram",
+    "wechat",
+    "alipay",
+    "douyin",
+    "rich-text"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/marked": "^6.0.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "dependencies": {
+    "marked": "^15.0.0"
+  }
+}
