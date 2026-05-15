@@ -1,0 +1,9 @@
+<view class="md-root {{className}}">
+  <richtext
+    nodes="{{nodes}}"
+    selectable="{{selectable}}"
+    animation="{{animation}}"
+    bind:tap="_tap"
+    bind:appear="_appear"
+  />
+</view>

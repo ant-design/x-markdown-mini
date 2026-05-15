@@ -1,0 +1,59 @@
+var INLINE = { strong: 1, em: 1, code: 1, a: 1, span: 1 };
+var BLOCK = {
+  p: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, h6: 1,
+  div: 1, blockquote: 1, ul: 1, ol: 1, li: 1,
+  pre: 1, hr: 1,
+  table: 1, thead: 1, tbody: 1, tr: 1, th: 1, td: 1,
+};
+
+function isInline(name) { return INLINE[name] === 1; }
+function isBlock(name) { return BLOCK[name] === 1; }
+function isText(name) { return name === 'text'; }
+function isBr(name) { return name === 'br'; }
+function isImg(name) { return name === 'img'; }
+function isHr(name) { return name === 'hr'; }
+function isPre(name) { return name === 'pre'; }
+
+function classOf(node) {
+  var attrs = node.attrs || {};
+  var cls = attrs['class'] || '';
+  if (node.animate === 'block') {
+    cls = cls ? cls + ' md-animate-block' : 'md-animate-block';
+  }
+  return cls;
+}
+
+function styleOf(node) {
+  var attrs = node.attrs || {};
+  return attrs.style || '';
+}
+
+function srcOf(node) {
+  var attrs = node.attrs || {};
+  return attrs.src || '';
+}
+
+function altOf(node) {
+  var attrs = node.attrs || {};
+  return attrs.alt || '';
+}
+
+function valueOf(node) {
+  var attrs = node.attrs || {};
+  return attrs.value || '';
+}
+
+export default {
+  isInline: isInline,
+  isBlock: isBlock,
+  isText: isText,
+  isBr: isBr,
+  isImg: isImg,
+  isHr: isHr,
+  isPre: isPre,
+  classOf: classOf,
+  styleOf: styleOf,
+  srcOf: srcOf,
+  altOf: altOf,
+  valueOf: valueOf,
+};

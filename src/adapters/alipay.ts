@@ -1,22 +1,13 @@
 import type { UnifiedNode } from '../types.js';
+import { adaptNodes } from './adapt.js';
+import { PLATFORM_ADAPTER_CONFIG } from './capabilities.js';
 
 /**
- * 支付宝小程序 rich-text 使用 array 结构，部分标签/属性命名有差异（如 Pascal、line-space 等）。
- * 将统一节点转为支付宝可用的节点数组。
+ * 支付宝小程序 rich-text 适配器：
+ * - 移除 selectable 与 class
+ * - <ol start="N"> 移除 start（支付宝不支持）
+ * - 图片 src 强制 https
  */
 export function toAlipayNodes(nodes: UnifiedNode[]): UnifiedNode[] {
-  return nodes.map((n) => mapOne(n));
-}
-
-function mapOne(node: UnifiedNode): UnifiedNode {
-  const { name, attrs = {}, children } = node;
-  const mapped: UnifiedNode = {
-    name: name.toLowerCase(),
-    attrs: { ...attrs },
-  };
-  if (node.animate) mapped.animate = node.animate;
-  if (children?.length) {
-    mapped.children = children.map(mapOne);
-  }
-  return mapped;
+  return adaptNodes(nodes, PLATFORM_ADAPTER_CONFIG.alipay);
 }

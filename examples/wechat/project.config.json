@@ -1,0 +1,16 @@
+{
+  "miniprogramRoot": "./",
+  "projectname": "x-markdown-mini-wechat",
+  "description": "x-markdown-mini WeChat example",
+  "appid": "touristappid",
+  "compileType": "miniprogram",
+  "libVersion": "3.0.0",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": false,
+    "minified": false,
+    "urlCheck": false,
+    "ignoreUploadUnusedFiles": true
+  }
+}

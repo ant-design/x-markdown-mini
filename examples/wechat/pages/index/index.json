@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "markdown": "../../dist/components/wechat/markdown/index"
+  }
+}

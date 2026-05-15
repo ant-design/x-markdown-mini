@@ -3,194 +3,209 @@ import type { IRNode, UnifiedNode } from '../types.js';
 export interface IrToUnifiedOptions {
   animation?: boolean;
   selectable?: boolean;
+  /**
+   * 是否对文本节点的 value 做 HTML 实体转义（&、<、>、"）。
+   * - true（默认）：节点用于原生 rich-text，rich-text 会自动解码
+   * - false：节点用于本库自渲染组件（<text>{{value}}</text> 不解码实体）
+   */
+  escapeText?: boolean;
 }
+
+const ANIMATE_CLASS = 'md-animate-block';
 
 function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  let out = '';
+  for (let i = 0; i < text.length; i++) {
+    const ch = text.charCodeAt(i);
+    if (ch === 38) out += '&amp;';
+    else if (ch === 60) out += '&lt;';
+    else if (ch === 62) out += '&gt;';
+    else if (ch === 34) out += '&quot;';
+    else out += text[i];
+  }
+  return out;
 }
 
-function irInlineToUnified(nodes: IRNode[] | undefined, opts: IrToUnifiedOptions): UnifiedNode[] {
+function joinClass(...parts: Array<string | undefined | false | null>): string {
+  return parts.filter(Boolean).join(' ');
+}
+
+function makeBlock(
+  name: string,
+  cls: string,
+  children: UnifiedNode[],
+  animate: boolean,
+  extra?: Record<string, string | number | boolean>
+): UnifiedNode {
+  const attrs: Record<string, string | number | boolean> = { ...extra };
+  attrs.class = joinClass(cls, animate && ANIMATE_CLASS);
+  const node: UnifiedNode = { name, attrs };
+  if (children.length) node.children = children;
+  if (animate) node.animate = 'block';
+  return node;
+}
+
+function inlineToUnified(nodes: IRNode[] | undefined, enc: (s: string) => string): UnifiedNode[] {
   if (!nodes || nodes.length === 0) return [];
   const out: UnifiedNode[] = [];
   for (const n of nodes) {
-    const children = irToUnifiedChildren(n.c, opts);
-    const attrs: Record<string, string | number | boolean> = {};
-    if (opts.selectable !== false) attrs.selectable = true;
     switch (n.t) {
       case 'strong':
-        out.push({ name: 'b', attrs, children: children.length ? children : undefined });
+        out.push({ name: 'strong', attrs: {}, children: inlineToUnified(n.c, enc) });
         break;
       case 'em':
-        out.push({ name: 'i', attrs, children: children.length ? children : undefined });
+        out.push({ name: 'em', attrs: {}, children: inlineToUnified(n.c, enc) });
         break;
       case 'codespan':
         out.push({
           name: 'code',
-          attrs: { class: 'md-inline-code', ...attrs },
-          children: [{ name: 'text', attrs: { value: n.raw ?? '' } }],
+          attrs: { class: 'md-inline-code' },
+          children: [{ name: 'text', attrs: { value: enc(n.raw ?? '') } }],
         });
         break;
       case 'br':
-        out.push({ name: 'br', attrs });
+        out.push({ name: 'br', attrs: {} });
         break;
-      case 'link':
+      case 'link': {
+        const href = (n.a?.href as string) ?? '';
+        const inner = inlineToUnified(n.c, enc);
         out.push({
           name: 'a',
-          attrs: {
-            href: (n.a?.href as string) ?? '',
-            ...attrs,
-          },
-          children: children.length ? children : [{ name: 'text', attrs: { value: n.raw ?? '' } }],
+          attrs: { href, class: 'md-link' },
+          children: inner.length ? inner : [{ name: 'text', attrs: { value: '' } }],
         });
         break;
-      case 'image':
-        out.push({
-          name: 'img',
-          attrs: {
-            src: (n.a?.href as string) ?? '',
-            alt: (n.a?.alt as string) ?? '',
-            ...attrs,
-          },
-        });
+      }
+      case 'image': {
+        const src = (n.a?.href as string) ?? '';
+        const alt = (n.a?.alt as string) ?? '';
+        out.push({ name: 'img', attrs: { src, alt, class: 'md-img' } });
         break;
+      }
       case 'text':
-      default:
+      default: {
         const value = n.raw ?? '';
-        if (value) out.push({ name: 'text', attrs: { value: escapeHtml(value), ...attrs } });
+        if (value) out.push({ name: 'text', attrs: { value: enc(value) } });
         break;
+      }
     }
   }
   return out;
 }
 
-function irToUnifiedChildren(nodes: IRNode[] | undefined, opts: IrToUnifiedOptions): UnifiedNode[] {
-  if (!nodes || nodes.length === 0) return [];
-  return irInlineToUnified(nodes, opts);
-}
-
-function blockToUnified(ir: IRNode, opts: IrToUnifiedOptions, animate: boolean): UnifiedNode {
-  const attrs: Record<string, string | number | boolean> = {};
-  if (opts.selectable !== false) attrs.selectable = true;
-  const animateAttr = animate ? ({ animate: 'block' as const } as UnifiedNode['attrs']) : undefined;
-  const wrap = (name: string, children: UnifiedNode[], extraAttrs?: Record<string, string | number | boolean>): UnifiedNode => ({
-    name,
-    attrs: { ...attrs, ...extraAttrs, ...(animateAttr && { class: 'md-animate-block' }) },
-    children,
-    ...(animate ? { animate: 'block' as const } : {}),
-  });
-
+function blockToUnified(ir: IRNode, animate: boolean, enc: (s: string) => string): UnifiedNode {
   switch (ir.t) {
     case 'heading': {
-      const depth = (ir.a?.depth as number) ?? 1;
-      const tag = `h${Math.min(6, Math.max(1, depth))}`;
-      const children = irToUnifiedChildren(ir.c, opts);
-      return wrap(tag, children, { class: `md-heading md-${tag}` });
+      const depth = Math.min(6, Math.max(1, (ir.a?.depth as number) ?? 1));
+      const tag = `h${depth}`;
+      return makeBlock(tag, `md-heading md-${tag}`, inlineToUnified(ir.c, enc), animate);
     }
-    case 'paragraph': {
-      const children = irToUnifiedChildren(ir.c, opts);
-      return wrap('p', children, { class: 'md-paragraph' });
-    }
+    case 'paragraph':
+      return makeBlock('p', 'md-paragraph', inlineToUnified(ir.c, enc), animate);
     case 'code': {
-      const value = ir.raw ?? '';
       const lang = ir.a?.lang as string | undefined;
-      return {
-        name: 'pre',
-        attrs: { class: 'md-code-block', ...attrs, ...(animateAttr && { class: 'md-code-block md-animate-block' }) },
-        children: [
-          {
-            name: 'code',
-            attrs: lang ? { class: `language-${lang}` } : {},
-            children: [{ name: 'text', attrs: { value: escapeHtml(value) } }],
-          },
-        ],
-        ...(animate ? { animate: 'block' as const } : {}),
+      const codeAttrs: Record<string, string | number | boolean> = { class: 'md-code' };
+      if (lang) codeAttrs.class = `md-code language-${lang}`;
+      const codeChild: UnifiedNode = {
+        name: 'code',
+        attrs: codeAttrs,
+        children: [{ name: 'text', attrs: { value: enc(ir.raw ?? '') } }],
       };
+      return makeBlock('pre', 'md-code-block', [codeChild], animate);
     }
     case 'blockquote': {
-      const children = (ir.c || []).map((c) => blockToUnified(c, opts, animate));
-      return wrap('blockquote', children, { class: 'md-blockquote' });
+      const children = (ir.c ?? []).map((c) => blockToUnified(c, animate, enc));
+      return makeBlock('blockquote', 'md-blockquote', children, animate);
     }
     case 'list': {
-      const ordered = ir.a?.ordered as boolean;
+      const ordered = !!ir.a?.ordered;
       const start = ir.a?.start as number | undefined;
-      const listTag = ordered ? 'ol' : 'ul';
-      const listAttrs: Record<string, string | number | boolean> = { class: 'md-list' };
-      if (ordered && start != null && start !== 1) listAttrs.start = start;
-      const children = (ir.c || []).map((c) => blockToUnified(c, opts, animate));
-      return { name: listTag, attrs: { ...attrs, ...listAttrs, ...(animateAttr && { class: 'md-list md-animate-block' }) }, children, ...(animate ? { animate: 'block' as const } : {}) };
+      const tag = ordered ? 'ol' : 'ul';
+      const children = (ir.c ?? []).map((c) => blockToUnified(c, animate, enc));
+      const extra: Record<string, string | number | boolean> = {};
+      if (ordered && start != null && start !== 1) extra.start = start;
+      return makeBlock(tag, 'md-list', children, animate, extra);
     }
     case 'list_item': {
-      const children = (ir.c || []).map((c) => blockToUnified(c, opts, animate));
-      return wrap('li', children, { class: 'md-list-item' });
+      const children: UnifiedNode[] = [];
+      for (const c of ir.c ?? []) {
+        if (c.t === 'paragraph') {
+          children.push(...inlineToUnified(c.c, enc));
+        } else if (c.t === 'text' || isInlineIR(c)) {
+          // 注：text IR 用 raw 而不是 c，必须经 inlineToUnified([c]) 走单节点路径
+          children.push(...inlineToUnified([c], enc));
+        } else {
+          children.push(blockToUnified(c, animate, enc));
+        }
+      }
+      return makeBlock('li', 'md-list-item', children, false);
     }
     case 'hr':
-      return { name: 'hr', attrs: { class: 'md-hr', ...attrs }, ...(animate ? { animate: 'block' as const } : {}) };
+      return { name: 'hr', attrs: { class: joinClass('md-hr', animate && ANIMATE_CLASS) }, ...(animate && { animate: 'block' as const }) };
     case 'html':
-      return { name: 'div', attrs: { class: 'md-html', ...attrs }, children: [{ name: 'text', attrs: { value: ir.raw ?? '' } }] };
+      return { name: 'div', attrs: { class: 'md-html' }, children: [{ name: 'text', attrs: { value: ir.raw ?? '' } }] };
     case 'table': {
-      const tableChildren = (ir.c || []).map((c) => blockTablePartToUnified(c, opts, animate));
-      return wrap('table', tableChildren, { class: 'md-table' });
+      const children = (ir.c ?? []).map((c) => tablePartToUnified(c, enc));
+      return makeBlock('table', 'md-table', children, animate);
     }
     case 'thead': {
-      const cells = (ir.c || []).map((cell) => {
-        const inner = irToUnifiedChildren((cell as IRNode).c, opts);
-        return { name: 'th', attrs: { class: 'md-th' }, children: inner };
-      });
+      const cells = (ir.c ?? []).map((cell) => ({
+        name: 'th',
+        attrs: { class: 'md-th' },
+        children: inlineToUnified(cell.c, enc),
+      }));
       return { name: 'thead', attrs: {}, children: [{ name: 'tr', attrs: {}, children: cells }] };
     }
     case 'tbody': {
-      const rows = (ir.c || []).map((row) => {
-        const cells = (row as IRNode).c?.map((cell) => {
-          const inner = irToUnifiedChildren((cell as IRNode).c, opts);
-          return { name: 'td', attrs: { class: 'md-td' }, children: inner };
-        }) ?? [];
-        return { name: 'tr', attrs: {}, children: cells };
-      });
+      const rows = (ir.c ?? []).map((row) => ({
+        name: 'tr',
+        attrs: {},
+        children: (row.c ?? []).map((cell) => ({
+          name: 'td',
+          attrs: { class: 'md-td' },
+          children: inlineToUnified(cell.c, enc),
+        })),
+      }));
       return { name: 'tbody', attrs: {}, children: rows };
     }
     case 'space':
-      return { name: 'span', attrs: {}, children: [] };
+      return { name: 'span', attrs: {} };
     case 'text':
-    default: {
-      const textChildren = irToUnifiedChildren(ir.c, opts);
-      return {
-        name: 'p',
-        attrs: { class: 'md-paragraph' },
-        children: textChildren.length ? textChildren : [{ name: 'text', attrs: { value: ir.raw ?? '' } }],
-      };
-    }
+    default:
+      return makeBlock(
+        'p',
+        'md-paragraph',
+        ir.c ? inlineToUnified(ir.c, enc) : [{ name: 'text', attrs: { value: enc(ir.raw ?? '') } }],
+        animate
+      );
   }
 }
 
-function blockTablePartToUnified(ir: IRNode, opts: IrToUnifiedOptions, animate: boolean): UnifiedNode {
-  if (ir.t === 'thead' || ir.t === 'tbody') return blockToUnified(ir, opts, animate);
-  if (ir.t === 'tr') {
-    const cells = (ir.c || []).map((c) => {
-      const inner = irToUnifiedChildren((c as IRNode).c, opts);
-      const tag = (c as IRNode).t === 'th' ? 'th' : 'td';
-      return { name: tag, attrs: { class: `md-${tag}` }, children: inner };
-    });
-    return { name: 'tr', attrs: {}, children: cells };
-  }
-  return blockToUnified(ir, opts, animate);
+function tablePartToUnified(ir: IRNode, enc: (s: string) => string): UnifiedNode {
+  return blockToUnified(ir, false, enc);
+}
+
+function isInlineIR(ir: IRNode): boolean {
+  return (
+    ir.t === 'strong' ||
+    ir.t === 'em' ||
+    ir.t === 'codespan' ||
+    ir.t === 'link' ||
+    ir.t === 'image' ||
+    ir.t === 'br'
+  );
 }
 
 /**
  * 将 IR 树转为统一 rich-text 节点数组（与微信 nodes 对齐，小写 name/class）。
  */
 export function irToUnifiedNodes(irNodes: IRNode[], options?: IrToUnifiedOptions): UnifiedNode[] {
-  const opts: IrToUnifiedOptions = { selectable: true, ...options };
-  const animate = opts.animation === true;
+  const animate = options?.animation === true;
+  const enc = options?.escapeText === false ? (s: string) => s : escapeHtml;
   const out: UnifiedNode[] = [];
   for (const ir of irNodes) {
     if (ir.t === 'space') continue;
-    const node = blockToUnified(ir, opts, animate);
-    if (node.children?.length === 0 && node.name === 'span') continue;
-    out.push(node);
+    out.push(blockToUnified(ir, animate, enc));
   }
   return out;
 }

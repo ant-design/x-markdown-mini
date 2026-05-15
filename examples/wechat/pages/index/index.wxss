@@ -1,0 +1,74 @@
+.page {
+  padding: 24rpx;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+.title {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+.actions {
+  display: flex;
+  gap: 12rpx;
+}
+.actions button {
+  margin: 0;
+}
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 与 IR → UnifiedNode 注入的 class 对齐，便于真机视觉验证 */
+.md-h1 { font-size: 44rpx; font-weight: 700; margin: 24rpx 0 16rpx; }
+.md-h2 { font-size: 36rpx; font-weight: 700; margin: 24rpx 0 16rpx; }
+.md-h3 { font-size: 32rpx; font-weight: 600; margin: 20rpx 0 12rpx; }
+.md-paragraph { line-height: 1.7; margin: 12rpx 0; }
+.md-strong { font-weight: 600; }
+.md-em { font-style: italic; }
+.md-inline-code {
+  font-family: ui-monospace, Menlo, monospace;
+  background: #f2f3f5;
+  padding: 2rpx 8rpx;
+  border-radius: 6rpx;
+  font-size: 26rpx;
+}
+.md-code-block {
+  background: #f6f8fa;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 26rpx;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-x: auto;
+  margin: 16rpx 0;
+}
+.md-blockquote {
+  border-left: 6rpx solid #d9dde3;
+  padding: 4rpx 16rpx;
+  color: #4e5969;
+  margin: 16rpx 0;
+}
+.md-link { color: #1677ff; }
+.md-list { padding-left: 36rpx; margin: 12rpx 0; }
+.md-list-item { margin: 6rpx 0; line-height: 1.7; }
+.md-table { border-collapse: collapse; margin: 16rpx 0; width: 100%; }
+.md-table th, .md-table td {
+  border: 1rpx solid #e5e6eb;
+  padding: 8rpx 12rpx;
+  text-align: left;
+}
+.md-animate-block {
+  animation: md-fade-in 240ms ease-out both;
+}
+@keyframes md-fade-in {
+  from { opacity: 0; transform: translateY(4rpx); }
+  to   { opacity: 1; transform: none; }
+}

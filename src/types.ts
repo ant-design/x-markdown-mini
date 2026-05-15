@@ -6,10 +6,35 @@ export interface SemanticStreamingConfig {
   delimiters?: RegExp;
   /** 单块最大字符数，超长句强制按长度切 */
   maxChunkSize?: number;
-  /** 块与块之间的延迟（ms） */
-  chunkDelays?: number[];
-  /** 块内字符/批的延迟（打字机速度） */
-  charDelays?: number[];
+  /** 语义块之间的延迟（ms） */
+  chunkDelay?: number;
+  /** 块内字符延迟（ms） */
+  charDelay?: number;
+}
+
+/**
+ * 流式渲染配置
+ */
+export interface StreamingConfig {
+  /**
+   * 是否还有后续输入。
+   * - true: 还有后续输入，保留未完成片段
+   * - false: 本轮输入后 flush 剩余内容并结束
+   */
+  hasNextChunk: boolean;
+  /**
+   * 语义分块开关 / 配置：
+   * - true: 启用默认语义分块
+   * - false: 关闭语义分块，按长度增量切块
+   * - object: 启用语义分块并覆盖配置
+   */
+  semantic?: boolean | SemanticStreamingConfig;
+  /**
+   * 流式块动画开关
+   * - true: 启用流式块动画
+   * - false: 关闭流式块动画
+   */
+  enableAnimation?: boolean;
 }
 
 export type Platform =
@@ -23,21 +48,22 @@ export type Platform =
   | 'jd'
   | 'other';
 
+export type PlatformInput = Platform | 'auto';
+
 export interface XMarkdownMiniProps {
   /** Markdown 文本（全量或当前累计流式内容） */
   content: string;
 
-  /** 目标平台，可选，不填则由各端包自行决定 */
-  platform?: Platform;
+  /** 目标平台，可选，默认 auto 自动识别 */
+  platform?: PlatformInput;
 
-  /** 是否在流式中，有后续 chunk；true 时启用增量缓存语义 */
-  hasNextChunk?: boolean;
-
-  /** 语义流式渲染配置 */
-  streaming?: false | true | SemanticStreamingConfig;
-
-  /** 动画开关 / 配置（块级 + 可选文本级） */
-  animation?: boolean;
+  /**
+   * 流式渲染：
+   * - false: 关闭流式，走一次性渲染
+   * - true: 开启默认流式优化（等同 { hasNextChunk: true, semantic: true, enableAnimation: true }）
+   * - object: 自定义流式行为，需显式提供 hasNextChunk
+   */
+  streaming?: false | true | StreamingConfig;
 
   /** 文本是否可选择（推荐默认 true，各端适配尽量映射） */
   selectable?: boolean;

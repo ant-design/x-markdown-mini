@@ -1,0 +1,675 @@
+html {
+  background: #ffffff;
+}
+
+body {
+  color: #0b0d10;
+  background: #ffffff;
+  font-family:
+    "Inter", "PingFang SC", "Hiragino Sans GB", ui-sans-serif, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+
+/* ----- header ----- */
+
+.dumi-default-header {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.dumi-default-header:not([data-static]) {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: saturate(180%) blur(18px);
+}
+
+.dumi-default-header-content {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 1200px !important;
+  height: 64px !important;
+  padding: 0 32px !important;
+  box-sizing: border-box !important;
+}
+
+.dumi-default-header-left {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  margin-inline-end: 28px !important;
+  min-width: 0 !important;
+}
+
+.dumi-default-logo {
+  gap: 8px;
+  width: auto !important;
+  min-width: max-content !important;
+  color: #0b0d10;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: visible !important;
+}
+
+.dumi-default-logo img {
+  width: 28px;
+  height: 28px;
+  margin-inline-end: 0;
+  display: block;
+}
+
+/* turn the right-aside into a transparent flex parent so we can reorder */
+.dumi-default-header-right {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.dumi-default-header-right-aside {
+  display: contents !important;
+}
+
+/* search comes right after the title */
+.dumi-default-search-bar {
+  order: 1 !important;
+  flex: 0 1 260px !important;
+  width: clamp(180px, 22vw, 260px) !important;
+  min-width: 0 !important;
+  margin-inline-end: auto !important;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.04);
+  border-color: transparent !important;
+  box-shadow: none !important;
+  height: 36px !important;
+  box-sizing: border-box;
+  overflow: hidden !important;
+}
+
+.dumi-default-search-bar:hover,
+.dumi-default-search-bar:focus-within {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: none !important;
+}
+
+.dumi-default-search-bar-input {
+  min-width: 0 !important;
+  background: transparent;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  appearance: none;
+}
+
+.dumi-default-search-bar-input:focus {
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.dumi-default-search-shortcut {
+  flex: 0 0 auto !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* nav comes after the search */
+.dumi-default-navbar {
+  order: 2 !important;
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+
+.dumi-default-navbar > li {
+  font-size: 14px;
+  color: #4b5563;
+  flex: 0 0 auto;
+}
+
+.dumi-default-navbar > li:not(:last-child) {
+  margin-inline-end: 24px;
+}
+
+.dumi-default-navbar > li > a.active,
+.dumi-default-navbar > li > span.active,
+.dumi-default-navbar > li > .dumi-default-navbar-dropdown > li > a.active {
+  color: #0b0d10;
+  font-weight: 600;
+}
+
+/* social icons / lang switch / etc come at the very end */
+.dumi-default-lang-switch,
+.dumi-default-rtl-switch,
+.dumi-default-color-switch,
+.dumi-default-icon {
+  order: 3 !important;
+  flex: 0 0 auto !important;
+}
+
+.dumi-default-icon > svg {
+  width: 16px;
+  height: 16px;
+}
+
+.dumi-default-header-menu-btn {
+  flex: 0 0 auto;
+}
+
+/* ----- doc layout ----- */
+
+.dumi-default-doc-layout {
+  background: transparent;
+  font-family: inherit;
+}
+
+.dumi-default-doc-layout > main {
+  max-width: 1200px;
+  padding: 28px 32px 0;
+  gap: 32px;
+}
+
+.dumi-default-content:not([data-no-sidebar]) {
+  padding: 36px 48px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.dumi-default-content[data-no-sidebar] {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 24px 56px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ----- sidebar ----- */
+
+.dumi-default-sidebar {
+  width: 220px;
+  padding: 16px 0 24px;
+}
+
+.dumi-default-sidebar dl {
+  margin-bottom: 22px;
+}
+
+.dumi-default-sidebar dl + dl {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.dumi-default-sidebar dt {
+  margin: 0 0 6px;
+  padding: 0 12px;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dumi-default-sidebar dd {
+  padding: 2px 0;
+}
+
+.dumi-default-sidebar dd > a {
+  display: block;
+  margin: 0;
+  padding: 7px 12px;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.4;
+  border-radius: 6px;
+  border: 0;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.dumi-default-sidebar dd > a:hover {
+  color: #0b0d10;
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.dumi-default-sidebar dd > a.active {
+  color: #0b0d10;
+  font-weight: 600;
+  background: rgba(22, 119, 255, 0.08);
+}
+
+/* ----- TOC (right side) ----- */
+
+.dumi-default-doc-layout > main > .dumi-default-doc-layout-toc-wrapper {
+  width: 200px;
+  margin-inline-start: 0;
+}
+
+.dumi-default-toc {
+  font-size: 13px;
+  border-inline-start: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.dumi-default-toc > li > a {
+  margin: 4px 0;
+  padding: 4px 14px;
+  color: #6b7280;
+  border-inline-start: 1px solid transparent;
+  margin-inline-start: -1px;
+  line-height: 1.5;
+}
+
+.dumi-default-toc > li > a:hover {
+  color: #0b0d10;
+}
+
+.dumi-default-toc > li > a.active {
+  color: #1677ff;
+  border-inline-start-color: #1677ff;
+}
+
+/* ----- content typography ----- */
+
+.markdown {
+  color: #0b0d10;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.markdown h1 {
+  margin-top: 0;
+  color: #0b0d10;
+  font-size: 32px;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.markdown h2 {
+  margin-top: 40px;
+  color: #0b0d10;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.markdown h3 {
+  color: #0b0d10;
+  font-size: 17px;
+}
+
+.markdown p,
+.markdown li {
+  color: #374151;
+}
+
+.markdown a {
+  color: #1677ff;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.markdown pre {
+  margin: 16px 0 24px;
+  padding: 16px 18px;
+  background: #fafafa;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 8px;
+}
+
+.markdown *:not(pre) code {
+  color: #0b0d10;
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.markdown table {
+  font-size: 14px;
+}
+
+.dumi-default-table-content {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+}
+
+.markdown th {
+  background: #fafafa;
+}
+
+.markdown th,
+.markdown td {
+  border-color: rgba(15, 23, 42, 0.06);
+}
+
+/* ----- home hero (streamdown-style) ----- */
+
+.markdown .xmd-home {
+  padding: 8px 0 12px;
+  min-width: 0;
+}
+
+.markdown .xmd-home-hero {
+  margin: 0 auto;
+  padding: 96px 0 64px;
+  max-width: 760px;
+  text-align: center;
+}
+
+.markdown .xmd-home-title {
+  margin: 0;
+  color: #0b0d10;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.markdown .xmd-home-title br {
+  display: block;
+}
+
+.markdown .xmd-home-subtitle {
+  max-width: 640px;
+  margin: 24px auto 0;
+  color: #6b7280;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.markdown .xmd-home-cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.markdown .xmd-home-command {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 12px 0 14px;
+  margin: 0;
+  color: #0b0d10;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.markdown .xmd-home-command:hover {
+  border-color: rgba(15, 23, 42, 0.22);
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.markdown .xmd-home-command-prompt {
+  color: #9aa0a6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.markdown .xmd-home-command-text {
+  color: #0b0d10;
+  background: transparent;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  white-space: nowrap;
+  padding: 0;
+}
+
+.markdown .xmd-home-command-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-inline-start: 4px;
+  color: #9aa0a6;
+  border-radius: 4px;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.markdown .xmd-home-command:hover .xmd-home-command-copy {
+  color: #0b0d10;
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.markdown .xmd-home-command[data-copied] {
+  border-color: #22c55e;
+}
+
+.markdown .xmd-home-command[data-copied] .xmd-home-command-copy {
+  color: #22c55e;
+}
+
+.markdown .xmd-home-command[data-copied]::after {
+  content: "已复制";
+  color: #22c55e;
+  font-size: 12px;
+  margin-inline-start: 2px;
+}
+
+.markdown .xmd-home-cta a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 16px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.markdown .xmd-home-cta a.xmd-home-primary {
+  color: #ffffff;
+  background: #0b0d10;
+  border: 1px solid #0b0d10;
+}
+
+.markdown .xmd-home-cta a.xmd-home-primary:hover {
+  background: #23272d;
+  border-color: #23272d;
+}
+
+.markdown .xmd-home-cta a.xmd-home-ghost {
+  color: #0b0d10;
+  background: transparent;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.markdown .xmd-home-cta a.xmd-home-ghost:hover {
+  border-color: rgba(15, 23, 42, 0.24);
+  background: rgba(15, 23, 42, 0.02);
+}
+
+/* ----- home grid ----- */
+
+.markdown .xmd-home-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0 auto 24px;
+  max-width: 960px;
+  min-width: 0;
+}
+
+.markdown .xmd-home-grid article {
+  min-width: 0;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.markdown .xmd-home-grid h2 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.markdown .xmd-home-grid p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+/* ----- responsive ----- */
+
+@media (max-width: 1024px) {
+  .dumi-default-header-content {
+    padding: 0 24px !important;
+  }
+
+  .dumi-default-header-left {
+    margin-inline-end: 20px !important;
+  }
+
+  .dumi-default-search-bar {
+    flex-basis: 220px !important;
+    width: 220px !important;
+  }
+
+  .dumi-default-navbar > li:not(:last-child) {
+    margin-inline-end: 18px;
+  }
+
+  .dumi-default-doc-layout > main {
+    gap: 24px;
+  }
+
+  .dumi-default-content:not([data-no-sidebar]) {
+    padding: 28px 24px 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .dumi-default-search-bar {
+    display: none !important;
+  }
+
+  .dumi-default-navbar {
+    margin-inline-start: auto !important;
+  }
+}
+
+@media (max-width: 767px) {
+  html,
+  body,
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .dumi-default-header-content {
+    height: 56px !important;
+    padding: 0 16px !important;
+  }
+
+  .dumi-default-header-left {
+    margin-inline-end: 12px !important;
+  }
+
+  .dumi-default-logo {
+    min-width: 0 !important;
+    font-size: 0;
+  }
+
+  /* restore mobile menu overlay layout */
+  .dumi-default-header-right {
+    gap: 0 !important;
+  }
+
+  .dumi-default-header-right-aside {
+    display: flex !important;
+  }
+
+  .dumi-default-search-bar,
+  .dumi-default-navbar,
+  .dumi-default-lang-switch,
+  .dumi-default-rtl-switch,
+  .dumi-default-color-switch,
+  .dumi-default-icon {
+    order: 0 !important;
+  }
+
+  .dumi-default-search-bar {
+    display: flex !important;
+    flex: 0 1 auto !important;
+    width: auto !important;
+    margin-inline-end: 0 !important;
+  }
+
+  .dumi-default-content[data-no-sidebar] {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 24px 20px;
+    overflow: hidden;
+  }
+
+  .dumi-default-doc-layout > main {
+    max-width: 100% !important;
+    padding-right: 16px !important;
+    padding-left: 16px !important;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .markdown {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .dumi-default-content:not([data-no-sidebar]) {
+    margin: 0;
+    padding: 20px 4px 0;
+  }
+
+  .markdown h1 {
+    font-size: 26px;
+  }
+
+  .markdown .xmd-home-hero {
+    padding: 48px 0 32px;
+  }
+
+  .markdown .xmd-home-title {
+    font-size: 36px;
+    line-height: 1.12;
+  }
+
+  .markdown .xmd-home-subtitle {
+    font-size: 16px;
+  }
+
+  .markdown .xmd-home-command {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .markdown .xmd-home-command-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .markdown .xmd-home-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,24 +1,21 @@
-import type { UnifiedNode } from '../types.js';
-import type { Platform } from '../types.js';
-import { toWechatNodes } from './wechat.js';
-import { toAlipayNodes } from './alipay.js';
-import { toDouyinNodes } from './douyin.js';
-import { toOtherNodes } from './other.js';
+import type { UnifiedNode, Platform } from '../types.js';
+import { adaptNodes } from './adapt.js';
+import { PLATFORM_ADAPTER_CONFIG } from './capabilities.js';
 
+/**
+ * 入口：按 platform 选择适配配置并应用。
+ */
 export function adaptToPlatform(nodes: UnifiedNode[], platform: Platform): UnifiedNode[] {
-  switch (platform) {
-    case 'wechat':
-      return toWechatNodes(nodes);
-    case 'alipay':
-      return toAlipayNodes(nodes);
-    case 'douyin':
-      return toDouyinNodes(nodes);
-    default:
-      return toOtherNodes(nodes);
-  }
+  return adaptNodes(nodes, PLATFORM_ADAPTER_CONFIG[platform]);
 }
 
+export { adaptNodes } from './adapt.js';
 export { toWechatNodes } from './wechat.js';
 export { toAlipayNodes } from './alipay.js';
 export { toDouyinNodes } from './douyin.js';
 export { toOtherNodes } from './other.js';
+export {
+  PLATFORM_CAPABILITIES,
+  PLATFORM_ADAPTER_CONFIG,
+} from './capabilities.js';
+export type { PlatformCapabilities, PlatformAdapterConfig } from './capabilities.js';

@@ -1,22 +1,19 @@
 import type { UnifiedNode } from '../types.js';
+import { adaptNodes } from './adapt.js';
+import type { PlatformCapabilities, PlatformAdapterConfig } from './capabilities.js';
 
 /**
- * 百度/QQ/快手/钉钉等：与微信类似，白名单微调。
- * 无 rich-text 的端可由此拿到统一节点后走通用递归组件（view/text）渲染。
+ * 通用适配器：基于 PlatformCapabilities 能力矩阵降级。
+ * - !preSupported: <pre> → <div class="md-code-block">
+ * - !tableSupported: <table> 扁平化为 div 结构
+ * - !blockquoteSupported: <blockquote> → <div class="md-blockquote">
+ * - 移除 selectable / class
+ * - httpsOnlyImages: 图片 http → https
  */
-export function toOtherNodes(nodes: UnifiedNode[]): UnifiedNode[] {
-  return nodes.map((n) => mapOne(n));
-}
-
-function mapOne(node: UnifiedNode): UnifiedNode {
-  const { name, attrs = {}, children } = node;
-  const mapped: UnifiedNode = {
-    name: name.toLowerCase(),
-    attrs: { ...attrs },
-  };
-  if (node.animate) mapped.animate = node.animate;
-  if (children?.length) {
-    mapped.children = children.map(mapOne);
-  }
-  return mapped;
+export function toOtherNodes(
+  nodes: UnifiedNode[],
+  caps: PlatformCapabilities,
+  extra?: Partial<Omit<PlatformAdapterConfig, 'caps'>>
+): UnifiedNode[] {
+  return adaptNodes(nodes, { caps, classMode: 'strip', ...extra });
 }

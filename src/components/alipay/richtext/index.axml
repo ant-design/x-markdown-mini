@@ -1,0 +1,101 @@
+<import-sjs from="./index.sjs" name="u" />
+
+<block a:for="{{nodes}}" a:for-item="node" a:for-index="i" a:key="i">
+  <!-- text leaf -->
+  <text
+    a:if="{{u.isText(node.name)}}"
+    class="{{u.classOf(node)}}"
+    selectable="{{selectable}}"
+  >{{u.valueOf(node)}}</text>
+
+  <!-- br -->
+  <text a:elif="{{u.isBr(node.name)}}">{{'\n'}}</text>
+
+  <!-- hr -->
+  <view a:elif="{{u.isHr(node.name)}}" class="{{u.classOf(node)}}" />
+
+  <!-- img -->
+  <image
+    a:elif="{{u.isImg(node.name)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    src="{{u.srcOf(node)}}"
+    mode="widthFix"
+    data-data="{{node}}"
+    catchTap="_tap"
+    onAppear="_appear"
+  />
+
+  <!-- pre: scrollable code container -->
+  <scroll-view
+    a:elif="{{u.isPre(node.name)}}"
+    scroll-x
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    data-data="{{node}}"
+    catchTap="_tap"
+  >
+    <richtext
+      a:if="{{node.children}}"
+      nodes="{{node.children}}"
+      selectable="{{selectable}}"
+      animation="{{false}}"
+      onTap="onTap"
+      onAppear="onAppear"
+    />
+  </scroll-view>
+
+  <!-- anchor: kept interactive, children are already flattened text runs -->
+  <text
+    a:elif="{{node.name === 'a'}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
+    data-data="{{node}}"
+    catchTap="_tap"
+  >
+    <text
+      a:for="{{node.children}}"
+      a:for-item="c"
+      a:for-index="ci"
+      a:key="ci"
+      class="{{u.classOf(c)}}"
+    >{{u.valueOf(c)}}</text>
+  </text>
+
+  <!-- inline tag rendered as <text>: children are flat text runs -->
+  <text
+    a:elif="{{u.isInline(node.name)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
+    data-data="{{node}}"
+    catchTap="_tap"
+  >
+    <text
+      a:for="{{node.children}}"
+      a:for-item="c"
+      a:for-index="ci"
+      a:key="ci"
+      class="{{u.classOf(c)}}"
+    >{{u.valueOf(c)}}</text>
+  </text>
+
+  <!-- block tag rendered as <view> -->
+  <view
+    a:else
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    data-data="{{node}}"
+    catchTap="_tap"
+  >
+    <richtext
+      a:if="{{node.children}}"
+      nodes="{{node.children}}"
+      selectable="{{selectable}}"
+      animation="{{animation}}"
+      onTap="onTap"
+      onAppear="onAppear"
+    />
+  </view>
+</block>

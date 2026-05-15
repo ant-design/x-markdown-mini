@@ -1,0 +1,85 @@
+.xmd-demo-code {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 16px 0;
+  background: #ffffff;
+}
+
+.xmd-demo-code-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  background: rgba(15, 23, 42, 0.02);
+  flex-wrap: wrap;
+}
+
+.xmd-demo-code-platforms,
+.xmd-demo-code-files {
+  display: inline-flex;
+  background: rgba(15, 23, 42, 0.04);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.xmd-demo-code-platform,
+.xmd-demo-code-file {
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  color: rgba(15, 23, 42, 0.6);
+  font-family: inherit;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    color: #1677ff;
+  }
+
+  &.is-active {
+    background: #ffffff;
+    color: #1677ff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  }
+}
+
+.xmd-demo-code-copy {
+  margin-left: auto;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  color: rgba(15, 23, 42, 0.7);
+  font-family: inherit;
+  transition: border-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    color: #1677ff;
+    border-color: rgba(22, 119, 255, 0.4);
+  }
+}
+
+.xmd-demo-code pre {
+  margin: 0;
+  padding: 16px;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  border-radius: 0;
+
+  code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
+}

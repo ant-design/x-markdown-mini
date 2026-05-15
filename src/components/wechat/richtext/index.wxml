@@ -1,0 +1,100 @@
+<wxs src="./index.wxs" module="u" />
+
+<block wx:for="{{nodes}}" wx:for-item="node" wx:for-index="i" wx:key="i">
+  <!-- text leaf -->
+  <text
+    wx:if="{{u.isText(node.name)}}"
+    class="{{u.classOf(node)}}"
+    selectable="{{selectable}}"
+  >{{u.valueOf(node)}}</text>
+
+  <!-- br -->
+  <text wx:elif="{{u.isBr(node.name)}}">{{'\n'}}</text>
+
+  <!-- hr -->
+  <view wx:elif="{{u.isHr(node.name)}}" class="{{u.classOf(node)}}" />
+
+  <!-- img -->
+  <image
+    wx:elif="{{u.isImg(node.name)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    src="{{u.srcOf(node)}}"
+    mode="widthFix"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  />
+
+  <!-- pre: scrollable code container -->
+  <scroll-view
+    wx:elif="{{u.isPre(node.name)}}"
+    scroll-x
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  >
+    <richtext
+      wx:if="{{node.children}}"
+      nodes="{{node.children}}"
+      selectable="{{selectable}}"
+      animation="{{false}}"
+      bind:tap="_tap"
+      bind:appear="_appear"
+    />
+  </scroll-view>
+
+  <!-- anchor: kept interactive, children are already flattened text runs -->
+  <text
+    wx:elif="{{node.name === 'a'}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  >
+    <text
+      wx:for="{{node.children}}"
+      wx:for-item="c"
+      wx:for-index="ci"
+      wx:key="ci"
+      class="{{u.classOf(c)}}"
+    >{{u.valueOf(c)}}</text>
+  </text>
+
+  <!-- inline tag rendered as <text>: children are flat text runs -->
+  <text
+    wx:elif="{{u.isInline(node.name)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  >
+    <text
+      wx:for="{{node.children}}"
+      wx:for-item="c"
+      wx:for-index="ci"
+      wx:key="ci"
+      class="{{u.classOf(c)}}"
+    >{{u.valueOf(c)}}</text>
+  </text>
+
+  <!-- block tag rendered as <view> -->
+  <view
+    wx:else
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  >
+    <richtext
+      wx:if="{{node.children}}"
+      nodes="{{node.children}}"
+      selectable="{{selectable}}"
+      animation="{{animation}}"
+      bind:tap="_tap"
+      bind:appear="_appear"
+    />
+  </view>
+</block>

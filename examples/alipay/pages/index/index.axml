@@ -1,0 +1,17 @@
+<view class="page">
+  <view class="header">
+    <view class="title">x-markdown-mini · Alipay</view>
+    <view class="actions">
+      <button size="mini" type="default" onTap="reset">一次性</button>
+      <button size="mini" type="primary" onTap="startStream">流式</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <markdown
+      content="{{content}}"
+      streaming="{{streaming}}"
+      onRenderComplete="onRenderComplete"
+    />
+  </view>
+</view>

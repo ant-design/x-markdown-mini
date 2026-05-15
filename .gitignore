@@ -3,7 +3,15 @@ node_modules/
 
 # Build
 dist/
+examples/*/dist/
 *.tsbuildinfo
+
+# Docs site (dumi)
+docs-site/node_modules/
+docs-site/.dumi/tmp/
+docs-site/.dumi/tmp-production/
+docs-site/.dumi/tmp-test/
+docs-site/dist/
 
 # Env
 .env

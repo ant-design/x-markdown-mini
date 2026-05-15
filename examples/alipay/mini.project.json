@@ -1,0 +1,9 @@
+{
+  "format": "json",
+  "compileType": "mini",
+  "miniprogramRoot": "./",
+  "compileOptions": {
+    "component2": true,
+    "typescript": false
+  }
+}

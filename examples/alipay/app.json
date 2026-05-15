@@ -1,0 +1,10 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "defaultTitle": "x-markdown-mini",
+    "titleBarColor": "#ffffff",
+    "backgroundColor": "#f7f8fa"
+  }
+}

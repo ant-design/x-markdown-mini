@@ -1,23 +1,13 @@
 import type { UnifiedNode } from '../types.js';
+import { adaptNodes } from './adapt.js';
+import { PLATFORM_ADAPTER_CONFIG } from './capabilities.js';
 
 /**
- * 微信小程序 rich-text 的 nodes 与统一节点结构基本一致（小写 name/attrs）。
- * 仅做标签白名单与属性兼容，直接返回副本。
- * 微信支持：div, span, p, a, img, b, i, strong, em, code, pre, blockquote, ul, ol, li, h1-h6, hr, table, thead, tbody, tr, th, td 等
+ * 微信小程序 rich-text 适配器：
+ * - 移除 selectable 与内部 class（rich-text 忽略内部 class，保留 <a> 的 md-link）
+ * - <a href="..."> → <a data-href="..." class="md-link">（消费方需绑定 tap 跳转）
+ * - 保留 <pre>、<table>、<blockquote>、<ol start>
  */
 export function toWechatNodes(nodes: UnifiedNode[]): UnifiedNode[] {
-  return nodes.map((n) => mapOne(n));
-}
-
-function mapOne(node: UnifiedNode): UnifiedNode {
-  const { name, attrs = {}, children } = node;
-  const mapped: UnifiedNode = {
-    name: name.toLowerCase(),
-    attrs: { ...attrs },
-  };
-  if (node.animate) mapped.animate = node.animate;
-  if (children?.length) {
-    mapped.children = children.map(mapOne);
-  }
-  return mapped;
+  return adaptNodes(nodes, PLATFORM_ADAPTER_CONFIG.wechat);
 }

@@ -1,25 +1,24 @@
-import { lex } from './core/lexer.js';
-import { tokensToIR } from './core/tokensToIR.js';
+import { parse, type LexerOptions } from './core/lexer.js';
 import { irToUnifiedNodes } from './core/irToUnifiedNodes.js';
-import type { UnifiedNode } from './types.js';
-import type { XMarkdownMiniProps } from './types.js';
+import type { UnifiedNode, XMarkdownMiniProps } from './types.js';
+
+export interface RunPipelineOptions {
+  animation?: boolean;
+  selectable?: boolean;
+  lexerOptions?: LexerOptions;
+  /** 见 IrToUnifiedOptions.escapeText。组件渲染场景应传 false。 */
+  escapeText?: boolean;
+}
 
 /**
- * 一次性解析：content → lexer → tokensToIR → irToUnifiedNodes → 统一节点
+ * 一次性解析：content → parse(IR) → irToUnifiedNodes → 统一节点。
  */
-export function runPipeline(
-  content: string,
-  options: {
-    animation?: boolean;
-    selectable?: boolean;
-    lexerOptions?: Record<string, unknown>;
-  } = {}
-): UnifiedNode[] {
-  const tokens = lex(content, options.lexerOptions as import('./core/lexer.js').LexerOptions);
-  const ir = tokensToIR(tokens as import('marked').Token[]);
+export function runPipeline(content: string, options: RunPipelineOptions = {}): UnifiedNode[] {
+  const ir = parse(content, options.lexerOptions);
   return irToUnifiedNodes(ir, {
     animation: options.animation,
     selectable: options.selectable,
+    escapeText: options.escapeText,
   });
 }
 
@@ -27,12 +26,12 @@ export function runPipeline(
  * 一次性渲染主入口（无流式）：返回统一节点，由调用方按 platform 选适配器。
  */
 export function renderOnce(props: XMarkdownMiniProps): UnifiedNode[] {
-  const { content, animation = false, selectable = true, options } = props;
+  const { content, selectable = true, options } = props;
   props.onRenderStart?.();
   const nodes = runPipeline(content, {
-    animation,
+    animation: false,
     selectable,
-    lexerOptions: options,
+    lexerOptions: options as LexerOptions | undefined,
   });
   props.onRenderComplete?.();
   return nodes;

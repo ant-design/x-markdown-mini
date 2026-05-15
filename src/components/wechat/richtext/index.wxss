@@ -1,0 +1,11 @@
+.md-animate-block {
+  animation-fill-mode: forwards;
+  animation-name: md-block-appear;
+  animation-timing-function: var(--md-animation-timing, ease-in);
+  animation-duration: var(--md-animation-duration, 300ms);
+}
+
+@keyframes md-block-appear {
+  0%   { opacity: 0; transform: translateY(4rpx); }
+  100% { opacity: 1; transform: translateY(0); }
+}
