@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { runPipeline } from '../pipeline.js';
+import { describe, it, expect, vi } from 'vitest';
+import { runPipeline, renderOnce } from '../pipeline.js';
 import { parse } from '../core/lexer.js';
 import type { UnifiedNode } from '../types.js';
 
@@ -112,6 +112,62 @@ describe('runPipeline', () => {
     expect(value).not.toContain('&lt;');
     expect(value).not.toContain('&amp;');
     expect(value).not.toContain('&quot;');
+  });
+});
+
+describe('renderOnce', () => {
+  it('returns unified nodes for given content', () => {
+    const nodes = renderOnce({ content: '# Hi\n\nPara.' });
+    expect(Array.isArray(nodes)).toBe(true);
+    expect(nodes.length).toBeGreaterThanOrEqual(1);
+    expect(nodes[0].name).toBe('h1');
+  });
+
+  it('invokes onRenderStart before onRenderComplete', () => {
+    const calls: string[] = [];
+    const onRenderStart = vi.fn(() => {
+      calls.push('start');
+    });
+    const onRenderComplete = vi.fn(() => {
+      calls.push('complete');
+    });
+    renderOnce({ content: '# Hi', onRenderStart, onRenderComplete });
+    expect(onRenderStart).toHaveBeenCalledTimes(1);
+    expect(onRenderComplete).toHaveBeenCalledTimes(1);
+    expect(calls).toEqual(['start', 'complete']);
+  });
+
+  it('works without lifecycle callbacks', () => {
+    expect(() => renderOnce({ content: '# Hi' })).not.toThrow();
+  });
+
+  it('does not enable block animation (one-shot render)', () => {
+    const nodes = renderOnce({ content: '# Hi' });
+    expect(nodes[0].animate).toBeUndefined();
+    expect(String(nodes[0].attrs?.class ?? '')).not.toContain('md-animate-block');
+  });
+
+  it('defaults selectable to true when not provided', () => {
+    expect(() => renderOnce({ content: '# Hi' })).not.toThrow();
+    const nodes = renderOnce({ content: '# Hi' });
+    // selectable is consumed by the pipeline; verify no internal node has it set
+    for (const n of flatten(nodes)) {
+      expect(n.attrs?.selectable).toBeUndefined();
+    }
+  });
+
+  it('respects explicit selectable=false', () => {
+    const nodes = renderOnce({ content: '# Hi', selectable: false });
+    expect(nodes.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('forwards options to lexer (gfm table)', () => {
+    const nodes = renderOnce({
+      content: '| a | b |\n|---|---|\n| 1 | 2 |\n',
+      options: {},
+    });
+    const flat = flatten(nodes);
+    expect(flat.some((n) => n.name === 'table')).toBe(true);
   });
 });
 

@@ -1,4 +1,4 @@
-import type { Platform } from '../types.js';
+import type { Platform } from '../platform.js';
 
 export interface PlatformCapabilities {
   /** <pre> 标签是否被 rich-text 支持 */
@@ -49,72 +49,9 @@ export const PLATFORM_CAPABILITIES: Record<Platform, PlatformCapabilities> = {
     httpsOnlyImages: true,
     videoSupported: false,
   },
-  douyin: {
-    preSupported: true,
-    tableSupported: true,
-    blockquoteSupported: true,
-    olStartSupported: true,
-    httpsOnlyImages: true,
-    videoSupported: true,
-  },
-  baidu: {
-    preSupported: false,
-    tableSupported: false,
-    blockquoteSupported: true,
-    olStartSupported: false,
-    httpsOnlyImages: false,
-    videoSupported: false,
-  },
-  qq: {
-    preSupported: false,
-    tableSupported: true,
-    blockquoteSupported: true,
-    olStartSupported: true,
-    httpsOnlyImages: false,
-    videoSupported: false,
-  },
-  kuaishou: {
-    preSupported: false,
-    tableSupported: false,
-    blockquoteSupported: false,
-    olStartSupported: false,
-    httpsOnlyImages: true,
-    videoSupported: false,
-  },
-  dingtalk: {
-    preSupported: false,
-    tableSupported: false,
-    blockquoteSupported: true,
-    olStartSupported: false,
-    httpsOnlyImages: false,
-    videoSupported: false,
-  },
-  jd: {
-    preSupported: false,
-    tableSupported: false,
-    blockquoteSupported: false,
-    olStartSupported: false,
-    httpsOnlyImages: false,
-    videoSupported: false,
-  },
-  other: {
-    preSupported: false,
-    tableSupported: false,
-    blockquoteSupported: false,
-    olStartSupported: false,
-    httpsOnlyImages: false,
-    videoSupported: false,
-  },
 };
 
 export const PLATFORM_ADAPTER_CONFIG: Record<Platform, PlatformAdapterConfig> = {
   wechat: { caps: PLATFORM_CAPABILITIES.wechat, classMode: 'strip', rewriteAnchorHref: true },
   alipay: { caps: PLATFORM_CAPABILITIES.alipay, classMode: 'strip' },
-  douyin: { caps: PLATFORM_CAPABILITIES.douyin, classMode: 'strip' },
-  baidu: { caps: PLATFORM_CAPABILITIES.baidu, classMode: 'strip' },
-  qq: { caps: PLATFORM_CAPABILITIES.qq, classMode: 'strip' },
-  kuaishou: { caps: PLATFORM_CAPABILITIES.kuaishou, classMode: 'strip' },
-  dingtalk: { caps: PLATFORM_CAPABILITIES.dingtalk, classMode: 'strip' },
-  jd: { caps: PLATFORM_CAPABILITIES.jd, classMode: 'strip' },
-  other: { caps: PLATFORM_CAPABILITIES.other, classMode: 'strip' },
 };

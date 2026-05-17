@@ -3,41 +3,13 @@ import type {
   UnifiedNode,
   SemanticStreamingConfig,
   StreamingConfig,
-  PlatformInput,
-  Platform,
 } from './types.js';
+import { resolvePlatform } from './platform.js';
 import { renderOnce } from './pipeline.js';
 import { adaptToPlatform } from './adapters/index.js';
 import { StreamingProcessor } from './streaming/StreamingProcessor.js';
 
 let streamProcessor: StreamingProcessor | null = null;
-
-function detectPlatformRuntime(): Platform {
-  const g = globalThis as unknown as Record<string, unknown>;
-  const has = (key: string): boolean => {
-    const obj = g[key];
-    if (!obj || typeof obj !== 'object') return false;
-    const target = obj as Record<string, unknown>;
-    return (
-      typeof target.getSystemInfo === 'function' || typeof target.getSystemInfoSync === 'function'
-    );
-  };
-
-  if (has('my')) return 'alipay';
-  if (has('wx')) return 'wechat';
-  if (has('tt')) return 'douyin';
-  if (has('swan')) return 'baidu';
-  if (has('qq')) return 'qq';
-  if (has('ks')) return 'kuaishou';
-  if (has('dd')) return 'dingtalk';
-  if (has('jd')) return 'jd';
-  return 'alipay';
-}
-
-export function resolvePlatform(platform?: PlatformInput): Platform {
-  if (!platform || platform === 'auto') return detectPlatformRuntime();
-  return platform;
-}
 
 interface NormalizedStreamingConfig {
   hasNextChunk: boolean;
@@ -108,6 +80,8 @@ export function render(props: XMarkdownMiniProps): UnifiedNode[] {
   return [];
 }
 
+export { resolvePlatform } from './platform.js';
+export type { Platform, PlatformInput } from './platform.js';
 export { runPipeline, renderOnce } from './pipeline.js';
 export { parse, lex, parseInline, irToUnifiedNodes } from './core/index.js';
 export {
@@ -115,8 +89,6 @@ export {
   adaptNodes,
   toWechatNodes,
   toAlipayNodes,
-  toDouyinNodes,
-  toOtherNodes,
   PLATFORM_CAPABILITIES,
   PLATFORM_ADAPTER_CONFIG,
 } from './adapters/index.js';
@@ -129,8 +101,6 @@ export type {
   IRNodeType,
   IRBlockType,
   IRInlineType,
-  Platform,
-  PlatformInput,
   SemanticStreamingConfig,
   StreamingConfig,
 } from './types.js';

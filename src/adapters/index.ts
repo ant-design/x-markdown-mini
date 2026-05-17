@@ -1,4 +1,5 @@
-import type { UnifiedNode, Platform } from '../types.js';
+import type { UnifiedNode } from '../types.js';
+import type { Platform } from '../platform.js';
 import { adaptNodes } from './adapt.js';
 import { PLATFORM_ADAPTER_CONFIG } from './capabilities.js';
 
@@ -12,8 +13,6 @@ export function adaptToPlatform(nodes: UnifiedNode[], platform: Platform): Unifi
 export { adaptNodes } from './adapt.js';
 export { toWechatNodes } from './wechat.js';
 export { toAlipayNodes } from './alipay.js';
-export { toDouyinNodes } from './douyin.js';
-export { toOtherNodes } from './other.js';
 export {
   PLATFORM_CAPABILITIES,
   PLATFORM_ADAPTER_CONFIG,

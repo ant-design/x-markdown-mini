@@ -1,32 +1,34 @@
-// 1. Copy mini-program static assets (.axml/.acss/.json/.sjs/.wxml/.wxss/.wxs)
-//    from src/components/** to dist/components/**, preserving layout.
-// 2. Sync the platform-specific dist subset into examples/{wechat,alipay}/dist/
-//    so each example folder is a self-contained mini-program project that
-//    WeChat / Alipay DevTools can open directly.
+// 1. 把 mini-program 静态资源（.axml/.acss/.json/.sjs/.wxml/.wxss/.wxs）
+//    从 src/components/{alipay,wechat}/<Comp>/ 复制到 dist 对应位置：
+//      alipay → dist/es/<Comp>/
+//      wechat → dist/miniprogram_dist/es/<Comp>/
+//    （JS 文件由 tsup 输出到同一位置）
+// 2. 同步 dist 内对应平台的子树到 examples/{wechat,alipay}/dist/，
+//    让两个 examples 目录可以被开发者工具直接打开。
 import { readdirSync, statSync, mkdirSync, copyFileSync, existsSync, rmSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const srcRoot = join(root, 'src', 'components');
 const distRoot = join(root, 'dist');
-const distComponentsRoot = join(distRoot, 'components');
+const distMpRoot = join(distRoot, 'miniprogram_dist');
 const examplesRoot = join(root, 'examples');
 
-const STATIC_EXT = /\.(axml|acss|json|sjs|wxml|wxss|wxs)$/;
+const ALIPAY_EXT = /\.(axml|acss|json|sjs)$/;
+const WECHAT_EXT = /\.(wxml|wxss|json|wxs)$/;
 
-function walkAssets(dir) {
-  for (const name of readdirSync(dir)) {
-    const p = join(dir, name);
-    const s = statSync(p);
+function walkAndCopy(srcDir, destDir, filter) {
+  if (!existsSync(srcDir)) return;
+  for (const name of readdirSync(srcDir)) {
+    const sp = join(srcDir, name);
+    const s = statSync(sp);
     if (s.isDirectory()) {
-      walkAssets(p);
-    } else if (STATIC_EXT.test(name)) {
-      const rel = relative(srcRoot, p);
-      const dest = join(distComponentsRoot, rel);
-      mkdirSync(dirname(dest), { recursive: true });
-      copyFileSync(p, dest);
+      walkAndCopy(sp, join(destDir, name), filter);
+    } else if (filter.test(name)) {
+      mkdirSync(destDir, { recursive: true });
+      copyFileSync(sp, join(destDir, name));
     }
   }
 }
@@ -42,29 +44,52 @@ function copyTree(src, dest) {
   }
 }
 
-walkAssets(srcRoot);
-console.log('[x-markdown-mini] component static assets copied to dist/components');
+// 1. 静态资源 — alipay → dist/es/<Comp>/, wechat → dist/miniprogram_dist/es/<Comp>/
+const alipaySrc = join(srcRoot, 'alipay');
+const wechatSrc = join(srcRoot, 'wechat');
+if (existsSync(alipaySrc)) {
+  for (const comp of readdirSync(alipaySrc)) {
+    const sd = join(alipaySrc, comp);
+    if (statSync(sd).isDirectory()) {
+      walkAndCopy(sd, join(distRoot, 'es', comp), ALIPAY_EXT);
+    }
+  }
+}
+if (existsSync(wechatSrc)) {
+  for (const comp of readdirSync(wechatSrc)) {
+    const sd = join(wechatSrc, comp);
+    if (statSync(sd).isDirectory()) {
+      walkAndCopy(sd, join(distMpRoot, 'es', comp), WECHAT_EXT);
+    }
+  }
+}
+console.log('[x-markdown-mini] component static assets copied to dist/es and dist/miniprogram_dist/es');
 
-// Sync dist → examples/{platform}/dist
+// 2. examples 同步：
+//    examples/alipay/dist/  ← dist/{index.js, index.mjs, index.d.ts, es/, shared/}
+//    examples/wechat/dist/  ← dist/miniprogram_dist/*
 if (existsSync(examplesRoot)) {
-  for (const platform of ['wechat', 'alipay']) {
-    const exampleDir = join(examplesRoot, platform);
-    if (!existsSync(exampleDir)) continue;
-
-    const out = join(exampleDir, 'dist');
+  // Alipay example: 用主 dist（不包括 miniprogram_dist）
+  const alipayExample = join(examplesRoot, 'alipay');
+  if (existsSync(alipayExample)) {
+    const out = join(alipayExample, 'dist');
     rmSync(out, { recursive: true, force: true });
     mkdirSync(out, { recursive: true });
-
-    // Top-level dist files (index.js / index.mjs / .d.ts)
     for (const name of readdirSync(distRoot)) {
+      if (name === 'miniprogram_dist') continue;
       const sp = join(distRoot, name);
-      if (statSync(sp).isFile()) copyFileSync(sp, join(out, name));
+      const dp = join(out, name);
+      if (statSync(sp).isDirectory()) copyTree(sp, dp);
+      else copyFileSync(sp, dp);
     }
-    // Platform components + shared helpers
-    for (const sub of [platform, 'shared']) {
-      const src = join(distComponentsRoot, sub);
-      if (existsSync(src)) copyTree(src, join(out, 'components', sub));
-    }
-    console.log(`[x-markdown-mini] examples/${platform}/dist synced`);
+    console.log('[x-markdown-mini] examples/alipay/dist synced');
+  }
+  // Wechat example: 用 miniprogram_dist 子树
+  const wechatExample = join(examplesRoot, 'wechat');
+  if (existsSync(wechatExample) && existsSync(distMpRoot)) {
+    const out = join(wechatExample, 'dist');
+    rmSync(out, { recursive: true, force: true });
+    copyTree(distMpRoot, out);
+    console.log('[x-markdown-mini] examples/wechat/dist synced');
   }
 }

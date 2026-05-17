@@ -17,50 +17,38 @@ pnpm add @ant-design/x-markdown-mini
 
 ## 两种用法
 
-### A. 直接用现成的小程序组件（推荐 / 默认 Alipay）
+### A. 直接用现成的小程序组件（推荐）
 
-包内附带了开箱即用的 **Alipay** 与 **微信** 小程序组件，把它注册到 `usingComponents` 即可：
+包内附带了开箱即用的 **Markdown** / **RichText** 小程序组件。**支付宝、微信使用同一条路径**——
+微信开发者工具读取 `package.json#miniprogram` 字段，自动解析到 wechat 子树；支付宝则走默认包根。
 
 ```jsonc
-// page.json （Alipay）
+// page.json（支付宝 & 微信都一样写）
 {
   "usingComponents": {
-    "markdown": "@ant-design/x-markdown-mini/alipay/markdown"
+    "markdown": "@ant-design/x-markdown-mini/es/Markdown/index"
   }
 }
 ```
 
 ```xml
-<!-- page.axml -->
+<!-- 支付宝 page.axml -->
 <markdown
   content="{{content}}"
   animation="{{true}}"
   selectable="{{true}}"
-  streaming="{{ { done: !hasNextChunk, semantic: true } }}"
-  hasNextChunk="{{hasNextChunk}}"
+  streaming="{{ { hasNextChunk: hasNextChunk, semantic: true } }}"
   onRenderComplete="onComplete"
 />
 ```
 
-微信小程序：
-
-```jsonc
-// page.json
-{
-  "usingComponents": {
-    "markdown": "@ant-design/x-markdown-mini/wechat/markdown"
-  }
-}
-```
-
 ```xml
-<!-- page.wxml -->
+<!-- 微信 page.wxml -->
 <markdown
   content="{{content}}"
   animation="{{true}}"
   selectable="{{true}}"
-  streaming="{{ { done: !hasNextChunk, semantic: true } }}"
-  hasNextChunk="{{hasNextChunk}}"
+  streaming="{{ { hasNextChunk: hasNextChunk, semantic: true } }}"
   bindrendercomplete="onComplete"
 />
 ```

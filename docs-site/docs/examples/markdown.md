@@ -15,16 +15,19 @@ group:
 
 ## Introduction
 
-在小程序工程里 npm install 后，按需引用支付宝 / 微信对应的 component path：
+在小程序工程里 npm install 后，支付宝 / 微信使用**同一条路径**：
 
 ```json
 // app.json / page index.json
 {
   "usingComponents": {
-    "markdown": "@ant-design/x-markdown-mini/alipay/markdown"
+    "markdown": "@ant-design/x-markdown-mini/es/Markdown/index"
   }
 }
 ```
+
+> 微信通过 `package.json#miniprogram` 字段自动解析到 wechat 子树（`dist/miniprogram_dist/`），
+> 支付宝走默认包根（`dist/`）。同一个导入路径在两端分别命中 `.wxml`/`.acss` 对应文件。
 
 ## 基础用法
 

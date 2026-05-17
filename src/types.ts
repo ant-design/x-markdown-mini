@@ -1,3 +1,7 @@
+import type { PlatformInput } from './platform.js';
+
+export type { Platform, PlatformInput } from './platform.js';
+
 /**
  * 语义流式渲染配置
  */
@@ -36,19 +40,6 @@ export interface StreamingConfig {
    */
   enableAnimation?: boolean;
 }
-
-export type Platform =
-  | 'wechat'
-  | 'alipay'
-  | 'douyin'
-  | 'baidu'
-  | 'qq'
-  | 'kuaishou'
-  | 'dingtalk'
-  | 'jd'
-  | 'other';
-
-export type PlatformInput = Platform | 'auto';
 
 export interface XMarkdownMiniProps {
   /** Markdown 文本（全量或当前累计流式内容） */

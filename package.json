@@ -5,18 +5,15 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "miniprogram": "dist",
+  "miniprogram": "dist/miniprogram_dist",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
-    "./alipay/markdown": "./dist/components/alipay/markdown/index.js",
-    "./alipay/richtext": "./dist/components/alipay/richtext/index.js",
-    "./wechat/markdown": "./dist/components/wechat/markdown/index.js",
-    "./wechat/richtext": "./dist/components/wechat/richtext/index.js",
-    "./components/*": "./dist/components/*"
+    "./es/*": "./dist/es/*",
+    "./shared/*": "./dist/shared/*"
   },
   "sideEffects": false,
   "files": [
@@ -24,7 +21,10 @@
   ],
   "scripts": {
     "build": "tsup && node scripts/patch-modern-regex.mjs && node scripts/copy-component-assets.mjs",
-    "test": "vitest",
+    "test": "vitest run --coverage",
+    "test:ci": "vitest --run --coverage --reporter=default --reporter=json --outputFile=test-results.json",
+    "check:test-rate": "node scripts/check-test-pass-rate.mjs",
+    "check:bundle": "node scripts/check-bundle.mjs",
     "lint": "eslint src --ext .ts",
     "docs": "npm run build && cd docs-site && npm run dev",
     "docs:build": "npm run build && cd docs-site && npm run build",
@@ -40,6 +40,8 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.0",
+    "es-check": "^7.2.1",
     "marked": "^18.0.3",
     "tsup": "^8.3.0",
     "typescript": "^5.6.0",
