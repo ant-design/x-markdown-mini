@@ -3,6 +3,7 @@ import {
   render,
   resolvePlatform,
   StreamingProcessor,
+  XMarkdownMini,
   adaptNodes,
   adaptToPlatform,
   toAlipayNodes,
@@ -239,5 +240,144 @@ describe('render (streaming)', () => {
       if (n.children) q.push(...n.children);
     }
     expect(flat.some((n) => n.name === 'br')).toBe(true);
+  });
+});
+
+describe('XMarkdownMini — multi-instance isolation', () => {
+  function extractText(nodes: UnifiedNode[]): string {
+    let t = '';
+    for (const n of nodes) {
+      if (n.name === 'text' && typeof n.attrs?.value === 'string') {
+        t += n.attrs.value;
+      }
+      if (n.children) t += extractText(n.children);
+    }
+    return t;
+  }
+
+  it('two instances streaming concurrently each receive their own patches', () => {
+    const a = new XMarkdownMini();
+    const b = new XMarkdownMini();
+
+    const aPatches: UnifiedNode[][] = [];
+    const bPatches: UnifiedNode[][] = [];
+
+    // Start both streams without completion
+    a.render({
+      content: '# Aaa',
+      platform: 'wechat',
+      streaming: true,
+      onPatch: (nodes) => aPatches.push(nodes),
+    });
+    b.render({
+      content: '# Bbb',
+      platform: 'wechat',
+      streaming: true,
+      onPatch: (nodes) => bPatches.push(nodes),
+    });
+
+    // Finish both
+    a.render({
+      content: '# Aaa\n\nDone-A',
+      platform: 'wechat',
+      streaming: { hasNextChunk: false },
+      onPatch: (nodes) => aPatches.push(nodes),
+    });
+    b.render({
+      content: '# Bbb\n\nDone-B',
+      platform: 'wechat',
+      streaming: { hasNextChunk: false },
+      onPatch: (nodes) => bPatches.push(nodes),
+    });
+
+    const aFinal = extractText(aPatches[aPatches.length - 1]);
+    const bFinal = extractText(bPatches[bPatches.length - 1]);
+
+    expect(aFinal).toContain('Aaa');
+    expect(aFinal).toContain('Done-A');
+    expect(aFinal).not.toContain('Bbb');
+
+    expect(bFinal).toContain('Bbb');
+    expect(bFinal).toContain('Done-B');
+    expect(bFinal).not.toContain('Aaa');
+  });
+
+  it('growing-prefix streaming updates accumulate (not duplicate)', () => {
+    const md = new XMarkdownMini();
+    const patches: UnifiedNode[][] = [];
+    const onPatch = (n: UnifiedNode[]): void => {
+      patches.push(n);
+    };
+
+    md.render({ content: '##', platform: 'wechat', streaming: true, onPatch });
+    md.render({
+      content: '## Headi',
+      platform: 'wechat',
+      streaming: true,
+      onPatch,
+    });
+    md.render({
+      content: '## Heading2',
+      platform: 'wechat',
+      streaming: { hasNextChunk: false },
+      onPatch,
+    });
+
+    const last = patches[patches.length - 1];
+    expect(last[0].name).toBe('h2');
+    expect(extractText(last)).toBe('Heading2');
+  });
+
+  it('adapt:false skips platform adapter (raw unified nodes)', () => {
+    const md = new XMarkdownMini({ adapt: false });
+    const patches: UnifiedNode[][] = [];
+    md.render({
+      content: 'A [x](http://e.com)',
+      platform: 'wechat',
+      streaming: { hasNextChunk: false },
+      onPatch: (nodes) => patches.push(nodes),
+    });
+    const last = patches[patches.length - 1];
+    const para = last[0];
+    const anchor = (para.children ?? []).find((c) => c.name === 'a');
+    // wechat adapter would rewrite href→data-href; with adapt:false, href stays
+    expect(anchor?.attrs?.href).toBe('http://e.com');
+    expect(anchor?.attrs?.['data-href']).toBeUndefined();
+  });
+
+  it('one-shot render fires onPatch with the final adapted nodes', () => {
+    const md = new XMarkdownMini();
+    const patches: UnifiedNode[][] = [];
+    const nodes = md.render({
+      content: '# Hi',
+      platform: 'wechat',
+      streaming: false,
+      onPatch: (n) => patches.push(n),
+    });
+    expect(patches.length).toBe(1);
+    expect(nodes[0].name).toBe('h1');
+    expect(patches[0][0].name).toBe('h1');
+  });
+
+  it('reset() clears in-flight stream state', () => {
+    const md = new XMarkdownMini();
+    const patches: UnifiedNode[][] = [];
+    md.render({
+      content: '# Hi',
+      platform: 'wechat',
+      streaming: true,
+      onPatch: (n) => patches.push(n),
+    });
+    md.reset();
+    // After reset, a new render starts fresh — onRenderStart fires again
+    const onRenderStart = vi.fn();
+    md.render({
+      content: '# Fresh',
+      platform: 'wechat',
+      streaming: true,
+      onRenderStart,
+      onPatch: (n) => patches.push(n),
+    });
+    expect(onRenderStart).toHaveBeenCalledTimes(1);
   });
 });

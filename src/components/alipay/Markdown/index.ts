@@ -1,5 +1,5 @@
-import { runPipeline, StreamingProcessor } from '../../../index.js';
-import type { UnifiedNode, StreamingConfig, SemanticStreamingConfig } from '../../../index.js';
+import { XMarkdownMini } from '../../../index.js';
+import type { UnifiedNode, StreamingConfig } from '../../../index.js';
 import { flattenInlineNodes } from '../../shared/flattenInline.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
@@ -25,33 +25,15 @@ const defaultProps: MarkdownProps = {
   className: '',
 };
 
-function normalizeStreaming(streaming: MarkdownProps['streaming']) {
-  if (!streaming) return null;
-  if (streaming === true) {
-    return {
-      hasNextChunk: true,
-      semanticEnabled: true as boolean,
-      semanticConfig: {} as SemanticStreamingConfig,
-      enableAnimation: true,
-    };
-  }
-  const semantic = streaming.semantic ?? true;
-  return {
-    hasNextChunk: streaming.hasNextChunk,
-    semanticEnabled: semantic !== false,
-    semanticConfig: typeof semantic === 'object' ? semantic : ({} as SemanticStreamingConfig),
-    enableAnimation: streaming.enableAnimation ?? true,
-  };
-}
-
 Component({
   props: defaultProps,
   data: {
     nodes: [] as UnifiedNode[],
   },
-  streamProcessor: null as StreamingProcessor | null,
+  md: null as XMarkdownMini | null,
 
   didMount(this: any) {
+    this.md = new XMarkdownMini({ adapt: false, escapeText: false });
     this._render(this.props);
   },
 
@@ -67,48 +49,25 @@ Component({
   },
 
   didUnmount(this: any) {
-    this.streamProcessor?.reset?.();
-    this.streamProcessor = null;
+    this.md?.reset();
+    this.md = null;
   },
 
   methods: {
     _render(this: any, props: MarkdownProps) {
-      const stream = normalizeStreaming(props.streaming);
-      if (!stream) {
-        this.streamProcessor?.reset?.();
-        this.streamProcessor = null;
-        props.onRenderStart?.();
-        const nodes = runPipeline(props.content, {
-          animation: false,
-          selectable: props.selectable,
-          lexerOptions: props.options ?? undefined,
-          escapeText: false,
-        });
-        this.setData({ nodes: flattenInlineNodes(nodes) });
-        props.onRenderComplete?.();
-        return;
-      }
-
-      if (!this.streamProcessor) {
-        this.streamProcessor = new StreamingProcessor({
-          semanticEnabled: stream.semanticEnabled,
-          ...stream.semanticConfig,
-          animation: stream.enableAnimation,
-          selectable: props.selectable,
-          lexerOptions: props.options ?? undefined,
-          escapeText: false,
-          onUpdate: (markdown) => props.onRenderProgress?.({ markdown }),
-          onPatch: (nodes) => this.setData({ nodes: flattenInlineNodes(nodes) }),
-          onComplete: () => {
-            props.onRenderComplete?.();
-            this.streamProcessor = null;
-          },
-        });
-        props.onRenderStart?.();
-      }
-
-      this.streamProcessor.handleContentUpdate(props.content);
-      this.streamProcessor.runRenderLoop(stream.hasNextChunk);
+      this.md.render({
+        content: props.content,
+        platform: 'alipay',
+        streaming: props.streaming,
+        selectable: props.selectable,
+        options: props.options ?? undefined,
+        onRenderStart: () => props.onRenderStart?.(),
+        onRenderProgress: (payload: { markdown: string }) =>
+          props.onRenderProgress?.(payload),
+        onRenderComplete: () => props.onRenderComplete?.(),
+        onPatch: (nodes: UnifiedNode[]) =>
+          this.setData({ nodes: flattenInlineNodes(nodes) }),
+      });
     },
 
     onTap(this: any, e: unknown) {
