@@ -1,0 +1,14 @@
+{
+  "name": "x-markdown-mini-alipay-benchmark",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Real Alipay miniprogram for comparing x-markdown-mini against towxml and a marked+rich-text baseline on the same corpus. Not published.",
+  "scripts": {
+    "sync-samples": "node scripts/sync-samples.mjs"
+  },
+  "dependencies": {
+    "@ant-design/x-markdown-mini": "file:../..",
+    "marked": "^18.0.3",
+    "towxml": "^2.2.0"
+  }
+}

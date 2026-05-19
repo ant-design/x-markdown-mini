@@ -1,0 +1,52 @@
+<view class="page">
+  <view class="header">
+    <view class="title">Markdown 渲染对比</view>
+    <view class="meta">语料：{{sampleName}} · {{sampleBytes}} 字节</view>
+    <view class="actions">
+      <button size="mini" type="primary" onTap="runAll" disabled="{{running}}">
+        {{running ? '运行中…' : '重新跑'}}
+      </button>
+      <button size="mini" onTap="cycle" disabled="{{running}}">
+        切换语料
+      </button>
+    </view>
+  </view>
+
+  <view class="stats">
+    <view class="row header-row">
+      <view class="col col-name">库</view>
+      <view class="col col-time">渲染耗时 (ms)</view>
+      <view class="col col-trend">相对最快</view>
+    </view>
+    <block a:for="{{rows}}" a:key="key">
+      <view class="row">
+        <view class="col col-name">{{item.label}}</view>
+        <view class="col col-time">{{item.time === null ? '—' : item.time.toFixed(1)}}</view>
+        <view class="col col-trend">{{item.trend || '—'}}</view>
+      </view>
+    </block>
+  </view>
+
+  <view class="panels">
+    <view class="panel">
+      <view class="panel-title">x-markdown-mini</view>
+      <x-markdown content="{{xContent}}" onRenderComplete="onXReady" />
+    </view>
+
+    <view class="panel">
+      <view class="panel-title">towxml</view>
+      <towxml nodes="{{towxmlNodes}}" />
+    </view>
+
+    <view class="panel">
+      <view class="panel-title">marked + rich-text</view>
+      <rich-text nodes="{{rtHtml}}" />
+    </view>
+  </view>
+
+  <view class="footnote">
+    各库测的是「点击 → 渲染就绪事件 / setData callback」的 JS 侧总耗时（含库内 parse + setData 推送）。
+    rich-text 原生 layout/paint 的部分不在 JS 可观测范围内。
+    数字会有几毫秒抖动，建议多跑几次取中位数。
+  </view>
+</view>
