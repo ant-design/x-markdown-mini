@@ -38,5 +38,8 @@ coverage/
 .nyc_output/
 test-results.json
 
+# Bench
+benchmark/results.json
+
 # Optional
 *.local.*
