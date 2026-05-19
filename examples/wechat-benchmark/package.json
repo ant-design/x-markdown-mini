@@ -1,0 +1,14 @@
+{
+  "name": "x-markdown-mini-wechat-benchmark",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Real WeChat miniprogram for comparing x-markdown-mini against mp-html and towxml on the same corpus. Not published.",
+  "scripts": {
+    "sync-samples": "node scripts/sync-samples.mjs"
+  },
+  "dependencies": {
+    "@ant-design/x-markdown-mini": "file:../..",
+    "mp-html": "^2.5.0",
+    "towxml": "^2.2.0"
+  }
+}

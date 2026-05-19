@@ -1,0 +1,4 @@
+{
+  "desc": "internal benchmark only — not for distribution",
+  "rules": [{ "action": "disallow", "page": "*" }]
+}

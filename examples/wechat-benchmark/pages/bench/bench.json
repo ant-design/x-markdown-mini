@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "Markdown 渲染对比",
+  "usingComponents": {
+    "x-markdown": "@ant-design/x-markdown-mini/es/Markdown/index",
+    "mp-html": "mp-html",
+    "towxml": "towxml"
+  }
+}
