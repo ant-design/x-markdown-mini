@@ -144,8 +144,8 @@ export function render(props: XMarkdownMiniProps): UnifiedNode[] {
 
 export { resolvePlatform } from './platform.js';
 export type { Platform, PlatformInput } from './platform.js';
-export { runPipeline, renderOnce } from './pipeline.js';
-export { parse, lex, parseInline, irToUnifiedNodes } from './core/index.js';
+export { runPipeline } from './pipeline.js';
+export { parse, parseInline, irToUnifiedNodes } from './core/index.js';
 export {
   adaptToPlatform,
   adaptNodes,
@@ -166,6 +166,7 @@ export type {
   IRNodeType,
   IRBlockType,
   IRInlineType,
+  RenderContext,
   SemanticStreamingConfig,
   StreamingConfig,
 } from './types.js';

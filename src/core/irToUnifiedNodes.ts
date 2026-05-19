@@ -1,15 +1,6 @@
-import type { IRNode, UnifiedNode } from '../types.js';
+import type { IRNode, IRInlineType, RenderContext, UnifiedNode } from '../types.js';
 
-export interface IrToUnifiedOptions {
-  animation?: boolean;
-  selectable?: boolean;
-  /**
-   * 是否对文本节点的 value 做 HTML 实体转义（&、<、>、"）。
-   * - true（默认）：节点用于原生 rich-text，rich-text 会自动解码
-   * - false：节点用于本库自渲染组件（<text>{{value}}</text> 不解码实体）
-   */
-  escapeText?: boolean;
-}
+export type IrToUnifiedOptions = RenderContext;
 
 const ANIMATE_CLASS = 'md-animate-block';
 
@@ -55,6 +46,13 @@ function inlineToUnified(nodes: IRNode[] | undefined, enc: (s: string) => string
         break;
       case 'em':
         out.push({ name: 'em', attrs: {}, children: inlineToUnified(n.c, enc) });
+        break;
+      case 'del':
+        out.push({
+          name: 'del',
+          attrs: { class: 'md-del' },
+          children: inlineToUnified(n.c, enc),
+        });
         break;
       case 'codespan':
         out.push({
@@ -145,7 +143,7 @@ function blockToUnified(ir: IRNode, animate: boolean, enc: (s: string) => string
     case 'html':
       return { name: 'div', attrs: { class: 'md-html' }, children: [{ name: 'text', attrs: { value: ir.raw ?? '' } }] };
     case 'table': {
-      const children = (ir.c ?? []).map((c) => tablePartToUnified(c, enc));
+      const children = (ir.c ?? []).map((c) => blockToUnified(c, false, enc));
       return makeBlock('table', 'md-table', children, animate);
     }
     case 'thead': {
@@ -181,19 +179,12 @@ function blockToUnified(ir: IRNode, animate: boolean, enc: (s: string) => string
   }
 }
 
-function tablePartToUnified(ir: IRNode, enc: (s: string) => string): UnifiedNode {
-  return blockToUnified(ir, false, enc);
-}
+const INLINE_IR_TYPES: ReadonlySet<IRInlineType> = new Set([
+  'strong', 'em', 'del', 'codespan', 'link', 'image', 'br',
+]);
 
 function isInlineIR(ir: IRNode): boolean {
-  return (
-    ir.t === 'strong' ||
-    ir.t === 'em' ||
-    ir.t === 'codespan' ||
-    ir.t === 'link' ||
-    ir.t === 'image' ||
-    ir.t === 'br'
-  );
+  return INLINE_IR_TYPES.has(ir.t as IRInlineType);
 }
 
 /**

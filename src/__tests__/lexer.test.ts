@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parse, lex, parseInline } from '../core/lexer.js';
+import { parse, parseInline } from '../core/lexer.js';
 import type { IRNode } from '../types.js';
 
 function flatTypes(nodes: IRNode[]): string[] {
@@ -13,10 +13,7 @@ function flatTypes(nodes: IRNode[]): string[] {
   return out;
 }
 
-describe('parse / lex (block-level edge cases)', () => {
-  it('lex is an alias of parse', () => {
-    expect(lex).toBe(parse);
-  });
+describe('parse (block-level edge cases)', () => {
 
   it('drops space tokens between blocks (returns null → filtered)', () => {
     const ir = parse('# A\n\n\n\n# B\n');
@@ -64,8 +61,7 @@ describe('parse / lex (block-level edge cases)', () => {
     expect(types).toContain('codespan');
     expect(types).toContain('link');
     expect(types).toContain('image');
-    // del IR is collapsed to text children, never appears as 'del'
-    expect(types).not.toContain('del');
+    expect(types).toContain('del');
   });
 
   it('attaches title to link when present', () => {

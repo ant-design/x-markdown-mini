@@ -96,6 +96,7 @@ export type IRBlockType =
 export type IRInlineType =
   | 'strong'
   | 'em'
+  | 'del'
   | 'codespan'
   | 'link'
   | 'image'
@@ -116,6 +117,20 @@ export interface IRNode {
 }
 
 // --- 统一 rich-text 节点（与微信 nodes 对齐）---
+
+/** 渲染上下文：贯穿解析→IR→UnifiedNode 全链路的公共配置，避免逐层参数穿透。 */
+export interface RenderContext {
+  /** 是否启用块级动画 */
+  animation?: boolean;
+  /** 文本是否可选择 */
+  selectable?: boolean;
+  /**
+   * 是否对文本节点的 value 做 HTML 实体转义。
+   * - true（默认）：用于原生 rich-text
+   * - false：用于自渲染组件（<text>{{value}}</text> 不解码实体）
+   */
+  escapeText?: boolean;
+}
 
 export interface UnifiedNode {
   /** 标签名，小写 */

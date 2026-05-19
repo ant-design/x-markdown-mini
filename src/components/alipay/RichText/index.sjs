@@ -1,4 +1,4 @@
-var INLINE = { strong: 1, em: 1, code: 1, a: 1, span: 1 };
+var INLINE = { strong: 1, em: 1, del: 1, code: 1, a: 1, span: 1 };
 var BLOCK = {
   p: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, h6: 1,
   div: 1, blockquote: 1, ul: 1, ol: 1, li: 1,

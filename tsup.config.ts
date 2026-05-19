@@ -40,20 +40,7 @@ export default defineConfig([
     target: 'es2018',
     noExternal: ['marked'],
   },
-  // 2) 微信专用主库副本 — wechat 通过 miniprogram 字段把 dist/miniprogram_dist 当包根，
-  //    `import { render } from '@ant-design/x-markdown-mini'` 解析到这里。
-  {
-    entry: { index: 'src/index.ts' },
-    outDir: 'dist/miniprogram_dist',
-    format: ['cjs'],
-    dts: false,
-    clean: false,
-    sourcemap: false,
-    splitting: false,
-    target: 'es2018',
-    noExternal: ['marked'],
-  },
-  // 3) shared helpers（两份，分别放在 alipay/wechat 各自的包根下）
+  // 2) shared helpers（仅主 dist；miniprogram_dist 副本由 copy-miniprogram-dist.mjs 生成）
   {
     entry: { 'shared/flattenInline': 'src/components/shared/flattenInline.ts' },
     outDir: 'dist',
@@ -63,16 +50,7 @@ export default defineConfig([
     clean: false,
     target: 'es2018',
   },
-  {
-    entry: { 'shared/flattenInline': 'src/components/shared/flattenInline.ts' },
-    outDir: 'dist/miniprogram_dist',
-    format: ['cjs'],
-    bundle: false,
-    dts: false,
-    clean: false,
-    target: 'es2018',
-  },
-  // 4) Alipay 组件 — bundle: true 但 core/shared external，输出只剩 wrapper 逻辑
+  // 3) Alipay 组件 — bundle: true 但 core/shared external，输出只剩 wrapper 逻辑
   {
     entry: {
       'es/Markdown/index': 'src/components/alipay/Markdown/index.ts',
@@ -88,7 +66,7 @@ export default defineConfig([
     target: 'es2018',
     esbuildPlugins: [externalCorePlugin],
   },
-  // 5) Wechat 组件 — 同上，输出到 miniprogram_dist 子树
+  // 4) Wechat 组件 — 同上，输出到 miniprogram_dist 子树
   {
     entry: {
       'es/Markdown/index': 'src/components/wechat/Markdown/index.ts',

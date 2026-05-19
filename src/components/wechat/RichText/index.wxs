@@ -1,4 +1,4 @@
-var INLINE = { strong: 1, em: 1, code: 1, a: 1, span: 1 };
+var INLINE = { strong: 1, em: 1, del: 1, code: 1, a: 1, span: 1 };
 
 function isInline(name) { return INLINE[name] === 1; }
 function isText(name) { return name === 'text'; }

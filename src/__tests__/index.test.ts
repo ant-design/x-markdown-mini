@@ -9,11 +9,9 @@ import {
   toAlipayNodes,
   toWechatNodes,
   parse,
-  lex,
   parseInline,
   irToUnifiedNodes,
   runPipeline,
-  renderOnce,
   PLATFORM_CAPABILITIES,
   PLATFORM_ADAPTER_CONFIG,
 } from '../index.js';
@@ -48,11 +46,9 @@ describe('public re-exports', () => {
     expect(typeof toAlipayNodes).toBe('function');
     expect(typeof toWechatNodes).toBe('function');
     expect(typeof parse).toBe('function');
-    expect(typeof lex).toBe('function');
     expect(typeof parseInline).toBe('function');
     expect(typeof irToUnifiedNodes).toBe('function');
     expect(typeof runPipeline).toBe('function');
-    expect(typeof renderOnce).toBe('function');
     expect(PLATFORM_CAPABILITIES).toBeDefined();
     expect(PLATFORM_ADAPTER_CONFIG).toBeDefined();
   });

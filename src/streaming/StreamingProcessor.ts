@@ -1,22 +1,20 @@
-import type { SemanticStreamingConfig, UnifiedNode } from '../types.js';
+import type { RenderContext, UnifiedNode } from '../types.js';
 import { parse, type LexerOptions } from '../core/lexer.js';
 import { irToUnifiedNodes } from '../core/irToUnifiedNodes.js';
 
 const DEFAULT_DELIMITERS = /[。？！……；：——，、\n]/;
 const DEFAULT_MAX_CHUNK_SIZE = 80;
 
-export interface StreamingProcessorConfig extends SemanticStreamingConfig {
+export interface StreamingProcessorConfig extends RenderContext {
   onUpdate: (markdown: string) => void;
   onPatch: (nodes: UnifiedNode[]) => void;
   onComplete: () => void;
-  animation?: boolean;
-  selectable?: boolean;
   lexerOptions?: LexerOptions;
   semanticEnabled?: boolean;
+  delimiters?: RegExp;
+  maxChunkSize?: number;
   chunkDelay?: number;
   charDelay?: number;
-  /** 见 IrToUnifiedOptions.escapeText。组件渲染场景应传 false。 */
-  escapeText?: boolean;
 }
 
 /**
@@ -34,23 +32,44 @@ export class StreamingProcessor {
 
   private stableNodes: UnifiedNode[] = [];
   private committedLen = 0;
+  /** Whether the character at committedLen is inside a fenced code block (used for incremental scanning). */
+  private committedInFence = false;
+  private committedFenceChar = '';
 
   private pendingChunks: string[] = [];
   private chunkIndex = 0;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private currentHasNextChunk = false;
 
-  private readonly config: Required<Pick<StreamingProcessorConfig, 'chunkDelay' | 'charDelay' | 'semanticEnabled'>> &
-    Omit<StreamingProcessorConfig, 'chunkDelay' | 'charDelay' | 'semanticEnabled'>;
+  private readonly config: {
+    onUpdate: (markdown: string) => void;
+    onPatch: (nodes: UnifiedNode[]) => void;
+    onComplete: () => void;
+    animation?: boolean;
+    selectable?: boolean;
+    lexerOptions?: LexerOptions;
+    semanticEnabled: boolean;
+    delimiters: RegExp;
+    maxChunkSize: number;
+    chunkDelay: number;
+    charDelay: number;
+    escapeText?: boolean;
+  };
 
   constructor(cfg: StreamingProcessorConfig) {
     this.config = {
-      delimiters: DEFAULT_DELIMITERS,
-      maxChunkSize: DEFAULT_MAX_CHUNK_SIZE,
+      onUpdate: cfg.onUpdate,
+      onPatch: cfg.onPatch,
+      onComplete: cfg.onComplete,
+      animation: cfg.animation,
+      selectable: cfg.selectable,
+      lexerOptions: cfg.lexerOptions,
+      semanticEnabled: cfg.semanticEnabled ?? true,
+      delimiters: cfg.delimiters ?? DEFAULT_DELIMITERS,
+      maxChunkSize: cfg.maxChunkSize ?? DEFAULT_MAX_CHUNK_SIZE,
       chunkDelay: cfg.chunkDelay ?? 0,
       charDelay: cfg.charDelay ?? 0,
-      semanticEnabled: cfg.semanticEnabled ?? true,
-      ...cfg,
+      escapeText: cfg.escapeText,
     };
   }
 
@@ -73,6 +92,8 @@ export class StreamingProcessor {
     this.chunkIndex = 0;
     this.stableNodes = [];
     this.committedLen = 0;
+    this.committedInFence = false;
+    this.committedFenceChar = '';
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
@@ -195,18 +216,30 @@ export class StreamingProcessor {
     }, this.chunkIndex === 0 ? 0 : chunkDelay);
   }
 
-  /** 推进 commit 点：扫描已渲染文本中位于 fenced code 之外的最后一段「双换行」位置。 */
+  /** 推进 commit 点：从上次 committedLen 开始增量扫描，找 fenced code 之外的最后一段「双换行」位置。 */
   private advanceCommit(): void {
     const text = this.renderedText;
     if (this.committedLen >= text.length) return;
 
-    let inFence = false;
-    let fenceChar = '';
-    let lineStart = 0;
+    // Start from the line boundary at or before committedLen.
+    // We know the fence state at committedLen from the previous call.
+    let inFence = this.committedInFence;
+    let fenceChar = this.committedFenceChar;
+    let lineStart = this.committedLen;
+
+    // Rewind to the start of the current line so we get complete lines.
+    if (this.committedLen > 0) {
+      let ls = this.committedLen;
+      while (ls > 0 && text[ls - 1] !== '\n') ls--;
+      lineStart = ls;
+    }
+
     let lastSafe = -1;
+    let lastSafeInFence = false;
+    let lastSafeFenceChar = '';
     let prevBlank = false;
 
-    for (let i = 0; i <= text.length; i++) {
+    for (let i = lineStart; i <= text.length; i++) {
       if (i === text.length || text[i] === '\n') {
         const line = text.slice(lineStart, i);
         // fence open/close detection
@@ -224,6 +257,8 @@ export class StreamingProcessor {
         // 双连续空行（且不在 fence 内）= 可安全 commit 的边界
         if (!inFence && isBlank && prevBlank) {
           lastSafe = i + 1;
+          lastSafeInFence = inFence;
+          lastSafeFenceChar = fenceChar;
         }
         prevBlank = isBlank && !inFence;
         lineStart = i + 1;
@@ -233,14 +268,21 @@ export class StreamingProcessor {
     if (lastSafe > this.committedLen) {
       const segment = text.slice(this.committedLen, lastSafe);
       const ir = parse(segment, this.config.lexerOptions);
-      const nodes = irToUnifiedNodes(ir, {
-        animation: this.config.animation,
-        selectable: this.config.selectable,
-        escapeText: this.config.escapeText,
-      });
+      const nodes = irToUnifiedNodes(ir, this.renderContext());
       this.stableNodes.push(...nodes);
       this.committedLen = lastSafe;
+      this.committedInFence = lastSafeInFence;
+      this.committedFenceChar = lastSafeFenceChar;
     }
+  }
+
+  /** Extract RenderContext fields from this.config for irToUnifiedNodes. */
+  private renderContext(): { animation?: boolean; selectable?: boolean; escapeText?: boolean } {
+    return {
+      animation: this.config.animation,
+      selectable: this.config.selectable,
+      escapeText: this.config.escapeText,
+    };
   }
 
   /** 重新解析 tail 部分，与 stableNodes 合并后 emit。 */
@@ -251,11 +293,7 @@ export class StreamingProcessor {
     this.advanceCommit();
     const tail = this.renderedText.slice(this.committedLen);
     const tailNodes = tail
-      ? irToUnifiedNodes(parse(tail, this.config.lexerOptions), {
-          animation: this.config.animation,
-          selectable: this.config.selectable,
-          escapeText: this.config.escapeText,
-        })
+      ? irToUnifiedNodes(parse(tail, this.config.lexerOptions), this.renderContext())
       : [];
 
     onPatch(this.stableNodes.concat(tailNodes));

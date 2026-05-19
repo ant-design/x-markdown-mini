@@ -14,6 +14,7 @@ export function flattenInlineNodes(nodes: UnifiedNode[]): UnifiedNode[] {
 const INLINE_TAGS: Record<string, true> = {
   strong: true,
   em: true,
+  del: true,
   code: true,
   span: true,
 };
@@ -21,7 +22,7 @@ const INLINE_TAGS: Record<string, true> = {
 const TAG_CLASS: Record<string, string> = {
   strong: 'md-strong',
   em: 'md-em',
-  // 'code' 已在 IR 层带 class="md-inline-code"，'span' 不附加额外 class
+  // 'del' 已在 IR 层带 class="md-del"，'code' 已在 IR 层带 class="md-inline-code"，'span' 不附加额外 class
 };
 
 function walk(node: UnifiedNode): UnifiedNode {

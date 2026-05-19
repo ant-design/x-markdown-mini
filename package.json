@@ -20,7 +20,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup && node scripts/patch-modern-regex.mjs && node scripts/copy-component-assets.mjs",
+    "build": "tsup && node scripts/patch-modern-regex.mjs && node scripts/copy-miniprogram-dist.mjs && node scripts/copy-component-assets.mjs",
     "test": "vitest run --coverage",
     "test:ci": "vitest --run --coverage --reporter=default --reporter=json --outputFile=test-results.json",
     "check:test-rate": "node scripts/check-test-pass-rate.mjs",

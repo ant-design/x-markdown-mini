@@ -41,7 +41,6 @@ const DETECTORS: ReadonlyArray<Detector> = [
 ];
 
 const DEFAULT_PLATFORM: Platform = 'alipay';
-const LOG_PREFIX = '[x-markdown-mini/platform]';
 
 function isRuntimeObject(obj: unknown): boolean {
   if (!obj || typeof obj !== 'object') return false;
@@ -61,13 +60,9 @@ function detectPlatformRuntime(): Platform {
       continue;
     }
     if (isRuntimeObject(obj)) {
-      console.log(`${LOG_PREFIX} detected: ${platform} (runtime: ${name})`);
       return platform;
     }
   }
-  console.log(
-    `${LOG_PREFIX} no runtime detected, fallback: ${DEFAULT_PLATFORM}`,
-  );
   return DEFAULT_PLATFORM;
 }
 

@@ -21,9 +21,6 @@ export function parse(markdown: string, options: LexerOptions = {}): IRNode[] {
   return blockTokensToIR(tokens);
 }
 
-/** 兼容旧名：与 parse 等价。 */
-export const lex = parse;
-
 /** 解析行内 Markdown 文本为 IR 行内节点数组。 */
 export function parseInline(src: string, options: LexerOptions = {}): IRNode[] {
   const tokens = Lexer.lexInline(src, buildMarkedOptions(options));
@@ -187,9 +184,8 @@ function inlineTokenToIR(tok: Token): IRNode | IRNode[] | null {
       return { t: 'image', a };
     }
     case 'del': {
-      // IR 暂无 del 节点，拍平为内部 inline 文本（保留可读性，丢弃删除线样式）
       const t = tok as Tokens.Del;
-      return inlineTokensToIR(t.tokens ?? []);
+      return { t: 'del', c: inlineTokensToIR(t.tokens ?? []) };
     }
     case 'html': {
       // 行内 html / 标签：作为纯文本透传

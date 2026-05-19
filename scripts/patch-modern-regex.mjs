@@ -34,5 +34,3 @@ function patch(file) {
 
 patch(join(distDir, 'index.js'));
 patch(join(distDir, 'index.mjs'));
-// 微信专用副本同样包含 marked 里带命名捕获组的 regex，需要一并 patch
-patch(join(distDir, 'miniprogram_dist', 'index.js'));

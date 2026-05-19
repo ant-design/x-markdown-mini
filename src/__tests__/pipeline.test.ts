@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { runPipeline, renderOnce } from '../pipeline.js';
+import { runPipeline } from '../pipeline.js';
+import { XMarkdownMini } from '../index.js';
 import { parse } from '../core/lexer.js';
 import type { UnifiedNode } from '../types.js';
 
@@ -115,15 +116,17 @@ describe('runPipeline', () => {
   });
 });
 
-describe('renderOnce', () => {
+describe('XMarkdownMini one-shot render', () => {
   it('returns unified nodes for given content', () => {
-    const nodes = renderOnce({ content: '# Hi\n\nPara.' });
+    const md = new XMarkdownMini();
+    const nodes = md.render({ content: '# Hi\n\nPara.' });
     expect(Array.isArray(nodes)).toBe(true);
     expect(nodes.length).toBeGreaterThanOrEqual(1);
     expect(nodes[0].name).toBe('h1');
   });
 
   it('invokes onRenderStart before onRenderComplete', () => {
+    const md = new XMarkdownMini();
     const calls: string[] = [];
     const onRenderStart = vi.fn(() => {
       calls.push('start');
@@ -131,25 +134,28 @@ describe('renderOnce', () => {
     const onRenderComplete = vi.fn(() => {
       calls.push('complete');
     });
-    renderOnce({ content: '# Hi', onRenderStart, onRenderComplete });
+    md.render({ content: '# Hi', onRenderStart, onRenderComplete });
     expect(onRenderStart).toHaveBeenCalledTimes(1);
     expect(onRenderComplete).toHaveBeenCalledTimes(1);
     expect(calls).toEqual(['start', 'complete']);
   });
 
   it('works without lifecycle callbacks', () => {
-    expect(() => renderOnce({ content: '# Hi' })).not.toThrow();
+    const md = new XMarkdownMini();
+    expect(() => md.render({ content: '# Hi' })).not.toThrow();
   });
 
   it('does not enable block animation (one-shot render)', () => {
-    const nodes = renderOnce({ content: '# Hi' });
+    const md = new XMarkdownMini();
+    const nodes = md.render({ content: '# Hi' });
     expect(nodes[0].animate).toBeUndefined();
     expect(String(nodes[0].attrs?.class ?? '')).not.toContain('md-animate-block');
   });
 
   it('defaults selectable to true when not provided', () => {
-    expect(() => renderOnce({ content: '# Hi' })).not.toThrow();
-    const nodes = renderOnce({ content: '# Hi' });
+    const md = new XMarkdownMini();
+    expect(() => md.render({ content: '# Hi' })).not.toThrow();
+    const nodes = md.render({ content: '# Hi' });
     // selectable is consumed by the pipeline; verify no internal node has it set
     for (const n of flatten(nodes)) {
       expect(n.attrs?.selectable).toBeUndefined();
@@ -157,12 +163,14 @@ describe('renderOnce', () => {
   });
 
   it('respects explicit selectable=false', () => {
-    const nodes = renderOnce({ content: '# Hi', selectable: false });
+    const md = new XMarkdownMini();
+    const nodes = md.render({ content: '# Hi', selectable: false });
     expect(nodes.length).toBeGreaterThanOrEqual(1);
   });
 
   it('forwards options to lexer (gfm table)', () => {
-    const nodes = renderOnce({
+    const md = new XMarkdownMini();
+    const nodes = md.render({
       content: '| a | b |\n|---|---|\n| 1 | 2 |\n',
       options: {},
     });
