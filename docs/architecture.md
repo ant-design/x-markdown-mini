@@ -13,15 +13,16 @@
 
 ### 1. Lexer（`src/core/lexer.ts`）
 
-零依赖的迷你 Markdown 解析器，直接产出 IR 树。覆盖：
+基于 `marked.Lexer` 的 Markdown 解析层，直接把 marked token 转成项目内部 IR 树。覆盖：
 
 - 块级：标题、段落、围栏代码、引用、有序/无序列表、HR、HTML 透传、GFM 表格
 - 行内：`**strong**`、`*em*`、`` `code` ``、`[text](url)`、`![alt](src)`、`<br>`、转义、硬换行
 
-替换 `marked` 的目的：
+内置 `marked` 的取舍：
 
-- 体积：~30KB ESM（gzip ~7.8KB）整库，远小于 marked 单独 ~50KB
-- 直接产 IR，省去一层 token → IR 转换
+- 兼容性：复用成熟 Markdown lexer，避免重新实现 GFM 表格、列表嵌套、行内 token 等边界
+- 体积：ESM 整库约 83KB（gzip 约 21KB），明显大于自研 lexer，但仍在当前小程序包体预算内
+- 产物：`marked` 通过 `tsup noExternal` 打进 `dist/index.*` 和 `dist/miniprogram_dist/index.js`，消费方无需单独安装运行时依赖
 - 流式增量解析友好（详见 [streaming.md](./streaming.md)）
 
 ### 2. IR 层（`src/types.ts` 中的 `IRNode`）

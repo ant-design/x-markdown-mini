@@ -2,7 +2,7 @@
 
 > 多小程序、轻量、流式友好的 Markdown 渲染器。
 
-- **轻**：零依赖（无 `marked`），ESM 整库 ~30KB / gzip ~7.8KB
+- **轻**：内置 `marked` lexer，ESM 整库约 83KB / gzip 约 21KB
 - **流**：增量解析，已稳定块只 parse 一次；onPatch 推回全量统一节点
 - **多端**：微信 / 支付宝 / 抖音 / 百度 / QQ / 快手 / 钉钉 / 京东，统一 API + 自动识别
 - **可扩展**：能力矩阵驱动适配，未列入的平台用 `toOtherNodes` 即插即用
@@ -131,7 +131,7 @@ cd docs-site && npm install && npm run dev
 
 ## 文档
 
-- [架构](./docs/architecture.md) — 流水线四步、目录结构、为何替换 marked
+- [架构](./docs/architecture.md) — 流水线四步、目录结构、为何内置 marked
 - [流式](./docs/streaming.md) — 增量解析、打字机模式、动画 hooks
 - [平台](./docs/platforms.md) — 能力矩阵、降级规则、自定义平台
 

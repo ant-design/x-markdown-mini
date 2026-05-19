@@ -5,7 +5,7 @@ title: 首页
 <section class="xmd-home">
   <div class="xmd-home-hero">
     <h1 class="xmd-home-title">轻量、稳定的<br />多端小程序 Markdown 渲染器</h1>
-    <p class="xmd-home-subtitle">把 Markdown 转成各小程序可以直接消费的节点结构。零依赖，支持一次性渲染、流式增量解析与平台能力降级。</p>
+    <p class="xmd-home-subtitle">把 Markdown 转成各小程序可以直接消费的节点结构。内置 marked，支持一次性渲染、流式增量解析与平台能力降级。</p>
     <div class="xmd-home-cta">
       <button type="button" class="xmd-home-command" data-xmd-copy="npm install @ant-design/x-markdown-mini" aria-label="复制安装命令">
         <span class="xmd-home-command-prompt" aria-hidden="true">$</span>
@@ -22,7 +22,7 @@ title: 首页
   <div class="xmd-home-grid">
     <article>
       <h2>轻量内核</h2>
-      <p>零运行时依赖，核心链路清晰，适合在多端环境稳定运行。</p>
+      <p>内置 marked lexer，核心链路清晰，适合在多端环境稳定运行。</p>
     </article>
     <article>
       <h2>流式友好</h2>
