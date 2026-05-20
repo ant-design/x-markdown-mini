@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StreamingProcessor } from '../streaming/index.js';
-import type { UnifiedNode } from '../types.js';
+import { tokensToWechat } from '../core/tokensToWechat.js';
+import type { LexerOptions, UnifiedNode } from '../types.js';
 
 interface Collector {
   patches: UnifiedNode[][];
@@ -8,18 +9,38 @@ interface Collector {
   completed: boolean;
 }
 
-function make(opts: Partial<ConstructorParameters<typeof StreamingProcessor>[0]> = {}): {
-  proc: StreamingProcessor;
-  collector: Collector;
-} {
+interface MakeOpts {
+  semanticEnabled?: boolean;
+  delimiters?: RegExp;
+  maxChunkSize?: number;
+  chunkDelay?: number;
+  charDelay?: number;
+  /** Transformer context (folded into a tokensToWechat closure for tests). */
+  lexerOptions?: LexerOptions;
+  escapeText?: boolean;
+  animation?: boolean;
+}
+
+function make(opts: MakeOpts = {}): { proc: StreamingProcessor; collector: Collector } {
   const collector: Collector = { patches: [], updates: [], completed: false };
+  const transform = (md: string): UnifiedNode[] =>
+    tokensToWechat(md, {
+      lexerOptions: opts.lexerOptions,
+      escapeText: opts.escapeText,
+      animation: opts.animation,
+    });
   const proc = new StreamingProcessor({
+    transform,
     onUpdate: (md) => collector.updates.push(md),
     onPatch: (nodes) => collector.patches.push(nodes),
     onComplete: () => {
       collector.completed = true;
     },
-    ...opts,
+    semanticEnabled: opts.semanticEnabled,
+    delimiters: opts.delimiters,
+    maxChunkSize: opts.maxChunkSize,
+    chunkDelay: opts.chunkDelay,
+    charDelay: opts.charDelay,
   });
   return { proc, collector };
 }

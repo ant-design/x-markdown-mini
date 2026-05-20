@@ -2,6 +2,14 @@ import type { PlatformInput } from './platform.js';
 
 export type { Platform, PlatformInput } from './platform.js';
 
+/** Marked 词法器选项。各 transformer 共用，不算"共享 helper"——仅类型契约。 */
+export interface LexerOptions {
+  /** GFM 表格、删除线、自动换行（默认 true） */
+  gfm?: boolean;
+  /** 软换行 \n 解析为 <br>（默认 false） */
+  breaks?: boolean;
+}
+
 /**
  * 语义流式渲染配置
  */
@@ -71,54 +79,9 @@ export interface XMarkdownMiniProps {
   onPatch?: (nodes: UnifiedNode[]) => void;
 }
 
-// --- IR 层（内部中间表示）---
-
-/** IR 节点类型标识（块级） */
-export type IRBlockType =
-  | 'heading'
-  | 'paragraph'
-  | 'list'
-  | 'list_item'
-  | 'code'
-  | 'blockquote'
-  | 'hr'
-  | 'html'
-  | 'table'
-  | 'thead'
-  | 'tbody'
-  | 'tr'
-  | 'th'
-  | 'td'
-  | 'space'
-  | 'text';
-
-/** IR 行内节点类型 */
-export type IRInlineType =
-  | 'strong'
-  | 'em'
-  | 'del'
-  | 'codespan'
-  | 'link'
-  | 'image'
-  | 'br'
-  | 'text';
-
-export type IRNodeType = IRBlockType | IRInlineType;
-
-export interface IRNode {
-  /** 节点类型 */
-  t: IRNodeType;
-  /** 属性（可选） */
-  a?: Record<string, string | number | boolean>;
-  /** 子节点（可选） */
-  c?: IRNode[];
-  /** 原始文本（如 paragraph 的 text、code 的 text） */
-  raw?: string;
-}
-
 // --- 统一 rich-text 节点（与微信 nodes 对齐）---
 
-/** 渲染上下文：贯穿解析→IR→UnifiedNode 全链路的公共配置，避免逐层参数穿透。 */
+/** 渲染上下文：transformer 共用的公共配置。 */
 export interface RenderContext {
   /** 是否启用块级动画 */
   animation?: boolean;

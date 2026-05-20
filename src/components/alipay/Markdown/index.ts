@@ -33,7 +33,7 @@ Component({
   md: null as XMarkdownMini | null,
 
   didMount(this: any) {
-    this.md = new XMarkdownMini({ adapt: false, escapeText: false });
+    this.md = new XMarkdownMini({ escapeText: false });
     this._render(this.props);
   },
 

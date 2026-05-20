@@ -31,8 +31,8 @@ export function registerStreamingScenarios(bench: Bench, samples: StreamingSampl
           acc += chunks[i];
           inst.render({
             content: acc,
-            // Disable platform adapter and pin platform to skip auto-detect
-            // (which logs every call and is irrelevant in a benchmark env).
+            // Pin platform to skip auto-detect (which is irrelevant in
+            // a bench env).
             platform: 'alipay',
             streaming: { hasNextChunk: i < chunks.length - 1 },
             onPatch: noopPatch,
@@ -41,7 +41,7 @@ export function registerStreamingScenarios(bench: Bench, samples: StreamingSampl
       },
       {
         beforeEach: () => {
-          md = new XMarkdownMini({ adapt: false });
+          md = new XMarkdownMini();
         },
       },
     );

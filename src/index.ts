@@ -1,14 +1,14 @@
 import type {
   XMarkdownMiniProps,
   UnifiedNode,
+  LexerOptions,
   SemanticStreamingConfig,
   StreamingConfig,
 } from './types.js';
-import { resolvePlatform } from './platform.js';
-import { runPipeline } from './pipeline.js';
-import { adaptToPlatform } from './adapters/index.js';
+import { resolvePlatform, type Platform } from './platform.js';
+import { tokensToWechat } from './core/tokensToWechat.js';
+import { tokensToAlipay } from './core/tokensToAlipay.js';
 import { StreamingProcessor } from './streaming/StreamingProcessor.js';
-import type { LexerOptions } from './core/lexer.js';
 
 interface NormalizedStreamingConfig {
   hasNextChunk: boolean;
@@ -43,15 +43,25 @@ function normalizeStreamingConfig(
 
 export interface XMarkdownMiniOptions {
   /**
-   * 是否对输出节点跑平台 adapter（wechat / alipay 节点改写）。默认 true。
-   * 组件层渲染（直接喂给 rich-text）应传 false，由组件自行处理。
-   */
-  adapt?: boolean;
-  /**
-   * 是否对文本节点做 HTML 转义。默认 true。
-   * 组件层渲染应传 false（rich-text 自己处理转义）。
+   * 是否对文本节点做 HTML 转义。默认 true（用于原生 rich-text）。
+   * 自渲染组件路径应传 false（<text>{{value}}</text> 不解码实体）。
    */
   escapeText?: boolean;
+}
+
+interface TransformOptions {
+  animation: boolean;
+  selectable: boolean;
+  escapeText: boolean;
+  lexerOptions: LexerOptions | undefined;
+}
+
+function pickTransform(
+  target: Platform,
+  opts: TransformOptions,
+): (markdown: string) => UnifiedNode[] {
+  if (target === 'wechat') return (md) => tokensToWechat(md, opts);
+  return (md) => tokensToAlipay(md, opts);
 }
 
 /**
@@ -67,11 +77,9 @@ export interface XMarkdownMiniOptions {
  */
 export class XMarkdownMini {
   private streamProcessor: StreamingProcessor | null = null;
-  private readonly adapt: boolean;
   private readonly escapeText: boolean;
 
   constructor(opts: XMarkdownMiniOptions = {}) {
-    this.adapt = opts.adapt ?? true;
     this.escapeText = opts.escapeText ?? true;
   }
 
@@ -84,34 +92,37 @@ export class XMarkdownMini {
     const { content, platform = 'auto', selectable = true, options } = props;
     const target = resolvePlatform(platform);
     const stream = normalizeStreamingConfig(props.streaming);
+    const lexerOptions = options as LexerOptions | undefined;
 
     if (!stream) {
       // 切到一次性：清掉可能还在的流式 processor
       this.streamProcessor = null;
       props.onRenderStart?.();
-      const nodes = runPipeline(content, {
+      const transform = pickTransform(target, {
         animation: false,
         selectable,
-        lexerOptions: options as LexerOptions | undefined,
         escapeText: this.escapeText,
+        lexerOptions,
       });
-      const out = this.adapt ? adaptToPlatform(nodes, target) : nodes;
-      props.onPatch?.(out);
+      const nodes = transform(content);
+      props.onPatch?.(nodes);
       props.onRenderComplete?.();
-      return out;
+      return nodes;
     }
 
     if (!this.streamProcessor) {
-      this.streamProcessor = new StreamingProcessor({
-        semanticEnabled: stream.semanticEnabled,
-        ...stream.semanticConfig,
+      const transform = pickTransform(target, {
         animation: stream.enableAnimation,
         selectable,
-        lexerOptions: options as LexerOptions | undefined,
         escapeText: this.escapeText,
+        lexerOptions,
+      });
+      this.streamProcessor = new StreamingProcessor({
+        transform,
+        semanticEnabled: stream.semanticEnabled,
+        ...stream.semanticConfig,
         onUpdate: (markdown) => props.onRenderProgress?.({ markdown }),
-        onPatch: (nodes) =>
-          props.onPatch?.(this.adapt ? adaptToPlatform(nodes, target) : nodes),
+        onPatch: (nodes) => props.onPatch?.(nodes),
         onComplete: () => {
           props.onRenderComplete?.();
           this.streamProcessor = null;
@@ -144,28 +155,12 @@ export function render(props: XMarkdownMiniProps): UnifiedNode[] {
 
 export { resolvePlatform } from './platform.js';
 export type { Platform, PlatformInput } from './platform.js';
-export { runPipeline } from './pipeline.js';
-export { parse, parseInline, irToUnifiedNodes } from './core/index.js';
-export {
-  adaptToPlatform,
-  adaptNodes,
-  toWechatNodes,
-  toAlipayNodes,
-  PLATFORM_CAPABILITIES,
-  PLATFORM_ADAPTER_CONFIG,
-} from './adapters/index.js';
-export type {
-  PlatformCapabilities,
-  PlatformAdapterConfig,
-} from './adapters/index.js';
+export { tokensToWechat, tokensToAlipay } from './core/index.js';
+export type { LexerOptions } from './core/index.js';
 export { StreamingProcessor } from './streaming/index.js';
 export type {
   XMarkdownMiniProps,
   UnifiedNode,
-  IRNode,
-  IRNodeType,
-  IRBlockType,
-  IRInlineType,
   RenderContext,
   SemanticStreamingConfig,
   StreamingConfig,

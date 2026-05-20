@@ -16,7 +16,7 @@ benchmark/
       build-chunks.mjs        # regenerates the chunked JSON from the .md
   scenarios/
     parse.bench.ts            # 4-way: x-markdown-mini vs markdown-it vs marked vs remark
-    pipeline.bench.ts         # x-markdown-mini runPipeline (parse + IR + unified)
+    pipeline.bench.ts         # x-markdown-mini full one-shot (tokensToWechat)
     streaming.bench.ts        # XMarkdownMini fed chunk-by-chunk
   run.ts                      # tinybench driver, writes results.json
   baseline.json               # committed perf baseline — only edit via bench:update

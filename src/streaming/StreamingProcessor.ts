@@ -1,15 +1,19 @@
-import type { RenderContext, UnifiedNode } from '../types.js';
-import { parse, type LexerOptions } from '../core/lexer.js';
-import { irToUnifiedNodes } from '../core/irToUnifiedNodes.js';
+import type { UnifiedNode } from '../types.js';
 
 const DEFAULT_DELIMITERS = /[。？！……；：——，、\n]/;
 const DEFAULT_MAX_CHUNK_SIZE = 80;
 
-export interface StreamingProcessorConfig extends RenderContext {
+export interface StreamingProcessorConfig {
+  /**
+   * 把一段 markdown 文本转成平台节点的函数。调用方（通常是 XMarkdownMini）
+   * 根据 platform 上下文挑出 tokensToWechat / tokensToAlipay 之一，并把
+   * escapeText / animation / lexerOptions 闭包进去。StreamingProcessor 自己
+   * 不关心平台和上下文，只调用此回调。
+   */
+  transform: (markdown: string) => UnifiedNode[];
   onUpdate: (markdown: string) => void;
   onPatch: (nodes: UnifiedNode[]) => void;
   onComplete: () => void;
-  lexerOptions?: LexerOptions;
   semanticEnabled?: boolean;
   delimiters?: RegExp;
   maxChunkSize?: number;
@@ -21,9 +25,9 @@ export interface StreamingProcessorConfig extends RenderContext {
  * 流式处理器：
  * - 增量合并 markdown 文本（前缀匹配则视作追加，否则 reset）
  * - 已稳定（前面已被空行收尾）的块只解析一次，缓存为 stableNodes
- * - 仅对未稳定的 tail（最后一段）每次重新走 parse → IR → unified
+ * - 仅对未稳定的 tail（最后一段）每次重新走 transform
  * - chunkDelay/charDelay 全为 0 时跳过 setTimeout 链，单次 onPatch 即返回
- * - 否则走语义切块的“打字机”模式：按 delimiters / maxChunkSize 推进 renderedText
+ * - 否则走语义切块的"打字机"模式：按 delimiters / maxChunkSize 推进 renderedText
  */
 export class StreamingProcessor {
   private buffer = '';
@@ -42,34 +46,28 @@ export class StreamingProcessor {
   private currentHasNextChunk = false;
 
   private readonly config: {
+    transform: (markdown: string) => UnifiedNode[];
     onUpdate: (markdown: string) => void;
     onPatch: (nodes: UnifiedNode[]) => void;
     onComplete: () => void;
-    animation?: boolean;
-    selectable?: boolean;
-    lexerOptions?: LexerOptions;
     semanticEnabled: boolean;
     delimiters: RegExp;
     maxChunkSize: number;
     chunkDelay: number;
     charDelay: number;
-    escapeText?: boolean;
   };
 
   constructor(cfg: StreamingProcessorConfig) {
     this.config = {
+      transform: cfg.transform,
       onUpdate: cfg.onUpdate,
       onPatch: cfg.onPatch,
       onComplete: cfg.onComplete,
-      animation: cfg.animation,
-      selectable: cfg.selectable,
-      lexerOptions: cfg.lexerOptions,
       semanticEnabled: cfg.semanticEnabled ?? true,
       delimiters: cfg.delimiters ?? DEFAULT_DELIMITERS,
       maxChunkSize: cfg.maxChunkSize ?? DEFAULT_MAX_CHUNK_SIZE,
       chunkDelay: cfg.chunkDelay ?? 0,
       charDelay: cfg.charDelay ?? 0,
-      escapeText: cfg.escapeText,
     };
   }
 
@@ -221,13 +219,10 @@ export class StreamingProcessor {
     const text = this.renderedText;
     if (this.committedLen >= text.length) return;
 
-    // Start from the line boundary at or before committedLen.
-    // We know the fence state at committedLen from the previous call.
     let inFence = this.committedInFence;
     let fenceChar = this.committedFenceChar;
     let lineStart = this.committedLen;
 
-    // Rewind to the start of the current line so we get complete lines.
     if (this.committedLen > 0) {
       let ls = this.committedLen;
       while (ls > 0 && text[ls - 1] !== '\n') ls--;
@@ -242,7 +237,6 @@ export class StreamingProcessor {
     for (let i = lineStart; i <= text.length; i++) {
       if (i === text.length || text[i] === '\n') {
         const line = text.slice(lineStart, i);
-        // fence open/close detection
         const fence = /^ {0,3}(`{3,}|~{3,})/.exec(line);
         if (fence) {
           if (!inFence) {
@@ -254,7 +248,6 @@ export class StreamingProcessor {
           }
         }
         const isBlank = line.trim() === '';
-        // 双连续空行（且不在 fence 内）= 可安全 commit 的边界
         if (!inFence && isBlank && prevBlank) {
           lastSafe = i + 1;
           lastSafeInFence = inFence;
@@ -267,8 +260,7 @@ export class StreamingProcessor {
 
     if (lastSafe > this.committedLen) {
       const segment = text.slice(this.committedLen, lastSafe);
-      const ir = parse(segment, this.config.lexerOptions);
-      const nodes = irToUnifiedNodes(ir, this.renderContext());
+      const nodes = this.config.transform(segment);
       this.stableNodes.push(...nodes);
       this.committedLen = lastSafe;
       this.committedInFence = lastSafeInFence;
@@ -276,25 +268,14 @@ export class StreamingProcessor {
     }
   }
 
-  /** Extract RenderContext fields from this.config for irToUnifiedNodes. */
-  private renderContext(): { animation?: boolean; selectable?: boolean; escapeText?: boolean } {
-    return {
-      animation: this.config.animation,
-      selectable: this.config.selectable,
-      escapeText: this.config.escapeText,
-    };
-  }
-
   /** 重新解析 tail 部分，与 stableNodes 合并后 emit。 */
   private flushNodes(): void {
-    const { onUpdate, onPatch } = this.config;
+    const { onUpdate, onPatch, transform } = this.config;
     onUpdate(this.renderedText);
 
     this.advanceCommit();
     const tail = this.renderedText.slice(this.committedLen);
-    const tailNodes = tail
-      ? irToUnifiedNodes(parse(tail, this.config.lexerOptions), this.renderContext())
-      : [];
+    const tailNodes = tail ? transform(tail) : [];
 
     onPatch(this.stableNodes.concat(tailNodes));
   }

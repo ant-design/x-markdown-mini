@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { StreamingProcessor } from '../streaming/StreamingProcessor.js';
-import { runPipeline } from '../pipeline.js';
+import { tokensToWechat } from '../core/tokensToWechat.js';
 import type { UnifiedNode } from '../types.js';
 
 function collect(): {
@@ -12,6 +12,7 @@ function collect(): {
   const patches: UnifiedNode[][] = [];
   let completed = false;
   const proc = new StreamingProcessor({
+    transform: (md) => tokensToWechat(md),
     semanticEnabled: true,
     chunkDelay: 0,
     charDelay: 0,
@@ -54,7 +55,7 @@ describe('StreamingProcessor (zero-delay synchronous mode)', () => {
     push(proc, md, false);
 
     const last = patches[patches.length - 1];
-    const oneshot = runPipeline(md);
+    const oneshot = tokensToWechat(md);
     expect(stripAttrs(last)).toEqual(stripAttrs(oneshot));
   });
 

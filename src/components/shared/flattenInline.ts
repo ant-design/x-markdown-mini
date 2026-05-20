@@ -22,7 +22,9 @@ const INLINE_TAGS: Record<string, true> = {
 const TAG_CLASS: Record<string, string> = {
   strong: 'md-strong',
   em: 'md-em',
-  // 'del' 已在 IR 层带 class="md-del"，'code' 已在 IR 层带 class="md-inline-code"，'span' 不附加额外 class
+  del: 'md-del',
+  code: 'md-inline-code',
+  // 'span' 不附加额外 class
 };
 
 function walk(node: UnifiedNode): UnifiedNode {

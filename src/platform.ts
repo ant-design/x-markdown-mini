@@ -5,8 +5,9 @@
  * 拓展新平台时按以下步骤：
  *   1. 在下方 {@link Platform} 联合类型中追加新值；
  *   2. 在 {@link DETECTORS} 中追加一项 `{ name, read, platform }`；
- *   3. 在 `adapters/capabilities.ts` 中补充能力矩阵与适配配置；
- *   4. （可选）在 `adapters/` 下提供专门的转换器。
+ *   3. 复制 `core/tokensToWechat.ts` 为新平台 transformer，按平台 quirks
+ *      调整 `<a>` / `<ol start>` / `<img src>` 等几处分支；
+ *   4. 在 `src/index.ts` 的 `pickTransform` 里加一条平台分支。
  *
  * 注意：检测使用 `typeof X` 而非读取 `globalThis[X]`，因为旧版支付宝基础库
  * 没有 `globalThis`；而 `typeof` 对未声明的标识符不会抛 ReferenceError。

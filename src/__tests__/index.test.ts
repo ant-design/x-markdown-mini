@@ -4,16 +4,8 @@ import {
   resolvePlatform,
   StreamingProcessor,
   XMarkdownMini,
-  adaptNodes,
-  adaptToPlatform,
-  toAlipayNodes,
-  toWechatNodes,
-  parse,
-  parseInline,
-  irToUnifiedNodes,
-  runPipeline,
-  PLATFORM_CAPABILITIES,
-  PLATFORM_ADAPTER_CONFIG,
+  tokensToWechat,
+  tokensToAlipay,
 } from '../index.js';
 import type { UnifiedNode } from '../index.js';
 
@@ -41,16 +33,8 @@ describe('public re-exports', () => {
     expect(typeof render).toBe('function');
     expect(typeof resolvePlatform).toBe('function');
     expect(typeof StreamingProcessor).toBe('function');
-    expect(typeof adaptNodes).toBe('function');
-    expect(typeof adaptToPlatform).toBe('function');
-    expect(typeof toAlipayNodes).toBe('function');
-    expect(typeof toWechatNodes).toBe('function');
-    expect(typeof parse).toBe('function');
-    expect(typeof parseInline).toBe('function');
-    expect(typeof irToUnifiedNodes).toBe('function');
-    expect(typeof runPipeline).toBe('function');
-    expect(PLATFORM_CAPABILITIES).toBeDefined();
-    expect(PLATFORM_ADAPTER_CONFIG).toBeDefined();
+    expect(typeof tokensToWechat).toBe('function');
+    expect(typeof tokensToAlipay).toBe('function');
   });
 });
 
@@ -144,7 +128,7 @@ describe('render (one-shot)', () => {
     const nodes = render({
       content: 'A [x](http://e.com)',
     });
-    // WeChat adapter rewrites <a href> → data-href
+    // tokensToWechat rewrites <a href> → data-href
     const para = nodes[0];
     const anchor = (para.children ?? []).find((c) => c.name === 'a');
     expect(anchor?.attrs?.['data-href']).toBe('http://e.com');
@@ -322,23 +306,6 @@ describe('XMarkdownMini — multi-instance isolation', () => {
     const last = patches[patches.length - 1];
     expect(last[0].name).toBe('h2');
     expect(extractText(last)).toBe('Heading2');
-  });
-
-  it('adapt:false skips platform adapter (raw unified nodes)', () => {
-    const md = new XMarkdownMini({ adapt: false });
-    const patches: UnifiedNode[][] = [];
-    md.render({
-      content: 'A [x](http://e.com)',
-      platform: 'wechat',
-      streaming: { hasNextChunk: false },
-      onPatch: (nodes) => patches.push(nodes),
-    });
-    const last = patches[patches.length - 1];
-    const para = last[0];
-    const anchor = (para.children ?? []).find((c) => c.name === 'a');
-    // wechat adapter would rewrite href→data-href; with adapt:false, href stays
-    expect(anchor?.attrs?.href).toBe('http://e.com');
-    expect(anchor?.attrs?.['data-href']).toBeUndefined();
   });
 
   it('one-shot render fires onPatch with the final adapted nodes', () => {

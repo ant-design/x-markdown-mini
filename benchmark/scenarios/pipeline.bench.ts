@@ -1,12 +1,12 @@
-// x-markdown-mini "pipeline" scenario: the full one-shot render path —
-// runPipeline(content) = parse + IR + irToUnifiedNodes. Adapter step is
-// platform-dependent so it's intentionally excluded here; covered separately
-// in streaming.bench.ts implicitly (XMarkdownMini.render with adapt:true).
+// x-markdown-mini "pipeline" scenario: full one-shot render to a platform
+// (wechat target chosen as the default — both platform transformers are
+// ~95% identical so one is representative). Measures the prod path:
+// markdown string -> wechat-final nodes via tokensToWechat.
 //
 // Naming: `pipeline/x-markdown-mini/<sample>`.
 import { Bench } from 'tinybench';
 
-import { runPipeline } from '../../src/pipeline.js';
+import { tokensToWechat } from '../../src/core/tokensToWechat.js';
 
 export interface PipelineSample {
   name: string;
@@ -16,7 +16,7 @@ export interface PipelineSample {
 export function registerPipelineScenarios(bench: Bench, samples: PipelineSample[]): void {
   for (const { name, content } of samples) {
     bench.add(`pipeline/x-markdown-mini/${name}`, () => {
-      runPipeline(content);
+      tokensToWechat(content);
     });
   }
 }

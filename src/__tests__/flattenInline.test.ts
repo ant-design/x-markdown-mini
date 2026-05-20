@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { runPipeline } from '../pipeline.js';
+import { tokensToWechat } from '../core/tokensToWechat.js';
 import { flattenInlineNodes } from '../components/shared/flattenInline.js';
 import type { UnifiedNode } from '../types.js';
 
@@ -26,7 +26,7 @@ function findFirst(nodes: UnifiedNode[], pred: (n: UnifiedNode) => boolean): Uni
 
 describe('flattenInlineNodes', () => {
   it('collapses nested strong+em into flat text runs with merged classes', () => {
-    const nodes = runPipeline('plain **bold _italic_** tail', { escapeText: false });
+    const nodes = tokensToWechat('plain **bold _italic_** tail', { escapeText: false });
     const flat = flattenInlineNodes(nodes);
     const p = flat[0];
     expect(p.name).toBe('p');
@@ -50,11 +50,12 @@ describe('flattenInlineNodes', () => {
   });
 
   it('keeps anchors interactive but flattens their inline contents', () => {
-    const nodes = runPipeline('see [a **strong** link](https://e.com)', { escapeText: false });
+    const nodes = tokensToWechat('see [a **strong** link](https://e.com)', { escapeText: false });
     const flat = flattenInlineNodes(nodes);
     const anchor = findFirst(flat, (n) => n.name === 'a');
     expect(anchor).toBeTruthy();
-    expect(anchor!.attrs?.href).toBe('https://e.com');
+    // tokensToWechat rewrites href → data-href
+    expect(anchor!.attrs?.['data-href']).toBe('https://e.com');
     const innerNames = (anchor!.children ?? []).map((c) => c.name);
     expect(innerNames.every((n) => n === 'text' || n === 'br' || n === 'img')).toBe(true);
     const strongRun = (anchor!.children ?? []).find((c) =>
@@ -65,7 +66,7 @@ describe('flattenInlineNodes', () => {
   });
 
   it('preserves inline-code class on flattened run', () => {
-    const nodes = runPipeline('use `npm` here', { escapeText: false });
+    const nodes = tokensToWechat('use `npm` here', { escapeText: false });
     const flat = flattenInlineNodes(nodes);
     const codeRun = findFirst(flat, (n) =>
       n.name === 'text' && String(n.attrs?.class ?? '').includes('md-inline-code')
