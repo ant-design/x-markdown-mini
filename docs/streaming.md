@@ -81,6 +81,42 @@ streaming: {
 
 CSS 动画在节点首次出现时跑一次 —— 后续 commit 进入 `stableNodes` 后引用不变，不会重放。
 
+## 未完成格式自动补全（streamingFixup）
+
+LLM 流式输出时，tail 经常停在未闭合的状态——`这是 **粗体`、`见 \`code`、`[标题](https://`、`公式 $x^2`。如果直接喂给 marked，会被当字面量渲染，等闭合符号到达才"跳变"成富文本，UI 闪烁。
+
+默认走 [`remend`](https://www.npmjs.com/package/remend) 给 tail 做一次预处理，补全未闭合的：
+
+| 语法 | 示例输入 | remend 输出 |
+| --- | --- | --- |
+| 粗体  | `这是 **粗`            | `这是 **粗**`                                |
+| 斜体  | `*强调`                | `*强调*`                                     |
+| 行内代码 | `` 见 `code ``       | `` 见 `code` ``                              |
+| 删除线 | `~~删`                 | `~~删~~`                                     |
+| 链接  | `[标题](https://exa`   | `[标题](streamdown:incomplete-link)`         |
+| 块级数学 | `$$x^2`              | `$$x^2$$`                                    |
+
+**关键性质**：fixup **只作用于 tail**（未稳定段），committed 的 `stableNodes` 不会再过补全；`getRenderedText()` 和 `onRenderProgress` 拿到的仍是用户原始内容，补全只影响传给 marked 的字符串。
+
+### 配置
+
+```ts
+import { XMarkdownMini } from '@ant-design/x-markdown-mini';
+
+// 默认开启
+const md = new XMarkdownMini();
+
+// 关闭：未闭合格式按字面量渲染（v1 旧行为）
+const md = new XMarkdownMini({ streamingFixup: false });
+
+// 自定义函数：完全替代 remend
+const md = new XMarkdownMini({
+  streamingFixup: (tail) => tail.replace(/\bTODO\b/g, '**TODO**'),
+});
+```
+
+一次性渲染（不带 `streaming`）不会触发 fixup。
+
 ## 与 `onPatch` 协议
 
 `onPatch(nodes)` 推回的是「**当前为止的全量统一节点**」，而不是 diff。消费方：

@@ -38,7 +38,7 @@ export default defineConfig([
     sourcemap: false,
     splitting: false,
     target: 'es2018',
-    noExternal: ['marked'],
+    noExternal: ['marked', 'remend'],
   },
   // 2) shared helpers（仅主 dist；miniprogram_dist 副本由 copy-miniprogram-dist.mjs 生成）
   {

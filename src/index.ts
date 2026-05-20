@@ -9,6 +9,24 @@ import { resolvePlatform, type Platform } from './platform.js';
 import { tokensToWechat } from './core/tokensToWechat.js';
 import { tokensToAlipay } from './core/tokensToAlipay.js';
 import { StreamingProcessor } from './streaming/StreamingProcessor.js';
+import remend from 'remend';
+
+/**
+ * 流式 tail 预处理：
+ * - 'remend'（默认）：用 vercel/remend 自动补全未闭合的 markdown 格式
+ *   （**bold / `code` / [link]( / *italic / ~~del / $$math 等）
+ * - false：关闭，未闭合格式按字面量渲染（v1 行为）
+ * - 函数：自定义 tail 字符串预处理，签名 (tail: string) => string
+ */
+export type StreamingFixup = 'remend' | false | ((text: string) => string);
+
+function resolveStreamingFixup(
+  fixup: StreamingFixup,
+): ((text: string) => string) | undefined {
+  if (fixup === false) return undefined;
+  if (fixup === 'remend') return (s: string) => remend(s);
+  return fixup;
+}
 
 interface NormalizedStreamingConfig {
   hasNextChunk: boolean;
@@ -47,6 +65,11 @@ export interface XMarkdownMiniOptions {
    * 自渲染组件路径应传 false（<text>{{value}}</text> 不解码实体）。
    */
   escapeText?: boolean;
+  /**
+   * 流式渲染时对未稳定 tail 的预处理策略。默认 'remend'（自动补全未闭合格式）。
+   * 仅影响 streaming 路径，一次性 render 不受此影响。
+   */
+  streamingFixup?: StreamingFixup;
 }
 
 interface TransformOptions {
@@ -78,9 +101,11 @@ function pickTransform(
 export class XMarkdownMini {
   private streamProcessor: StreamingProcessor | null = null;
   private readonly escapeText: boolean;
+  private readonly fixup: ((text: string) => string) | undefined;
 
   constructor(opts: XMarkdownMiniOptions = {}) {
     this.escapeText = opts.escapeText ?? true;
+    this.fixup = resolveStreamingFixup(opts.streamingFixup ?? 'remend');
   }
 
   /**
@@ -119,6 +144,7 @@ export class XMarkdownMini {
       });
       this.streamProcessor = new StreamingProcessor({
         transform,
+        fixup: this.fixup,
         semanticEnabled: stream.semanticEnabled,
         ...stream.semanticConfig,
         onUpdate: (markdown) => props.onRenderProgress?.({ markdown }),

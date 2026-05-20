@@ -11,6 +11,15 @@ export interface StreamingProcessorConfig {
    * 不关心平台和上下文，只调用此回调。
    */
   transform: (markdown: string) => UnifiedNode[];
+  /**
+   * 可选的 tail 预处理。流式渲染时，每次 flush 只对 tail（未稳定段）调用一次，
+   * 已 commit 的稳定段不会再被处理。典型用法：接 remend 补全未闭合的 markdown
+   * 语法（**bold / `code` / [link]( 等），避免 AI 流式输出时闪烁。
+   *
+   * 注意：fixup 只影响传给 `transform` 的字符串，不会写回 renderedText，因此
+   * `getRenderedText()` 与 `onUpdate` 回调中拿到的仍是用户原始内容。
+   */
+  fixup?: (tail: string) => string;
   onUpdate: (markdown: string) => void;
   onPatch: (nodes: UnifiedNode[]) => void;
   onComplete: () => void;
@@ -47,6 +56,7 @@ export class StreamingProcessor {
 
   private readonly config: {
     transform: (markdown: string) => UnifiedNode[];
+    fixup: ((tail: string) => string) | undefined;
     onUpdate: (markdown: string) => void;
     onPatch: (nodes: UnifiedNode[]) => void;
     onComplete: () => void;
@@ -60,6 +70,7 @@ export class StreamingProcessor {
   constructor(cfg: StreamingProcessorConfig) {
     this.config = {
       transform: cfg.transform,
+      fixup: cfg.fixup,
       onUpdate: cfg.onUpdate,
       onPatch: cfg.onPatch,
       onComplete: cfg.onComplete,
@@ -270,12 +281,14 @@ export class StreamingProcessor {
 
   /** 重新解析 tail 部分，与 stableNodes 合并后 emit。 */
   private flushNodes(): void {
-    const { onUpdate, onPatch, transform } = this.config;
+    const { onUpdate, onPatch, transform, fixup } = this.config;
     onUpdate(this.renderedText);
 
     this.advanceCommit();
     const tail = this.renderedText.slice(this.committedLen);
-    const tailNodes = tail ? transform(tail) : [];
+    // fixup 只对 tail 字符串生效；committed 段已稳定无需再补
+    const fixedTail = tail && fixup ? fixup(tail) : tail;
+    const tailNodes = fixedTail ? transform(fixedTail) : [];
 
     onPatch(this.stableNodes.concat(tailNodes));
   }

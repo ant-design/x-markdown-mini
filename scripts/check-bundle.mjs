@@ -21,14 +21,17 @@ const dist = join(root, 'dist');
 
 const KB = 1024;
 
-// Budgets are based on the 2026-05 baseline (index.mjs ~82 KB / gzip ~20 KB,
-// index.js ~84 KB / gzip ~21 KB, components 1–3 KB) with ~10% headroom.
+// Budgets are based on the 2026-05 baseline post-remend integration
+// (index.mjs ~98 KB / gzip ~23 KB, index.js ~99 KB / gzip ~24 KB) with
+// ~5 KB raw / ~1 KB gzip headroom. Remend (~12 KB raw / ~3 KB gzip) is
+// bundled to power streamingFixup auto-completion of unclosed markdown
+// formats during AI streaming.
 const BUDGETS = [
   // 主库（npm 消费方 + 支付宝默认包根）
-  { file: 'index.mjs', rawMax: 92 * KB, gzipMax: 23 * KB },
-  { file: 'index.js', rawMax: 94 * KB, gzipMax: 23 * KB },
+  { file: 'index.mjs', rawMax: 104 * KB, gzipMax: 25 * KB },
+  { file: 'index.js', rawMax: 104 * KB, gzipMax: 25 * KB },
   // 微信专用主库副本（通过 package.json#miniprogram 进入）
-  { file: 'miniprogram_dist/index.js', rawMax: 94 * KB, gzipMax: 23 * KB },
+  { file: 'miniprogram_dist/index.js', rawMax: 104 * KB, gzipMax: 25 * KB },
   // 共享 helper（alipay 包根 + wechat 包根 各一份）
   { file: 'shared/flattenInline.js', rawMax: 5 * KB },
   { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 5 * KB },
