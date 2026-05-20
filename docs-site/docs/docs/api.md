@@ -11,16 +11,29 @@ group:
 
 # API 参考
 
-## `render(props): UnifiedNode[]`
+## `render(markdown): Token[]`
 
-主入口。一次性模式返回适配后节点；流式模式通过 `onPatch` 推回，返回值为空数组。
+JS 解析入口。返回 marked 原生 `Token[]`，不做平台渲染。
+
+也支持流式：
+
+```ts
+render({
+  content,
+  streaming: { hasNextChunk: true },
+  onPatch: (tokens) => {},
+});
+```
+
+## `renderNodes(props): MiniNode[]`
+
+节点渲染入口。一次性模式返回平台节点；流式模式通过 `onPatch` 推回，返回值为空数组。
 
 | 字段               | 类型                              | 默认       | 说明                                                                                          |
 | ------------------ | --------------------------------- | ---------- | --------------------------------------------------------------------------------------------- |
 | `content`          | `string`                          | —          | Markdown 字符串（必填）                                                                       |
-| `platform`         | `PlatformInput`                   | `'auto'`   | `'auto' \| 'wechat' \| 'alipay' \| 'douyin' \| 'baidu' \| 'qq' \| 'kuaishou' \| 'dingtalk' \| 'jd' \| 'other'` |
+| `platform`         | `PlatformInput`                   | `'auto'`   | `'auto' \| 'wechat' \| 'alipay'` |
 | `streaming`        | `boolean \| StreamingConfig`      | `false`    | 开启或自定义流式行为                                                                          |
-| `animation`        | `boolean`                         | `false`    | 是否给块级节点加 `md-animate-block` class                                                     |
 | `selectable`       | `boolean`                         | `true`     | 文本是否可选择（适配各端尽量映射）                                                            |
 | `options`          | `LexerOptions`                    | —          | 解析选项，如 `{ gfm, breaks }`                                                                |
 | `onRenderStart`    | `() => void`                      | —          | 开始回调                                                                                      |
@@ -32,7 +45,7 @@ group:
 
 | 字段              | 类型                                  | 默认     | 说明                                       |
 | ----------------- | ------------------------------------- | -------- | ------------------------------------------ |
-| `done`            | `boolean`                             | `false`  | 本轮是否结束流式（结束时 flush 残余）      |
+| `hasNextChunk`    | `boolean`                             | —        | 是否还有后续输入；`false` 时 flush 残余      |
 | `semantic`        | `boolean \| SemanticStreamingConfig`  | `true`   | 语义切块开关 / 配置                        |
 | `enableAnimation` | `boolean`                             | `true`   | 流式块淡入动画                             |
 
@@ -47,10 +60,9 @@ group:
 
 ## 低层 API
 
-- `parse(markdown, options): IRNode[]` — 直接拿 IR 树
-- `parseInline(text, options): IRNode[]` — 单独解析行内
-- `irToUnifiedNodes(ir, opts): UnifiedNode[]` — IR 转统一节点
-- `runPipeline(content, opts): UnifiedNode[]` — 一次性流水线
-- `adaptToPlatform(nodes, platform): UnifiedNode[]` — 按平台适配
-- `adaptNodes(nodes, config): UnifiedNode[]` — 自定义配置适配
+- `new XMarkdownMini(options)` — 创建隔离实例，支持 `extensions`、`tokenRenderers`、`streamingFixup`
+- `md.parse(markdown): Token[]` — 直接拿 marked token
+- `tokensToWechatNodes(tokens, ctx): MiniNode[]` — Token[] 转微信节点
+- `tokensToAlipayNodes(tokens, ctx): MiniNode[]` — Token[] 转支付宝节点
+- `getPlatformRenderer(platform): PlatformRenderer` — 查询平台 renderer 和能力
 - `StreamingProcessor` — 直接控制流式处理（高级用法）

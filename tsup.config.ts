@@ -54,7 +54,7 @@ export default defineConfig([
   {
     entry: {
       'es/Markdown/index': 'src/components/alipay/Markdown/index.ts',
-      'es/RichText/index': 'src/components/alipay/RichText/index.ts',
+      'es/NodesRenderer/index': 'src/components/alipay/NodesRenderer/index.ts',
     },
     outDir: 'dist',
     format: ['cjs'],
@@ -70,7 +70,7 @@ export default defineConfig([
   {
     entry: {
       'es/Markdown/index': 'src/components/wechat/Markdown/index.ts',
-      'es/RichText/index': 'src/components/wechat/RichText/index.ts',
+      'es/NodesRenderer/index': 'src/components/wechat/NodesRenderer/index.ts',
     },
     outDir: 'dist/miniprogram_dist',
     format: ['cjs'],

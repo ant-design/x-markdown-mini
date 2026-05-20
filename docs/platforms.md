@@ -2,47 +2,23 @@
 
 ## 能力矩阵
 
-来自 `src/adapters/capabilities.ts` 中的 `PLATFORM_CAPABILITIES`：
+来自 `src/platforms/*` 中的 `PlatformRenderer.capabilities`：
 
 | 平台      | `<pre>` | `<table>` | `<blockquote>` | `<ol start>` | https-only 图片 | `<video>` |
 | --------- | :-----: | :-------: | :------------: | :----------: | :-------------: | :-------: |
 | 微信      | ✅      | ✅        | ✅             | ✅           |                 |           |
 | 支付宝    | ✅      | ✅        | ✅             |              | ✅              |           |
-| 抖音      | ✅      | ✅        | ✅             | ✅           | ✅              | ✅        |
-| 百度      |         |           | ✅             |              |                 |           |
-| QQ        |         | ✅        | ✅             | ✅           |                 |           |
-| 快手      |         |           |                |              | ✅              |           |
-| 钉钉      |         |           | ✅             |              |                 |           |
-| 京东      |         |           |                |              |                 |           |
-| other     |         |           |                |              |                 |           |
 
-矩阵由社区与文档反复核对，如发现某端能力变化欢迎 PR 修订。
+当前内置平台只有微信和支付宝。其它小程序平台应先补 renderer、组件产物和真机/开发者工具验证，再写入矩阵。
 
 ## 适配规则
 
-`adaptToPlatform(nodes, platform)` 会按平台做以下转换。所有规则都集中在
-`src/adapters/adapt.ts` 的 `mapNode` 中。
+入口会通过 `getPlatformRenderer(platform)` 选择 renderer。当前微信/支付宝差异直接编进各自 `renderTokens`，避免二次树遍历。
 
-### 通用（任何平台）
+### 当前差异
 
-- 移除内部节点的 `selectable`（属于 rich-text 组件级属性，不应出现在子节点）
-- `classMode='strip'` 时移除 `class`（多数小程序 rich-text 忽略内部 class）
-- 不支持的 `<video>` 直接丢弃
-
-### 标签级降级（不支持时）
-
-| 原标签         | 降级为                                  |
-| -------------- | --------------------------------------- |
-| `<pre>`        | `<div class="md-code-block">`           |
-| `<blockquote>` | `<div class="md-blockquote">`           |
-| `<table>`      | 嵌套 `<div class="md-table/thead/...">` |
-
-降级容器**保留 class** 作为标识，便于消费方在 WXSS / ACSS 上做差异化样式。
-
-### 属性级降级
-
-- `<ol start="N">`：当 `caps.olStartSupported = false`（如 alipay、baidu、kuaishou…）时移除 `start`
-- `<img src="http://...">`：当 `caps.httpsOnlyImages = true` 时强制改写为 `https://`
+- 微信：`<a href>` 转成 `data-href`，有序列表保留 `start`，图片 URL 不强制改写。
+- 支付宝：`<a href>` 保留 `href`，有序列表不输出 `start`，`http://` 图片改写为 `https://`。
 
 ### 微信特有
 
@@ -64,30 +40,20 @@
 `platform: 'auto'`（或不传）时，`render` 会按下面顺序探测全局 API：
 
 ```
-wx.* → wechat        my.* → alipay        tt.* → douyin
-swan.* → baidu       qq.* → qq            ks.* → kuaishou
-dd.* → dingtalk      jd.* → jd            (兜底) → wechat
+my.* → alipay        wx.* → wechat        (兜底) → alipay
 ```
 
 也可以显式指定：
 
 ```ts
-render({ content, platform: 'alipay' });
+renderNodes({ content, platform: 'alipay' });
 ```
 
 ## 自定义平台
 
-需要兼容矩阵之外的平台或 H5 网页？用 `toOtherNodes` + 自定义能力：
+新增平台的最小改动：
 
-```ts
-import { toOtherNodes } from '@ant-design/x-markdown-mini';
-
-const html = toOtherNodes(nodes, {
-  preSupported: true,
-  tableSupported: true,
-  blockquoteSupported: true,
-  olStartSupported: true,
-  httpsOnlyImages: false,
-  videoSupported: true,
-});
-```
+1. 在 `src/platform.ts` 追加平台类型和运行时 detector。
+2. 在 `src/platforms/` 新增 renderer，声明能力并提供 `renderTokens`。
+3. 在 `src/platforms/index.ts` 注册 renderer。
+4. 增加组件产物、样式、示例和平台测试。

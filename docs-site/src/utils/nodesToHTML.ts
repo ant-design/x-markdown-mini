@@ -1,12 +1,12 @@
 /**
- * 仅用于文档站预览：将统一 rich-text 节点转为 HTML 字符串，在浏览器中展示。
+ * 仅用于文档站预览：将小程序节点转为 HTML 字符串，在浏览器中展示。
  * 不做为库的一部分发布。
  */
 
-export interface UnifiedNode {
+export interface MiniNode {
   name: string;
   attrs?: Record<string, string | number | boolean>;
-  children?: UnifiedNode[];
+  children?: MiniNode[];
   animate?: 'block' | 'text' | false;
 }
 
@@ -38,10 +38,10 @@ function attrsToStr(attrs: Record<string, string | number | boolean> | undefined
 
 const VOID_TAGS = new Set(['br', 'img', 'hr', 'input']);
 
-export function nodesToHTML(nodes: UnifiedNode[]): string {
+export function nodesToHTML(nodes: MiniNode[]): string {
   if (!Array.isArray(nodes) || nodes.length === 0) return '';
 
-  function one(node: UnifiedNode): string {
+  function one(node: MiniNode): string {
     const { name, attrs, children } = node;
     const tag = (name || 'div').toLowerCase();
 

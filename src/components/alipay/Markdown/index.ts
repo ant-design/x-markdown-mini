@@ -1,5 +1,5 @@
 import { XMarkdownMini } from '../../../index.js';
-import type { UnifiedNode, StreamingConfig } from '../../../index.js';
+import type { MiniNode, StreamingConfig } from '../../../index.js';
 import { flattenInlineNodes } from '../../shared/flattenInline.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
@@ -28,7 +28,7 @@ const defaultProps: MarkdownProps = {
 Component({
   props: defaultProps,
   data: {
-    nodes: [] as UnifiedNode[],
+    nodes: [] as MiniNode[],
   },
   md: null as XMarkdownMini | null,
 
@@ -55,7 +55,7 @@ Component({
 
   methods: {
     _render(this: any, props: MarkdownProps) {
-      this.md.render({
+      this.md.renderNodes({
         content: props.content,
         platform: 'alipay',
         streaming: props.streaming,
@@ -65,7 +65,7 @@ Component({
         onRenderProgress: (payload: { markdown: string }) =>
           props.onRenderProgress?.(payload),
         onRenderComplete: () => props.onRenderComplete?.(),
-        onPatch: (nodes: UnifiedNode[]) =>
+        onPatch: (nodes: MiniNode[]) =>
           this.setData({ nodes: flattenInlineNodes(nodes) }),
       });
     },

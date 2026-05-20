@@ -25,10 +25,6 @@ export default defineConfig({
             { title: '流式渲染', link: '/examples/streaming' },
           ],
         },
-        {
-          title: '进阶',
-          children: [{ title: 'RichText 路径', link: '/examples/richtext' }],
-        },
       ],
       '/docs': [
         {

@@ -1,16 +1,16 @@
-import type { UnifiedNode } from '../types.js';
-
 const DEFAULT_DELIMITERS = /[。？！……；：——，、\n]/;
 const DEFAULT_MAX_CHUNK_SIZE = 80;
 
-export interface StreamingProcessorConfig {
+export interface StreamingProcessorConfig<T> {
   /**
-   * 把一段 markdown 文本转成平台节点的函数。调用方（通常是 XMarkdownMini）
-   * 根据 platform 上下文挑出 tokensToWechat / tokensToAlipay 之一，并把
-   * escapeText / animation / lexerOptions 闭包进去。StreamingProcessor 自己
-   * 不关心平台和上下文，只调用此回调。
+   * 把一段已经过流式预处理的 markdown 文本转成平台节点的函数。
+   *
+   * 重要边界：AI 流式处理发生在 lex 之前。StreamingProcessor 只处理字符串层：
+   * 增量合并、语义切块、稳定段缓存、tail fixup。调用 transform 时，入参仍是
+   * markdown 字符串；调用方（通常是 XMarkdownMini）才在 transform 内部执行
+   * marked lexer，并交给平台 renderer。
    */
-  transform: (markdown: string) => UnifiedNode[];
+  transform: (markdown: string) => T[];
   /**
    * 可选的 tail 预处理。流式渲染时，每次 flush 只对 tail（未稳定段）调用一次，
    * 已 commit 的稳定段不会再被处理。典型用法：接 remend 补全未闭合的 markdown
@@ -21,7 +21,7 @@ export interface StreamingProcessorConfig {
    */
   fixup?: (tail: string) => string;
   onUpdate: (markdown: string) => void;
-  onPatch: (nodes: UnifiedNode[]) => void;
+  onPatch: (nodes: T[]) => void;
   onComplete: () => void;
   semanticEnabled?: boolean;
   delimiters?: RegExp;
@@ -33,17 +33,17 @@ export interface StreamingProcessorConfig {
 /**
  * 流式处理器：
  * - 增量合并 markdown 文本（前缀匹配则视作追加，否则 reset）
- * - 已稳定（前面已被空行收尾）的块只解析一次，缓存为 stableNodes
- * - 仅对未稳定的 tail（最后一段）每次重新走 transform
+ * - 已稳定（前面已被空行收尾）的块只进入 transform 一次，缓存为 stableNodes
+ * - 仅对未稳定的 tail（最后一段）每次重新走 fixup → transform
  * - chunkDelay/charDelay 全为 0 时跳过 setTimeout 链，单次 onPatch 即返回
  * - 否则走语义切块的"打字机"模式：按 delimiters / maxChunkSize 推进 renderedText
  */
-export class StreamingProcessor {
+export class StreamingProcessor<T = unknown> {
   private buffer = '';
   private renderedText = '';
   private previousMarkdown = '';
 
-  private stableNodes: UnifiedNode[] = [];
+  private stableNodes: T[] = [];
   private committedLen = 0;
   /** Whether the character at committedLen is inside a fenced code block (used for incremental scanning). */
   private committedInFence = false;
@@ -55,10 +55,10 @@ export class StreamingProcessor {
   private currentHasNextChunk = false;
 
   private readonly config: {
-    transform: (markdown: string) => UnifiedNode[];
+    transform: (markdown: string) => T[];
     fixup: ((tail: string) => string) | undefined;
     onUpdate: (markdown: string) => void;
-    onPatch: (nodes: UnifiedNode[]) => void;
+    onPatch: (nodes: T[]) => void;
     onComplete: () => void;
     semanticEnabled: boolean;
     delimiters: RegExp;
@@ -67,7 +67,7 @@ export class StreamingProcessor {
     charDelay: number;
   };
 
-  constructor(cfg: StreamingProcessorConfig) {
+  constructor(cfg: StreamingProcessorConfig<T>) {
     this.config = {
       transform: cfg.transform,
       fixup: cfg.fixup,

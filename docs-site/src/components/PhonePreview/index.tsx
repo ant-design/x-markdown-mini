@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { runPipeline, adaptToPlatform } from '@ant-design/x-markdown-mini';
+import { renderNodes } from '@ant-design/x-markdown-mini';
 import { nodesToHTML } from '../../utils/nodesToHTML';
 import './index.less';
 
@@ -27,11 +27,15 @@ export interface PhonePreviewProps {
   className?: string;
 }
 
-function renderMarkdown(markdown: string, platform: PreviewPlatform, animation = false): string {
+function renderMarkdown(markdown: string, platform: PreviewPlatform, _animation = false): string {
   try {
-    const ir = runPipeline(markdown, { animation, selectable: true });
-    const adapted = adaptToPlatform(ir, platform);
-    return nodesToHTML(adapted as any);
+    const nodes = renderNodes({
+      content: markdown,
+      platform,
+      selectable: true,
+      streaming: false,
+    });
+    return nodesToHTML(nodes as any);
   } catch (e) {
     return `<p class="xmd-preview-error">渲染失败：${String(e)}</p>`;
   }

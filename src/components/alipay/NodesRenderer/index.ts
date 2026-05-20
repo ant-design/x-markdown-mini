@@ -2,7 +2,7 @@ export {};
 
 declare const Component: (opts: Record<string, unknown>) => void;
 
-interface RichTextProps {
+interface NodesRendererProps {
   nodes: unknown[];
   selectable: boolean;
   animation: boolean;
@@ -10,7 +10,7 @@ interface RichTextProps {
   onAppear?: (e?: unknown) => void;
 }
 
-const defaultProps: RichTextProps = {
+const defaultProps: NodesRendererProps = {
   nodes: [],
   selectable: true,
   animation: false,

@@ -12,8 +12,9 @@ group:
 # 类型导出
 
 - `XMarkdownMiniProps` — `render` 的入参
-- `UnifiedNode` — 与 `rich-text` nodes 对齐的节点形状
-- `IRNode` / `IRNodeType` / `IRBlockType` / `IRInlineType`
+- `MiniNode` — 与 `rich-text` nodes 对齐的节点形状
+- `Token` / `Tokens` / `MarkedExtension` — marked 原生 token 与扩展类型
+- `TokenRenderer` — 自定义 marked token 到小程序节点的 renderer
 - `Platform` / `PlatformInput`
-- `PlatformCapabilities` / `PlatformAdapterConfig`
+- `PlatformCapabilities` / `PlatformRenderer`
 - `StreamingConfig` / `SemanticStreamingConfig`

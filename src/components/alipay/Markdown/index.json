@@ -2,6 +2,6 @@
   "component": true,
   "styleIsolation": "shared",
   "usingComponents": {
-    "richtext": "../RichText/index"
+    "nodes-renderer": "../NodesRenderer/index"
   }
 }

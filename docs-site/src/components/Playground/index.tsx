@@ -1,9 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import {
-  runPipeline,
-  adaptToPlatform,
-  PLATFORM_CAPABILITIES,
-  type UnifiedNode,
+  getPlatformRenderer,
+  renderNodes,
+  type MiniNode,
 } from '@ant-design/x-markdown-mini';
 import { nodesToHTML } from '../../utils/nodesToHTML';
 import './index.less';
@@ -30,7 +29,7 @@ const DEFAULT_MARKDOWN = `# x-markdown-mini
 ## 代码示例
 
 \`\`\`js
-const nodes = render({ content: md, platform: 'wechat' });
+const nodes = renderNodes({ content: md, platform: 'wechat' });
 // <rich-text nodes="{{nodes}}" />
 \`\`\`
 `;
@@ -40,24 +39,20 @@ interface DegradeIssue {
   label: string;
 }
 
-function detectIssues(nodes: UnifiedNode[], platform: DemoPlatform): DegradeIssue[] {
-  const caps = PLATFORM_CAPABILITIES[platform];
+function detectIssues(nodes: MiniNode[], platform: DemoPlatform): DegradeIssue[] {
+  const caps = getPlatformRenderer(platform).capabilities;
   let olStartDropped = 0;
   let httpImg = 0;
-  let videoDropped = 0;
-  let preDown = 0;
-  let blockquoteDown = 0;
-  let tableDown = 0;
   let anchorRewritten = 0;
 
-  const walk = (node: UnifiedNode) => {
+  const walk = (node: MiniNode) => {
     const { name, attrs, children } = node;
     if (
       name === 'ol' &&
       attrs &&
       attrs.start != null &&
       Number(attrs.start) !== 1 &&
-      !caps.olStartSupported
+      !caps.supportsOlStart
     ) {
       olStartDropped += 1;
     }
@@ -66,15 +61,11 @@ function detectIssues(nodes: UnifiedNode[], platform: DemoPlatform): DegradeIssu
       attrs &&
       typeof attrs.src === 'string' &&
       /^http:\/\//i.test(attrs.src) &&
-      caps.httpsOnlyImages
+      caps.requiresHttpsImage
     ) {
       httpImg += 1;
     }
-    if (name === 'video' && !caps.videoSupported) videoDropped += 1;
-    if (name === 'pre' && !caps.preSupported) preDown += 1;
-    if (name === 'blockquote' && !caps.blockquoteSupported) blockquoteDown += 1;
-    if (name === 'table' && !caps.tableSupported) tableDown += 1;
-    if (name === 'a' && attrs && 'href' in attrs && platform === 'wechat') {
+    if (name === 'a' && attrs && 'data-href' in attrs && platform === 'wechat') {
       anchorRewritten += 1;
     }
     for (const c of children ?? []) walk(c);
@@ -84,10 +75,6 @@ function detectIssues(nodes: UnifiedNode[], platform: DemoPlatform): DegradeIssu
   const issues: DegradeIssue[] = [];
   if (olStartDropped) issues.push({ kind: 'ol-start', label: '<ol start> 不支持，序号从 1 开始' });
   if (httpImg) issues.push({ kind: 'http-image', label: `${httpImg} 张 http 图片改写为 https` });
-  if (videoDropped) issues.push({ kind: 'video', label: `${videoDropped} 个 <video> 不支持，已删除` });
-  if (preDown) issues.push({ kind: 'pre', label: '代码块 <pre> 降级为 <div>' });
-  if (blockquoteDown) issues.push({ kind: 'blockquote', label: '<blockquote> 降级为 <div>' });
-  if (tableDown) issues.push({ kind: 'table', label: '<table> 扁平化为 <div>' });
   if (anchorRewritten) issues.push({ kind: 'anchor', label: '<a href> → data-href，需消费方拦截 tap' });
   return issues;
 }
@@ -109,11 +96,10 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = DEFAUL
 
   const { html, issues } = useMemo(() => {
     try {
-      const before = runPipeline(markdown, { selectable: true });
-      const after = adaptToPlatform(before, platform);
+      const nodes = renderNodes({ content: markdown, platform, selectable: true });
       return {
-        html: nodesToHTML(after as any),
-        issues: detectIssues(before, platform),
+        html: nodesToHTML(nodes as any),
+        issues: detectIssues(nodes, platform),
       };
     } catch (e) {
       return {

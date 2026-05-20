@@ -1,13 +1,13 @@
-import type { UnifiedNode } from '../../index.js';
+import type { MiniNode } from '../../index.js';
 
 /**
- * 把 UnifiedNode[] 中所有 inline 子树 (strong/em/code/span) 折叠为一层 <text> 文本片段，
+ * 把 MiniNode[] 中所有 inline 子树 (strong/em/code/span) 折叠为一层 <text> 文本片段，
  * 类名沿祖先链合并。anchor (<a>) 和 image (<img>) 保留为独立节点。
  *
  * 原因：mini-program 的 <text> 不能内嵌自定义组件，所以模板无法递归通过 <text> 渲染
  * 任意深度的 strong/em；提前在 JS 层扁平化，模板只剩一层 inline。
  */
-export function flattenInlineNodes(nodes: UnifiedNode[]): UnifiedNode[] {
+export function flattenInlineNodes(nodes: MiniNode[]): MiniNode[] {
   return nodes.map(walk);
 }
 
@@ -27,7 +27,7 @@ const TAG_CLASS: Record<string, string> = {
   // 'span' 不附加额外 class
 };
 
-function walk(node: UnifiedNode): UnifiedNode {
+function walk(node: MiniNode): MiniNode {
   if (!node.children || node.children.length === 0) return node;
 
   // anchor 自身保留，但其内部仍需扁平化
@@ -40,15 +40,15 @@ function walk(node: UnifiedNode): UnifiedNode {
   return { ...node, children: flattenChildren(node.children) };
 }
 
-function flattenChildren(children: UnifiedNode[]): UnifiedNode[] {
-  const out: UnifiedNode[] = [];
+function flattenChildren(children: MiniNode[]): MiniNode[] {
+  const out: MiniNode[] = [];
   for (const c of children) {
     flattenOne(c, '', out);
   }
   return out;
 }
 
-function flattenOne(n: UnifiedNode, classChain: string, out: UnifiedNode[]): void {
+function flattenOne(n: MiniNode, classChain: string, out: MiniNode[]): void {
   // 叶子文本：合并 class 后产出 <text>
   if (n.name === 'text') {
     const value = (n.attrs?.value as string) ?? '';

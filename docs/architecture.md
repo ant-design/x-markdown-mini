@@ -1,19 +1,18 @@
 # 架构
 
-一句话：**Markdown → IR → 统一节点 → 平台节点**，四步流水线。
+一句话：纯 JS 是 **Markdown → AI streaming fixup → marked Token[]**；组件是 **Markdown → AI streaming fixup → marked Token[] → 平台 renderer → MiniNode[]**。
 
 ```
-┌──────────┐  parse   ┌──────┐  irToUnifiedNodes  ┌──────────────┐  adaptToPlatform  ┌──────────────┐
-│ markdown │ ───────▶ │  IR  │ ─────────────────▶ │ Unified Node │ ────────────────▶ │  Platform    │
-│  string  │          │ tree │                    │   (rich-text)│                   │    nodes     │
-└──────────┘          └──────┘                    └──────────────┘                   └──────────────┘
+┌──────────┐  marked lexer  ┌──────────┐  renderer.renderTokens  ┌──────────────┐
+│ markdown │ ─────────────▶ │ Token[]  │ ──────────────────────▶ │ MiniNode[]│
+└──────────┘                └──────────┘                         └──────────────┘
 ```
 
 ## 各层职责
 
-### 1. Lexer（`src/core/lexer.ts`）
+### 1. Lexer（`XMarkdownMini.parse()`）
 
-基于 `marked.Lexer` 的 Markdown 解析层，直接把 marked token 转成项目内部 IR 树。覆盖：
+基于 `marked` 的 Markdown 解析层，返回 marked 原生 `Token[]`。覆盖：
 
 - 块级：标题、段落、围栏代码、引用、有序/无序列表、HR、HTML 透传、GFM 表格
 - 行内：`**strong**`、`*em*`、`` `code` ``、`[text](url)`、`![alt](src)`、`<br>`、转义、硬换行
@@ -21,87 +20,76 @@
 内置 `marked` 的取舍：
 
 - 兼容性：复用成熟 Markdown lexer，避免重新实现 GFM 表格、列表嵌套、行内 token 等边界
-- 体积：ESM 整库约 83KB（gzip 约 21KB），明显大于自研 lexer，但仍在当前小程序包体预算内
+- 体积：ESM 整库约 103KB（gzip 约 25KB），明显大于自研 lexer，但仍在当前小程序包体预算内
 - 产物：`marked` 通过 `tsup noExternal` 打进 `dist/index.*` 和 `dist/miniprogram_dist/index.js`，消费方无需单独安装运行时依赖
 - 流式增量解析友好（详见 [streaming.md](./streaming.md)）
 
-### 2. IR 层（`src/types.ts` 中的 `IRNode`）
-
-最小化的中间表示。字段约定：
-
-```ts
-interface IRNode {
-  t: IRNodeType;             // 类型，例如 'heading' / 'paragraph' / 'strong'
-  a?: Record<string, ...>;   // 属性，例如 { depth: 1 }
-  c?: IRNode[];              // 子节点
-  raw?: string;              // 原始文本（code、codespan、text 用）
-}
-```
-
-为什么单独有 IR 层？
-
-- 让流式处理可以「锁定已稳定块」并只重解析尾部，详见 streaming.md
-- 让适配器层只关心节点结构，不再关心 markdown 语法
-
-### 3. 统一节点（`UnifiedNode`）
+### 2. 小程序节点（`MiniNode`）
 
 与微信 `rich-text` 的 `nodes` 协议对齐：
 
 ```ts
-interface UnifiedNode {
+interface MiniNode {
   name: string;                                       // 小写 tag
   attrs?: Record<string, string | number | boolean>;  // class / src / href ...
-  children?: UnifiedNode[];
+  children?: MiniNode[];
   animate?: 'block' | 'text' | false;                 // 块级/文本级动画标记
 }
 ```
 
-每个块级节点都带 `class="md-xxx"`（如 `md-paragraph`、`md-heading md-h1`、`md-code-block`），消费方可统一在 WXSS / ACSS 上做样式与动画。
+组件渲染路径会把 inline 树拍平为小程序 `<text>` 友好的节点。动画通过 `animate: 'block'` 标记，由 NodesRenderer 组件映射为 `md-animate-block`。
 
-### 4. 适配器层（`src/adapters/`）
+### 3. 平台 renderer（`src/platforms/`）
 
-所有适配器共用 `adaptNodes(nodes, config)`，配置来源于 `PlatformAdapterConfig`：
+每个平台暴露 `PlatformRenderer`：
 
 ```ts
-interface PlatformAdapterConfig {
-  caps: PlatformCapabilities;        // 该平台的能力矩阵
-  classMode?: 'strip' | 'preserve';  // 是否剥离内部 class（多数平台需要）
-  rewriteAnchorHref?: boolean;       // <a href> → <a data-href>（微信特有）
+interface PlatformRenderer {
+  name: Platform;
+  capabilities: PlatformCapabilities;
+  renderTokens(tokens: Token[], ctx: RenderContext): MiniNode[];
 }
 ```
 
-`PlatformCapabilities` 见 [platforms.md](./platforms.md)。`adaptNodes` 处理：
+当前内置 `wechatRenderer` 和 `alipayRenderer`。入口通过 `getPlatformRenderer(resolvePlatform(...))` 选择 renderer。
 
-- 移除 `selectable`（属于 rich-text 组件级属性，不应出现在内部节点）
-- 按 `classMode` 决定是否剥离 class
-- 标签级降级：`<pre>` / `<blockquote>` / `<table>` 在不支持时降为 `<div>`
-- 属性级降级：`<ol start>`、`http://` 图片 → `https://`
-- `<video>`：在不支持的平台上丢弃
+### 4. 自定义 token renderer
+
+marked 的 HTML `renderer` 不直接参与小程序节点渲染。小程序路径通过 `tokenRenderers` 处理自定义 tokenizer 产出的 token：
+
+```ts
+new XMarkdownMini({
+  extensions: [mentionExt],
+  tokenRenderers: [
+    { token: 'mention', render: (token) => ({ name: 'span', children: [...] }) },
+  ],
+});
+```
 
 ## 一次性 vs 流式
 
 | 模式     | 入口                                | 何时用                           |
 | -------- | ----------------------------------- | -------------------------------- |
-| 一次性   | `render({ content, ... })`          | 已有完整 markdown                |
-| 流式     | `render({ content, streaming, ... })` | LLM 边出边渲，需要 onPatch 推送 |
+| 解析     | `render(content)` / `parse(content)` | 只要 marked Token[]             |
+| 流式解析 | `render({ content, streaming, onPatch })` | AI 流式优化后返回 marked Token[] |
+| 一次性   | `renderNodes({ content, ... })`      | 已有完整 markdown                |
+| 流式     | `renderNodes({ content, streaming, ... })` | LLM 边出边渲，需要 onPatch 推送 |
 
-二者共享同一条流水线 —— 流式只是把「lexer + ir → unified」按已稳定块缓存，并通过 `onPatch` 增量推回。
+二者共享同一条流水线。流式处理发生在 lex 之前：先在 markdown 字符串层做增量合并、语义切块、tail fixup，再进入「lexer + renderer」，并通过 `onPatch` 增量推回。
 
 ## 目录速查
 
 ```
 src/
-├── index.ts                    # render(props) 主入口、平台自动识别
-├── pipeline.ts                 # runPipeline / renderOnce
+├── index.ts                    # parse/render/renderNodes 主入口、平台自动识别
 ├── types.ts                    # 公共类型
 ├── core/
-│   ├── lexer.ts                # parse(): markdown → IR
-│   ├── irToUnifiedNodes.ts     # IR → UnifiedNode[]
+│   ├── tokensToWechat.ts       # Token[] → 微信 nodes
+│   ├── tokensToAlipay.ts       # Token[] → 支付宝 nodes
 │   └── index.ts
-├── adapters/
-│   ├── adapt.ts                # 通用 capability-driven 映射器
-│   ├── capabilities.ts         # 能力矩阵 + 适配配置
-│   ├── wechat.ts / alipay.ts / douyin.ts / other.ts   # 各端薄壳
+├── platforms/
+│   ├── wechat.ts / alipay.ts   # 平台 renderer
+│   ├── types.ts                # renderer 能力类型
 │   └── index.ts
 └── streaming/
     └── StreamingProcessor.ts   # 流式打字机 + 增量解析

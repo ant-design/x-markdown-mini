@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StreamingProcessor } from '../streaming/index.js';
 import { tokensToWechat } from '../core/tokensToWechat.js';
-import type { LexerOptions, UnifiedNode } from '../types.js';
+import type { LexerOptions, MiniNode } from '../types.js';
 
 interface Collector {
-  patches: UnifiedNode[][];
+  patches: MiniNode[][];
   updates: string[];
   completed: boolean;
 }
@@ -23,7 +23,7 @@ interface MakeOpts {
 
 function make(opts: MakeOpts = {}): { proc: StreamingProcessor; collector: Collector } {
   const collector: Collector = { patches: [], updates: [], completed: false };
-  const transform = (md: string): UnifiedNode[] =>
+  const transform = (md: string): MiniNode[] =>
     tokensToWechat(md, {
       lexerOptions: opts.lexerOptions,
       escapeText: opts.escapeText,
@@ -244,7 +244,7 @@ describe('StreamingProcessor — config propagation', () => {
     proc.handleContentUpdate('line one\nline two');
     proc.runRenderLoop(false);
     const last = collector.patches[collector.patches.length - 1];
-    const flat: UnifiedNode[] = [];
+    const flat: MiniNode[] = [];
     const q = [...last];
     while (q.length) {
       const n = q.shift()!;
@@ -263,7 +263,7 @@ describe('StreamingProcessor — config propagation', () => {
     proc.handleContentUpdate('a < b & "c"');
     proc.runRenderLoop(false);
     const last = collector.patches[collector.patches.length - 1];
-    const flat: UnifiedNode[] = [];
+    const flat: MiniNode[] = [];
     const q = [...last];
     while (q.length) {
       const n = q.shift()!;

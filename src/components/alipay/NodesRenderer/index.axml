@@ -35,7 +35,7 @@
     data-data="{{node}}"
     catchTap="_tap"
   >
-    <richtext
+    <nodes-renderer
       a:if="{{node.children}}"
       nodes="{{node.children}}"
       selectable="{{selectable}}"
@@ -89,7 +89,7 @@
     data-data="{{node}}"
     catchTap="_tap"
   >
-    <richtext
+    <nodes-renderer
       a:if="{{node.children}}"
       nodes="{{node.children}}"
       selectable="{{selectable}}"

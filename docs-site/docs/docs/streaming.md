@@ -18,21 +18,29 @@ LLM 一边吐字，UI 一边出节点。本库的流式策略围绕两个目标�
 
 ```ts
 render({
+  content: accumulatedMarkdown,
+  streaming: { hasNextChunk: true },
+  onPatch: (tokens) => {
+    // marked Token[]
+  },
+});
+
+renderNodes({
   content: accumulatedMarkdown, // 当前累计的全部 markdown
   platform: 'wechat',
   streaming: {
-    done: false, // 还有后续 chunk
+    hasNextChunk: true, // 还有后续 chunk
     semantic: true, // 按句/标点切块（默认）
     enableAnimation: true, // 给新块打 md-animate-block 类，CSS 做淡入
   },
   onPatch: (nodes) => this.setData({ nodes }),
 });
 
-// 最后一轮：done=true，flush 残余并触发 onRenderComplete
-render({
+// 最后一轮：hasNextChunk=false，flush 残余并触发 onRenderComplete
+renderNodes({
   content: finalMarkdown,
   platform: 'wechat',
-  streaming: { done: true },
+  streaming: { hasNextChunk: false },
   onPatch: (nodes) => this.setData({ nodes }),
   onRenderComplete: () => console.log('done'),
 });
@@ -40,7 +48,7 @@ render({
 
 ## 增量策略
 
-处理器在每次更新时找出「不在 fenced code 内」且「连续两个空行」的位置作为安全边界。前面的内容只 parse 一次并缓存为 `stableNodes`；只对边界之后的 tail 重新 lex。
+处理器在每次更新时找出「不在 fenced code 内」且「连续两个空行」的位置作为安全边界。纯 JS 路径返回 marked `Token[]`；组件路径会在 tokens 之后进入平台 renderer。两条路径都会先对 tail 字符串做流式 fixup，再进入 marked lexer。
 
 :::info 为何用「双连续空行」？
 单个空行还可能是 loose 列表的延续；双空行 + 非 fence 内是 CommonMark 语义上明确的块终止。规则保守但稳定。

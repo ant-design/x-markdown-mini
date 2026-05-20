@@ -7,7 +7,7 @@ import type { Token, Tokens } from 'marked';
  * 渲染任意深度的 strong/em/del/code 嵌套——必须在 JS 层把嵌套结构拍平为单层
  * 文本片段序列，每个片段携带「class 链」让模板按类拼样式。
  *
- * 与旧 flattenInline 的差别：输入是 marked 原生 Token[]，不再经过 UnifiedNode 中转。
+ * 与旧 flattenInline 的差别：输入是 marked 原生 Token[]，不再经过 MiniNode 中转。
  * 这样组件可以直接消费 XMarkdownMini.parse() 的输出，无需 transformer 层。
  *
  * Link / Image 由模板单独渲染（小程序 `<text>` 之外的 `<image>` / 可点击 `<text>`），

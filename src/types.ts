@@ -1,9 +1,10 @@
 import type { PlatformInput } from './platform.js';
+import type { Token } from 'marked';
 
 export type { Platform, PlatformInput } from './platform.js';
 
 // Re-export marked Token shape so consumers can type their own renderers
-// against the IR exposed by XMarkdownMini.parse(). MarkedExtension is re-exported
+// against the tokens exposed by XMarkdownMini.parse(). MarkedExtension is re-exported
 // in preparation for Stage 3's extensions support.
 export type { Token, Tokens, MarkedExtension } from 'marked';
 
@@ -81,10 +82,41 @@ export interface XMarkdownMiniProps {
   onRenderComplete?: () => void;
 
   /** 流式时每轮解析完成回调，用于 setData(nodes) */
-  onPatch?: (nodes: UnifiedNode[]) => void;
+  onPatch?: (nodes: MiniNode[]) => void;
 }
 
-// --- 统一 rich-text 节点（与微信 nodes 对齐）---
+export interface XMarkdownMiniTokenProps {
+  /** Markdown 文本（全量或当前累计流式内容） */
+  content: string;
+
+  /**
+   * 流式解析：
+   * - false: 关闭流式，走一次性 lex
+   * - true: 开启默认流式优化（等同 { hasNextChunk: true, semantic: true }）
+   * - object: 自定义流式行为，需显式提供 hasNextChunk
+   */
+  streaming?: false | true | StreamingConfig;
+
+  /** Markdown 解析选项（例如 gfm、breaks 等） */
+  options?: Record<string, unknown>;
+
+  /** 生命周期 */
+  onRenderStart?: () => void;
+  onRenderProgress?: (payload: { markdown: string }) => void;
+  onRenderComplete?: () => void;
+
+  /** 流式时每轮 lex 完成回调，用于拿到 marked Token[] */
+  onPatch?: (tokens: Token[]) => void;
+}
+
+export interface TokenRenderer {
+  /** marked token.type handled by this renderer. */
+  token: string;
+  /** Convert a marked token into one or more mini-program nodes. */
+  render: (token: Token, ctx: RenderContext) => MiniNode | MiniNode[] | null | undefined;
+}
+
+// --- 小程序渲染节点（与 rich-text nodes 形状对齐）---
 
 /** 渲染上下文：transformer 共用的公共配置。 */
 export interface RenderContext {
@@ -98,15 +130,17 @@ export interface RenderContext {
    * - false：用于自渲染组件（<text>{{value}}</text> 不解码实体）
    */
   escapeText?: boolean;
+  /** Custom renderers for marked extension tokens. */
+  tokenRenderers?: readonly TokenRenderer[];
 }
 
-export interface UnifiedNode {
+export interface MiniNode {
   /** 标签名，小写 */
   name: string;
   /** 属性，class/style 等小写 */
   attrs?: Record<string, string | number | boolean>;
   /** 子节点 */
-  children?: UnifiedNode[];
+  children?: MiniNode[];
   /** 动画：块级 / 文本级 / 关闭 */
   animate?: 'block' | 'text' | false;
 }

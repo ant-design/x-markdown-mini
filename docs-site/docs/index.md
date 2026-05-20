@@ -5,7 +5,7 @@ title: 首页
 <section class="xmd-home">
   <div class="xmd-home-hero">
     <h1 class="xmd-home-title">轻量、稳定的<br />多端小程序 Markdown 渲染器</h1>
-    <p class="xmd-home-subtitle">把 Markdown 转成各小程序可以直接消费的节点结构。内置 marked，支持一次性渲染、流式增量解析与平台能力降级。</p>
+    <p class="xmd-home-subtitle">把 Markdown 转成微信和支付宝小程序可以直接消费的节点结构。内置 marked，支持一次性渲染、流式增量解析与平台差异消化。</p>
     <div class="xmd-home-cta">
       <button type="button" class="xmd-home-command" data-xmd-copy="npm install @ant-design/x-markdown-mini" aria-label="复制安装命令">
         <span class="xmd-home-command-prompt" aria-hidden="true">$</span>
@@ -29,8 +29,8 @@ title: 首页
       <p>稳定块只解析一次，只重算未闭合尾部，适合实时展示。</p>
     </article>
     <article>
-      <h2>多端适配</h2>
-      <p>微信、支付宝、抖音等平台共用统一中间层，再按能力矩阵安全降级。</p>
+      <h2>双端适配</h2>
+      <p>微信和支付宝使用统一组件路径，平台差异由内部 renderer 消化。</p>
     </article>
   </div>
 </section>
@@ -38,18 +38,18 @@ title: 首页
 ## 一行示例
 
 ```ts
-import { render } from '@ant-design/x-markdown-mini';
+import { renderNodes } from '@ant-design/x-markdown-mini';
 
-const nodes = render({
+const nodes = renderNodes({
   content: markdown,
   platform: 'alipay',
-  streaming: { done: false, semantic: true },
+  streaming: { hasNextChunk: true, semantic: true },
 });
 ```
 
 ## 支持平台
 
-支付宝 · 微信 · 抖音 · 百度 · QQ · 快手 · 钉钉 · 京东
+支付宝 · 微信
 
 ## 下一步
 

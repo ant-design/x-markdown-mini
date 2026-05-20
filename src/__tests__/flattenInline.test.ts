@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { tokensToWechat } from '../core/tokensToWechat.js';
 import { flattenInlineNodes } from '../components/shared/flattenInline.js';
-import type { UnifiedNode } from '../types.js';
+import type { MiniNode } from '../types.js';
 
-function findAll(nodes: UnifiedNode[], pred: (n: UnifiedNode) => boolean): UnifiedNode[] {
-  const out: UnifiedNode[] = [];
+function findAll(nodes: MiniNode[], pred: (n: MiniNode) => boolean): MiniNode[] {
+  const out: MiniNode[] = [];
   const queue = [...nodes];
   while (queue.length) {
     const n = queue.shift()!;
@@ -14,7 +14,7 @@ function findAll(nodes: UnifiedNode[], pred: (n: UnifiedNode) => boolean): Unifi
   return out;
 }
 
-function findFirst(nodes: UnifiedNode[], pred: (n: UnifiedNode) => boolean): UnifiedNode | undefined {
+function findFirst(nodes: MiniNode[], pred: (n: MiniNode) => boolean): MiniNode | undefined {
   const queue = [...nodes];
   while (queue.length) {
     const n = queue.shift()!;
@@ -76,7 +76,7 @@ describe('flattenInlineNodes', () => {
   });
 
   it('returns leaf nodes (no children) unchanged from walk()', () => {
-    const input: UnifiedNode[] = [
+    const input: MiniNode[] = [
       { name: 'hr', attrs: { class: 'md-hr' } },
       { name: 'p', attrs: {}, children: [] }, // empty children path
     ];
@@ -86,7 +86,7 @@ describe('flattenInlineNodes', () => {
   });
 
   it('top-level anchor goes through the anchor walk branch (flattens children but keeps <a>)', () => {
-    const input: UnifiedNode[] = [
+    const input: MiniNode[] = [
       {
         name: 'a',
         attrs: { href: 'https://e.com', class: 'md-link' },
@@ -108,7 +108,7 @@ describe('flattenInlineNodes', () => {
   });
 
   it('handles standalone <img> inside a paragraph (image preserved by flattenOne)', () => {
-    const input: UnifiedNode[] = [
+    const input: MiniNode[] = [
       {
         name: 'p',
         attrs: {},
@@ -126,7 +126,7 @@ describe('flattenInlineNodes', () => {
   });
 
   it('handles explicit <br> in inline children', () => {
-    const input: UnifiedNode[] = [
+    const input: MiniNode[] = [
       {
         name: 'p',
         attrs: {},
@@ -142,7 +142,7 @@ describe('flattenInlineNodes', () => {
   });
 
   it('skips empty-string text leaves entirely', () => {
-    const input: UnifiedNode[] = [
+    const input: MiniNode[] = [
       {
         name: 'p',
         attrs: {},
@@ -159,7 +159,7 @@ describe('flattenInlineNodes', () => {
   });
 
   it('text without class chain produces no class attribute', () => {
-    const input: UnifiedNode[] = [
+    const input: MiniNode[] = [
       {
         name: 'p',
         attrs: {},
@@ -173,7 +173,7 @@ describe('flattenInlineNodes', () => {
   });
 
   it('block-like child inside an inline context falls through walk path', () => {
-    const input: UnifiedNode[] = [
+    const input: MiniNode[] = [
       {
         name: 'p',
         attrs: {},
@@ -194,7 +194,7 @@ describe('flattenInlineNodes', () => {
   });
 
   it('text node without a value attribute is treated as empty (no attrs.value)', () => {
-    const input: UnifiedNode[] = [
+    const input: MiniNode[] = [
       {
         name: 'p',
         attrs: {},
@@ -211,7 +211,7 @@ describe('flattenInlineNodes', () => {
   });
 
   it('anchor without explicit children property still flattens', () => {
-    const input: UnifiedNode[] = [
+    const input: MiniNode[] = [
       {
         name: 'p',
         attrs: {},
@@ -227,7 +227,7 @@ describe('flattenInlineNodes', () => {
   });
 
   it('inline container without children property is treated as empty', () => {
-    const input: UnifiedNode[] = [
+    const input: MiniNode[] = [
       {
         name: 'p',
         attrs: {},
@@ -244,7 +244,7 @@ describe('flattenInlineNodes', () => {
   });
 
   it('span is treated as an inline collapse container', () => {
-    const input: UnifiedNode[] = [
+    const input: MiniNode[] = [
       {
         name: 'p',
         attrs: {},

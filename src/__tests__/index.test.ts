@@ -1,13 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  parse,
   render,
+  renderNodes,
   resolvePlatform,
   StreamingProcessor,
   XMarkdownMini,
   tokensToWechat,
   tokensToAlipay,
+  getPlatformRenderer,
 } from '../index.js';
-import type { UnifiedNode } from '../index.js';
+import type { MiniNode } from '../index.js';
 
 type Globalish = Record<string, unknown>;
 
@@ -31,10 +34,63 @@ afterEach(() => {
 describe('public re-exports', () => {
   it('re-exports the full public surface from src/index.ts', () => {
     expect(typeof render).toBe('function');
+    expect(typeof parse).toBe('function');
+    expect(typeof renderNodes).toBe('function');
     expect(typeof resolvePlatform).toBe('function');
     expect(typeof StreamingProcessor).toBe('function');
     expect(typeof tokensToWechat).toBe('function');
     expect(typeof tokensToAlipay).toBe('function');
+    expect(typeof getPlatformRenderer).toBe('function');
+  });
+});
+
+describe('platform renderers', () => {
+  it('exposes renderer capabilities for supported platforms', () => {
+    const wechat = getPlatformRenderer('wechat');
+    const alipay = getPlatformRenderer('alipay');
+
+    expect(wechat.name).toBe('wechat');
+    expect(wechat.capabilities.anchorHrefMode).toBe('data-href');
+    expect(alipay.name).toBe('alipay');
+    expect(alipay.capabilities.requiresHttpsImage).toBe(true);
+    expect(typeof wechat.renderTokens).toBe('function');
+  });
+});
+
+describe('render / parse token API', () => {
+  it('returns marked tokens without platform rendering', () => {
+    const tokens = render('# Hi');
+    expect(tokens[0].type).toBe('heading');
+    expect(JSON.stringify(tokens)).not.toContain('data-href');
+  });
+
+  it('parse is the explicit alias for the token API', () => {
+    const tokens = parse('A [x](http://e.com)');
+    expect(tokens[0].type).toBe('paragraph');
+  });
+
+  it('supports AI streaming optimization while returning marked tokens', () => {
+    const patches: unknown[][] = [];
+    const complete = vi.fn();
+
+    const r1 = render({
+      content: 'hello **wor',
+      streaming: true,
+      onPatch: (tokens) => patches.push(tokens),
+      onRenderComplete: complete,
+    });
+    expect(r1).toEqual([]);
+    expect(patches.length).toBe(1);
+    expect(JSON.stringify(patches[0])).toContain('strong');
+    expect(complete).not.toHaveBeenCalled();
+
+    render({
+      content: 'hello **world**',
+      streaming: { hasNextChunk: false },
+      onPatch: (tokens) => patches.push(tokens),
+      onRenderComplete: complete,
+    });
+    expect(complete).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -102,7 +158,7 @@ describe('render (one-shot)', () => {
     const start = vi.fn();
     const done = vi.fn();
     const progress = vi.fn();
-    const nodes = render({
+    const nodes = renderNodes({
       content: '# Hi\n\nPara.',
       platform: 'wechat',
       streaming: false,
@@ -118,14 +174,14 @@ describe('render (one-shot)', () => {
   });
 
   it('omits streaming arg → goes through one-shot path', () => {
-    const nodes = render({ content: '# Hi', platform: 'alipay' });
+    const nodes = renderNodes({ content: '# Hi', platform: 'alipay' });
     expect(nodes[0].name).toBe('h1');
   });
 
   it('uses auto-detected platform when none is provided', () => {
     clearRuntimes();
     installRuntime('wx');
-    const nodes = render({
+    const nodes = renderNodes({
       content: 'A [x](http://e.com)',
     });
     // tokensToWechat rewrites <a href> → data-href
@@ -138,15 +194,15 @@ describe('render (one-shot)', () => {
 
 describe('render (streaming)', () => {
   it('streaming=true uses default semantic config and emits patches via onPatch', () => {
-    const patches: UnifiedNode[][] = [];
-    const onPatch = (nodes: UnifiedNode[]): void => {
+    const patches: MiniNode[][] = [];
+    const onPatch = (nodes: MiniNode[]): void => {
       patches.push(nodes);
     };
     const onRenderStart = vi.fn();
     const onRenderProgress = vi.fn();
     const onRenderComplete = vi.fn();
 
-    const r1 = render({
+    const r1 = renderNodes({
       content: '# Hi',
       platform: 'wechat',
       streaming: true, // hasNextChunk: true → no completion
@@ -162,7 +218,7 @@ describe('render (streaming)', () => {
     expect(onRenderComplete).not.toHaveBeenCalled();
 
     // explicit { hasNextChunk: false } finishes; onRenderStart still fires only once
-    const r2 = render({
+    const r2 = renderNodes({
       content: '# Hi\n\nFinal.',
       platform: 'wechat',
       streaming: { hasNextChunk: false },
@@ -177,8 +233,8 @@ describe('render (streaming)', () => {
   });
 
   it('streaming as StreamingConfig object with semantic=false / no animation works', () => {
-    const patches: UnifiedNode[][] = [];
-    render({
+    const patches: MiniNode[][] = [];
+    renderNodes({
       content: 'Para one.',
       platform: 'wechat',
       streaming: { hasNextChunk: false, semantic: false, enableAnimation: false },
@@ -188,8 +244,8 @@ describe('render (streaming)', () => {
   });
 
   it('streaming with semantic config object propagates delimiters/maxChunkSize', () => {
-    const patches: UnifiedNode[][] = [];
-    render({
+    const patches: MiniNode[][] = [];
+    renderNodes({
       content: 'Hello, world.',
       platform: 'wechat',
       streaming: {
@@ -202,8 +258,8 @@ describe('render (streaming)', () => {
   });
 
   it('passes lexer options through to streaming pipeline', () => {
-    const patches: UnifiedNode[][] = [];
-    render({
+    const patches: MiniNode[][] = [];
+    renderNodes({
       content: 'Line1\nLine2',
       platform: 'wechat',
       options: { breaks: true },
@@ -212,7 +268,7 @@ describe('render (streaming)', () => {
     });
     // <br> appears in the last patch when breaks=true
     const last = patches[patches.length - 1];
-    const flat: UnifiedNode[] = [];
+    const flat: MiniNode[] = [];
     const q = [...last];
     while (q.length) {
       const n = q.shift()!;
@@ -224,7 +280,7 @@ describe('render (streaming)', () => {
 });
 
 describe('XMarkdownMini — multi-instance isolation', () => {
-  function extractText(nodes: UnifiedNode[]): string {
+  function extractText(nodes: MiniNode[]): string {
     let t = '';
     for (const n of nodes) {
       if (n.name === 'text' && typeof n.attrs?.value === 'string') {
@@ -239,17 +295,17 @@ describe('XMarkdownMini — multi-instance isolation', () => {
     const a = new XMarkdownMini();
     const b = new XMarkdownMini();
 
-    const aPatches: UnifiedNode[][] = [];
-    const bPatches: UnifiedNode[][] = [];
+    const aPatches: MiniNode[][] = [];
+    const bPatches: MiniNode[][] = [];
 
     // Start both streams without completion
-    a.render({
+    a.renderNodes({
       content: '# Aaa',
       platform: 'wechat',
       streaming: true,
       onPatch: (nodes) => aPatches.push(nodes),
     });
-    b.render({
+    b.renderNodes({
       content: '# Bbb',
       platform: 'wechat',
       streaming: true,
@@ -257,13 +313,13 @@ describe('XMarkdownMini — multi-instance isolation', () => {
     });
 
     // Finish both
-    a.render({
+    a.renderNodes({
       content: '# Aaa\n\nDone-A',
       platform: 'wechat',
       streaming: { hasNextChunk: false },
       onPatch: (nodes) => aPatches.push(nodes),
     });
-    b.render({
+    b.renderNodes({
       content: '# Bbb\n\nDone-B',
       platform: 'wechat',
       streaming: { hasNextChunk: false },
@@ -284,19 +340,19 @@ describe('XMarkdownMini — multi-instance isolation', () => {
 
   it('growing-prefix streaming updates accumulate (not duplicate)', () => {
     const md = new XMarkdownMini();
-    const patches: UnifiedNode[][] = [];
-    const onPatch = (n: UnifiedNode[]): void => {
+    const patches: MiniNode[][] = [];
+    const onPatch = (n: MiniNode[]): void => {
       patches.push(n);
     };
 
-    md.render({ content: '##', platform: 'wechat', streaming: true, onPatch });
-    md.render({
+    md.renderNodes({ content: '##', platform: 'wechat', streaming: true, onPatch });
+    md.renderNodes({
       content: '## Headi',
       platform: 'wechat',
       streaming: true,
       onPatch,
     });
-    md.render({
+    md.renderNodes({
       content: '## Heading2',
       platform: 'wechat',
       streaming: { hasNextChunk: false },
@@ -310,8 +366,8 @@ describe('XMarkdownMini — multi-instance isolation', () => {
 
   it('one-shot render fires onPatch with the final adapted nodes', () => {
     const md = new XMarkdownMini();
-    const patches: UnifiedNode[][] = [];
-    const nodes = md.render({
+    const patches: MiniNode[][] = [];
+    const nodes = md.renderNodes({
       content: '# Hi',
       platform: 'wechat',
       streaming: false,
@@ -324,8 +380,8 @@ describe('XMarkdownMini — multi-instance isolation', () => {
 
   it('reset() clears in-flight stream state', () => {
     const md = new XMarkdownMini();
-    const patches: UnifiedNode[][] = [];
-    md.render({
+    const patches: MiniNode[][] = [];
+    md.renderNodes({
       content: '# Hi',
       platform: 'wechat',
       streaming: true,
@@ -334,7 +390,7 @@ describe('XMarkdownMini — multi-instance isolation', () => {
     md.reset();
     // After reset, a new render starts fresh — onRenderStart fires again
     const onRenderStart = vi.fn();
-    md.render({
+    md.renderNodes({
       content: '# Fresh',
       platform: 'wechat',
       streaming: true,

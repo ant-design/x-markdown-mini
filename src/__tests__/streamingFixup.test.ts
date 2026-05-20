@@ -2,11 +2,11 @@ import { describe, it, expect, vi } from 'vitest';
 import { StreamingProcessor } from '../streaming/StreamingProcessor.js';
 import { tokensToWechat } from '../core/tokensToWechat.js';
 import { XMarkdownMini } from '../index.js';
-import type { UnifiedNode } from '../types.js';
+import type { MiniNode } from '../types.js';
 
-/** Flatten a UnifiedNode tree to a flat list for easy assertions. */
-function flatten(nodes: UnifiedNode[]): UnifiedNode[] {
-  const out: UnifiedNode[] = [];
+/** Flatten a MiniNode tree to a flat list for easy assertions. */
+function flatten(nodes: MiniNode[]): MiniNode[] {
+  const out: MiniNode[] = [];
   const q = [...nodes];
   while (q.length) {
     const n = q.shift()!;
@@ -17,7 +17,7 @@ function flatten(nodes: UnifiedNode[]): UnifiedNode[] {
 }
 
 /** Concatenate all text node values in a tree. */
-function textContent(nodes: UnifiedNode[]): string {
+function textContent(nodes: MiniNode[]): string {
   return flatten(nodes)
     .filter((n) => n.name === 'text')
     .map((n) => String(n.attrs?.value ?? ''))
@@ -45,6 +45,27 @@ describe('StreamingProcessor — fixup wiring', () => {
     expect(seen).toEqual(['hello world']);
   });
 
+  it('passes fixed markdown into transform before any lex/render work', () => {
+    const transformed: string[] = [];
+    const proc = new StreamingProcessor({
+      transform: (md) => {
+        transformed.push(md);
+        return tokensToWechat(md);
+      },
+      fixup: (tail) => `${tail} [fixed]`,
+      chunkDelay: 0,
+      charDelay: 0,
+      onUpdate: () => {},
+      onPatch: () => {},
+      onComplete: () => {},
+    });
+
+    proc.handleContentUpdate('hello');
+    proc.runRenderLoop(true);
+
+    expect(transformed).toEqual(['hello [fixed]']);
+  });
+
   it('fixup is NOT invoked on committed prefix (only on tail)', () => {
     const seen: string[] = [];
     const fixup = (s: string): string => {
@@ -69,7 +90,7 @@ describe('StreamingProcessor — fixup wiring', () => {
 
   it('getRenderedText returns original markdown, not fixed-up tail', () => {
     const fixup = (s: string): string => `[FIXED:${s}]`;
-    const patches: UnifiedNode[][] = [];
+    const patches: MiniNode[][] = [];
     const proc = new StreamingProcessor({
       transform: (md) => tokensToWechat(md),
       fixup,
@@ -85,7 +106,7 @@ describe('StreamingProcessor — fixup wiring', () => {
   });
 
   it('no fixup (undefined): unclosed bold remains literal — regression baseline', () => {
-    const patches: UnifiedNode[][] = [];
+    const patches: MiniNode[][] = [];
     const proc = new StreamingProcessor({
       transform: (md) => tokensToWechat(md),
       chunkDelay: 0,
@@ -108,7 +129,7 @@ describe('StreamingProcessor + remend integration', () => {
   // remend's output can be re-parsed by marked into the expected token shapes.
   async function makeRemendProc() {
     const { default: remend } = await import('remend');
-    const patches: UnifiedNode[][] = [];
+    const patches: MiniNode[][] = [];
     const proc = new StreamingProcessor({
       transform: (md) => tokensToWechat(md),
       fixup: (tail: string) => remend(tail),
@@ -165,8 +186,8 @@ describe('StreamingProcessor + remend integration', () => {
 describe('XMarkdownMini — streamingFixup option', () => {
   it('default streamingFixup uses remend (closes unclosed **bold)', () => {
     const md = new XMarkdownMini();
-    const patches: UnifiedNode[][] = [];
-    md.render({
+    const patches: MiniNode[][] = [];
+    md.renderNodes({
       content: 'hello **world',
       streaming: { hasNextChunk: true },
       onPatch: (nodes) => patches.push(nodes),
@@ -177,8 +198,8 @@ describe('XMarkdownMini — streamingFixup option', () => {
 
   it('streamingFixup: false disables fixup — unclosed remains literal', () => {
     const md = new XMarkdownMini({ streamingFixup: false });
-    const patches: UnifiedNode[][] = [];
-    md.render({
+    const patches: MiniNode[][] = [];
+    md.renderNodes({
       content: 'hello **world',
       streaming: { hasNextChunk: true },
       onPatch: (nodes) => patches.push(nodes),
@@ -191,7 +212,7 @@ describe('XMarkdownMini — streamingFixup option', () => {
   it('custom streamingFixup function is called with the tail', () => {
     const spy = vi.fn((s: string) => s);
     const md = new XMarkdownMini({ streamingFixup: spy });
-    md.render({
+    md.renderNodes({
       content: 'plain content',
       streaming: { hasNextChunk: true },
       onPatch: () => {},
@@ -203,7 +224,7 @@ describe('XMarkdownMini — streamingFixup option', () => {
   it('one-shot (non-streaming) path does NOT invoke fixup', () => {
     const spy = vi.fn((s: string) => s);
     const md = new XMarkdownMini({ streamingFixup: spy });
-    md.render({
+    md.renderNodes({
       content: 'hello **world',
       onPatch: () => {},
     });

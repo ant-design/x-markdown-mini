@@ -36,7 +36,7 @@ const tokens = md.parse('hi @alice');
 | --- | --- |
 | `extensions` | 自定义 block / inline tokenizer + 可选 renderer，产出新 token 类型 |
 | `tokenizer` | 覆盖内置 tokenizer 方法（不新增 token 类型，改变现有 token 解析行为） |
-| `renderer` | 覆盖内置 renderer（仅在使用 marked 的 HTML 渲染时生效，小程序流程不用） |
+| `renderer` | marked HTML renderer；不会直接参与小程序节点渲染 |
 | `walkTokens` | 后置遍历钩子，常用于给 token 加属性 |
 | `hooks` | preprocess / postprocess 文本/HTML 钩子 |
 | `gfm`, `breaks`, `pedantic` 等 | 等同于 lexer 选项 |
@@ -63,15 +63,27 @@ md.parse(content);  // walkTokens 被自动调用一次每个 token
 
 ## 在 streaming / render 路径
 
-extensions 也会自动应用到 `XMarkdownMini.render()` 走的 streaming 链路（因为内部用同一个 `Marked` 实例 lex）。但要注意：
+extensions 也会自动应用到 `XMarkdownMini.renderNodes()` 走的 streaming 链路（因为内部用同一个 `Marked` 实例 lex）。自定义 token 要渲染到小程序节点，需要提供 `tokenRenderers`：
 
-- **自定义 tokenizer 产生的 token**：在 `parse()` 输出里看得到；走 `render()` 的话，未被 `tokensToWechatNodes` / `tokensToAlipayNodes` 识别的 token 类型会被静默跳过（不渲染、不报错）。
-- **walkTokens / hooks**：始终生效。
+```ts
+const md = new XMarkdownMini({
+  extensions: [mentionExt],
+  tokenRenderers: [
+    {
+      token: 'mention',
+      render(token) {
+        return {
+          name: 'span',
+          attrs: { class: 'md-mention' },
+          children: [{ name: 'text', attrs: { value: `@${token.username}` } }],
+        };
+      },
+    },
+  ],
+});
+```
 
-要让自定义 token 真正渲染到小程序 UI，路径是：
-1. 用 `parse()` 拿到 tokens
-2. 自己映射成 `UnifiedNode[]`（参考 `tokensToWechatNodes` 源码）
-3. 经 `flattenInlineTokens` 或自渲染模板渲出
+未被内置 transformer 或 `tokenRenderers` 识别的 token 仍会被跳过。
 
 ## 多实例隔离
 

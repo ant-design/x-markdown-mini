@@ -1,5 +1,5 @@
 import { XMarkdownMini } from '../../../index.js';
-import type { UnifiedNode, StreamingConfig } from '../../../index.js';
+import type { MiniNode, StreamingConfig } from '../../../index.js';
 import { flattenInlineNodes } from '../../shared/flattenInline.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
@@ -17,7 +17,7 @@ Component({
     className: { type: String, value: '' },
   },
   data: {
-    nodes: [] as UnifiedNode[],
+    nodes: [] as MiniNode[],
   },
   md: null as XMarkdownMini | null,
   lifetimes: {
@@ -38,7 +38,7 @@ Component({
   methods: {
     _render(this: any) {
       const data = this.data;
-      this.md.render({
+      this.md.renderNodes({
         content: data.content,
         platform: 'wechat',
         streaming: data.streaming as false | true | StreamingConfig,
@@ -48,7 +48,7 @@ Component({
         onRenderProgress: (payload: { markdown: string }) =>
           this.triggerEvent('renderprogress', payload),
         onRenderComplete: () => this.triggerEvent('rendercomplete'),
-        onPatch: (nodes: UnifiedNode[]) =>
+        onPatch: (nodes: MiniNode[]) =>
           this.setData({ nodes: flattenInlineNodes(nodes) }),
       });
     },

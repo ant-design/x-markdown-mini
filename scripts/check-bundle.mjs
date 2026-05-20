@@ -39,10 +39,10 @@ const BUDGETS = [
   { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 5 * KB },
   // Alipay 组件
   { file: 'es/Markdown/index.js', rawMax: 5 * KB },
-  { file: 'es/RichText/index.js', rawMax: 5 * KB },
+  { file: 'es/NodesRenderer/index.js', rawMax: 5 * KB },
   // Wechat 组件
   { file: 'miniprogram_dist/es/Markdown/index.js', rawMax: 5 * KB },
-  { file: 'miniprogram_dist/es/RichText/index.js', rawMax: 5 * KB },
+  { file: 'miniprogram_dist/es/NodesRenderer/index.js', rawMax: 5 * KB },
 ];
 
 // Files whose JS source must pass the syntax + named-group checks.
@@ -55,9 +55,9 @@ const COMPAT_CJS_FILES = [
   'shared/flattenInline.js',
   'miniprogram_dist/shared/flattenInline.js',
   'es/Markdown/index.js',
-  'es/RichText/index.js',
+  'es/NodesRenderer/index.js',
   'miniprogram_dist/es/Markdown/index.js',
-  'miniprogram_dist/es/RichText/index.js',
+  'miniprogram_dist/es/NodesRenderer/index.js',
 ];
 const COMPAT_FILES = [...COMPAT_ESM_FILES, ...COMPAT_CJS_FILES];
 

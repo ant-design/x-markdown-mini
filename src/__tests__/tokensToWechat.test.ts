@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { tokensToWechat } from '../core/tokensToWechat.js';
-import type { UnifiedNode } from '../types.js';
+import type { MiniNode } from '../types.js';
 
-function flatten(nodes: UnifiedNode[]): UnifiedNode[] {
-  const out: UnifiedNode[] = [];
+function flatten(nodes: MiniNode[]): MiniNode[] {
+  const out: MiniNode[] = [];
   const queue = [...nodes];
   while (queue.length) {
     const n = queue.shift()!;
@@ -13,7 +13,7 @@ function flatten(nodes: UnifiedNode[]): UnifiedNode[] {
   return out;
 }
 
-function find(nodes: UnifiedNode[], name: string): UnifiedNode | undefined {
+function find(nodes: MiniNode[], name: string): MiniNode | undefined {
   return flatten(nodes).find((n) => n.name === name);
 }
 

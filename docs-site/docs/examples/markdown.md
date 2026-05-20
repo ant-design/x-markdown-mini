@@ -11,7 +11,7 @@ group:
 
 # Markdown
 
-高层组件：传入 markdown 字符串，组件内部走 parse → IR → UnifiedNode → 平台节点 → rich-text 渲染。
+高层组件：传入 markdown 字符串，组件内部走 parse → 平台 renderer → MiniNode → rich-text 渲染。
 
 ## Introduction
 

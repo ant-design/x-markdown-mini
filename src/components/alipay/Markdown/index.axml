@@ -1,5 +1,5 @@
 <view class="md-root {{className}}">
-  <richtext
+  <nodes-renderer
     nodes="{{nodes}}"
     selectable="{{selectable}}"
     animation="{{animation}}"

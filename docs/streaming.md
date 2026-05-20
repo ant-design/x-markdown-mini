@@ -8,12 +8,22 @@ LLM 一边吐字，UI 一边出节点。本库的流式策略围绕两个目标�
 ## 配置
 
 ```ts
-import { render } from '@ant-design/x-markdown-mini';
+import { render, renderNodes } from '@ant-design/x-markdown-mini';
 
+// 纯 JS：AI 流式优化后返回 marked Token[]
 render({
+  content,
+  streaming: { hasNextChunk: true },
+  onPatch: (tokens) => {
+    // 自己把 tokens 适配到目标 UI
+  },
+});
+
+// 组件 / 小程序节点：AI 流式优化后进入平台 renderer
+renderNodes({
   content,                       // 当前累计的全部 markdown
   streaming: {
-    done: false,                 // 还有后续 chunk
+    hasNextChunk: true,          // 还有后续 chunk
     semantic: true,              // 按句/标点切块（默认）
     enableAnimation: true,       // 给新块打 md-animate-block 类，CSS 做淡入
   },
@@ -23,14 +33,14 @@ render({
 });
 ```
 
-最后一轮把 `done: true` 设上，处理器会把残余 buffer flush 出去并触发 `onRenderComplete`。
+最后一轮把 `hasNextChunk: false` 设上，处理器会把残余 buffer flush 出去并触发 `onRenderComplete`。
 
 ## 增量策略
 
-每次 `render()` 接收新的累计 `content`，处理器会做两件事：
+每次 `render()` 或 `renderNodes()` 接收新的累计 `content`，处理器会做两件事：
 
 1. **commit 已稳定块**：扫描已渲染文本，找出「不在 fenced code 内」且「连续两个空行」的位置作为安全边界，前面的内容只 parse 一次并缓存为 `stableNodes`
-2. **重解析未稳定 tail**：只对 commit 点之后的字符走一次 lexer，与 `stableNodes` 拼接后通过 `onPatch` 推回
+2. **预处理未稳定 tail 再解析**：只对 commit 点之后的字符串做 fixup，然后进入 lexer，与 `stableNodes` 拼接后通过 `onPatch` 推回
 
 ```
    committedLen
@@ -48,7 +58,7 @@ render({
 
 ## 打字机模式
 
-`chunkDelay` 或 `charDelay` 任一 > 0 时，处理器会按语义切块（`delimiters` 默认 `/[。？！……；：——，、\n]/`）逐块推进 `renderedText`，每步都走一次「commit + tail re-parse + onPatch」。
+`chunkDelay` 或 `charDelay` 任一 > 0 时，处理器会按语义切块（`delimiters` 默认 `/[。？！……；：——，、\n]/`）逐块推进 `renderedText`，每步都走一次「commit + tail fixup + lex/render + onPatch」。
 
 ```ts
 streaming: {
@@ -96,7 +106,7 @@ LLM 流式输出时，tail 经常停在未闭合的状态——`这是 **粗体`
 | 链接  | `[标题](https://exa`   | `[标题](streamdown:incomplete-link)`         |
 | 块级数学 | `$$x^2`              | `$$x^2$$`                                    |
 
-**关键性质**：fixup **只作用于 tail**（未稳定段），committed 的 `stableNodes` 不会再过补全；`getRenderedText()` 和 `onRenderProgress` 拿到的仍是用户原始内容，补全只影响传给 marked 的字符串。
+**关键性质**：AI 流式处理发生在 lex 之前。fixup **只作用于 tail 字符串**（未稳定段），committed 的 `stableNodes` 不会再过补全；`getRenderedText()` 和 `onRenderProgress` 拿到的仍是用户原始内容，补全只影响传给 marked lexer 的字符串。
 
 ### 配置
 

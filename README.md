@@ -2,10 +2,10 @@
 
 > 多小程序、轻量、流式友好的 Markdown 渲染器。
 
-- **轻**：内置 `marked` lexer，ESM 整库约 83KB / gzip 约 21KB
+- **轻**：内置 `marked` lexer，ESM 整库约 103KB / gzip 约 25KB
 - **流**：增量解析，已稳定块只 parse 一次；onPatch 推回全量统一节点
-- **多端**：微信 / 支付宝 / 抖音 / 百度 / QQ / 快手 / 钉钉 / 京东，统一 API + 自动识别
-- **可扩展**：能力矩阵驱动适配，未列入的平台用 `toOtherNodes` 即插即用
+- **双端**：当前支持微信 / 支付宝，统一组件路径 + 自动识别
+- **可扩展**：marked tokenizer / walkTokens / hooks + 小程序 `tokenRenderers`
 
 ## 安装
 
@@ -53,18 +53,18 @@ pnpm add @ant-design/x-markdown-mini
 />
 ```
 
-组件内部已经把 `runPipeline` / `StreamingProcessor` 接好，直接 `setData` 节点；
+组件内部已经把 `XMarkdownMini` / `StreamingProcessor` 接好，直接 `setData` 节点；
 样式（`.md-paragraph` / `.md-heading` / `.md-code-block` …）随组件 `acss` / `wxss`
 一起加载，可在外层覆盖。
 
 ### B. 仅取节点数据，自己渲染
 
 ```ts
-import { render } from '@ant-design/x-markdown-mini';
+import { renderNodes } from '@ant-design/x-markdown-mini';
 
-const nodes = render({
+const nodes = renderNodes({
   content: '# Hello\n\nWorld.',
-  platform: 'auto',     // 默认自动识别 wx / my / tt / swan ...
+  platform: 'auto',     // 默认自动识别 my / wx
   selectable: true,
 });
 ```
@@ -74,22 +74,39 @@ const nodes = render({
 <rich-text nodes="{{nodes}}" />
 ```
 
+### C. 仅解析 Markdown，自己适配
+
+```ts
+import { render, parse } from '@ant-design/x-markdown-mini';
+
+const tokens = render('# Hello'); // 等同 parse('# Hello')，返回 marked Token[]
+const sameTokens = parse('# Hello');
+
+render({
+  content: 'hello **wor',
+  streaming: { hasNextChunk: true },
+  onPatch: (tokens) => {
+    // tokens 是经过 AI 流式字符串补全后再 marked.lex 的结果
+  },
+});
+```
+
 ## 流式渲染（LLM 边出边渲）
 
 ```ts
 // 流式进行中：每来一段累计 markdown 就调用一次
-render({
+renderNodes({
   content: accumulatedMarkdown,
   platform: 'wechat',
-  streaming: { done: false, semantic: true, enableAnimation: true },
+  streaming: { hasNextChunk: true, semantic: true, enableAnimation: true },
   onPatch: (nodes) => this.setData({ nodes }),
 });
 
-// 最后一轮：done=true，flush 残余并触发 onRenderComplete
-render({
+// 最后一轮：hasNextChunk=false，flush 残余并触发 onRenderComplete
+renderNodes({
   content: finalMarkdown,
   platform: 'wechat',
-  streaming: { done: true },
+  streaming: { hasNextChunk: false },
   onPatch: (nodes) => this.setData({ nodes }),
   onRenderComplete: () => console.log('done'),
 });
@@ -109,15 +126,9 @@ render({
 | --------- | :-----: | :-------: | :------------: | :----------: | :-------------: | :-------: |
 | 微信      | ✅      | ✅        | ✅             | ✅           |                 |           |
 | 支付宝    | ✅      | ✅        | ✅             |              | ✅              |           |
-| 抖音      | ✅      | ✅        | ✅             | ✅           | ✅              | ✅        |
-| 百度      |         |           | ✅             |              |                 |           |
-| QQ        |         | ✅        | ✅             | ✅           |                 |           |
-| 快手      |         |           |                |              | ✅              |           |
-| 钉钉      |         |           | ✅             |              |                 |           |
-| 京东      |         |           |                |              |                 |           |
 
-不支持的标签会自动降级（`<pre>` → `<div class="md-code-block">` 等）。详见
-[docs/platforms.md](./docs/platforms.md)。
+当前仅内置微信和支付宝。新增平台时扩展 `src/platforms` 下的 renderer，并补组件输出目录。
+详见 [docs/platforms.md](./docs/platforms.md)。
 
 ## 在线预览（手机壳模拟）
 

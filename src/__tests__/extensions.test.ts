@@ -91,14 +91,14 @@ describe('XMarkdownMini — extensions', () => {
   });
 
   it('streaming render with extensions: onPatch is called without throwing on unknown tokens', () => {
-    // Stage 3 contract: even though `mention` is not mapped to a UnifiedNode (the legacy
+    // Stage 3 contract: even though `mention` is not mapped to a MiniNode (the legacy
     // tokensToWechat/Alipay drops unknown token types), the pipeline must not throw.
     // Users who want rich rendering of custom tokens are expected to use parse() + their
     // own renderer (Stage 2b's full Token→component flow will land that natively).
     const md = new XMarkdownMini({ extensions: [mentionExtension] });
     const patches: unknown[][] = [];
     expect(() => {
-      md.render({
+      md.renderNodes({
         content: 'hi @alice',
         streaming: { hasNextChunk: false },
         onPatch: (nodes) => patches.push(nodes),
@@ -106,6 +106,29 @@ describe('XMarkdownMini — extensions', () => {
     }).not.toThrow();
     // At least one patch emitted (even if mention got dropped from the tree)
     expect(patches.length).toBeGreaterThan(0);
+  });
+
+  it('renders custom extension tokens through tokenRenderers', () => {
+    const md = new XMarkdownMini({
+      extensions: [mentionExtension],
+      tokenRenderers: [
+        {
+          token: 'mention',
+          render(token) {
+            const username = (token as Tokens.Generic).username as string;
+            return {
+              name: 'span',
+              attrs: { class: 'md-mention' },
+              children: [{ name: 'text', attrs: { value: `@${username}` } }],
+            };
+          },
+        },
+      ],
+    });
+
+    const nodes = md.renderNodes({ content: 'hi @alice', platform: 'wechat' });
+    expect(JSON.stringify(nodes)).toContain('@alice');
+    expect(JSON.stringify(nodes)).toContain('md-mention');
   });
 });
 

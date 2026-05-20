@@ -34,7 +34,7 @@
     data-data="{{node}}"
     catch:tap="_tap"
   >
-    <richtext
+    <nodes-renderer
       wx:if="{{node.children}}"
       nodes="{{node.children}}"
       selectable="{{selectable}}"
@@ -88,7 +88,7 @@
     data-data="{{node}}"
     catch:tap="_tap"
   >
-    <richtext
+    <nodes-renderer
       wx:if="{{node.children}}"
       nodes="{{node.children}}"
       selectable="{{selectable}}"

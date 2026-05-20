@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { StreamingProcessor } from '../streaming/StreamingProcessor.js';
 import { tokensToWechat } from '../core/tokensToWechat.js';
-import type { UnifiedNode } from '../types.js';
+import type { MiniNode } from '../types.js';
 
 function collect(): {
-  patches: UnifiedNode[][];
+  patches: MiniNode[][];
   push: (proc: StreamingProcessor, content: string, hasNext: boolean) => void;
   done: () => boolean;
   proc: StreamingProcessor;
 } {
-  const patches: UnifiedNode[][] = [];
+  const patches: MiniNode[][] = [];
   let completed = false;
   const proc = new StreamingProcessor({
     transform: (md) => tokensToWechat(md),
@@ -88,9 +88,9 @@ describe('StreamingProcessor (zero-delay synchronous mode)', () => {
 });
 
 /** Drop animate / class to compare structural equivalence. */
-function stripAttrs(nodes: UnifiedNode[]): UnifiedNode[] {
+function stripAttrs(nodes: MiniNode[]): MiniNode[] {
   return nodes.map((n) => {
-    const out: UnifiedNode = { name: n.name, attrs: { ...n.attrs } };
+    const out: MiniNode = { name: n.name, attrs: { ...n.attrs } };
     if (n.children) out.children = stripAttrs(n.children);
     return out;
   });
