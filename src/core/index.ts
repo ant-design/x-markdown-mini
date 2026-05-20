@@ -1,3 +1,3 @@
-export { tokensToWechat } from './tokensToWechat.js';
-export { tokensToAlipay } from './tokensToAlipay.js';
+export { tokensToWechat, tokensToWechatNodes } from './tokensToWechat.js';
+export { tokensToAlipay, tokensToAlipayNodes } from './tokensToAlipay.js';
 export type { LexerOptions } from '../types.js';

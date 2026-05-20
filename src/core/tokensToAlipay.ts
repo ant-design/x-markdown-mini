@@ -40,12 +40,22 @@ export interface TokensToAlipayOptions extends RenderContext {
   lexerOptions?: LexerOptions;
 }
 
+/**
+ * 从 markdown 字符串生成支付宝节点（自带内部 Lexer.lex）。
+ * 推荐新调用方走 `XMarkdownMini.parse(content)` → `tokensToAlipayNodes(tokens, ctx)`，
+ * 这样 marked extensions 能流过。
+ */
 export function tokensToAlipay(
   content: string,
   options: TokensToAlipayOptions = {}
 ): UnifiedNode[] {
   const { lexerOptions, ...ctx } = options;
   const tokens = Lexer.lex(content, buildMarkedOptions(lexerOptions ?? {}));
+  return tokensToAlipayNodes(tokens, ctx);
+}
+
+/** 从 pre-lexed marked Token[] 生成支付宝节点。让 extensions 自然透传。 */
+export function tokensToAlipayNodes(tokens: Token[], ctx: RenderContext = {}): UnifiedNode[] {
   const animate = ctx.animation === true;
   const enc = ctx.escapeText === false ? (s: string) => s : escapeHtml;
   return blockTokens(tokens, animate, enc);

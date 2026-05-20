@@ -41,12 +41,26 @@ export interface TokensToWechatOptions extends RenderContext {
   lexerOptions?: LexerOptions;
 }
 
+/**
+ * 从 markdown 字符串生成微信节点（自带内部 Lexer.lex）。
+ * 老调用方保留，新调用方应直接走 `XMarkdownMini.parse(content)` 拿到 Token[]，
+ * 再用 `tokensToWechatNodes(tokens, ctx)`，这样 marked extensions 能流过。
+ */
 export function tokensToWechat(
   content: string,
   options: TokensToWechatOptions = {}
 ): UnifiedNode[] {
   const { lexerOptions, ...ctx } = options;
   const tokens = Lexer.lex(content, buildMarkedOptions(lexerOptions ?? {}));
+  return tokensToWechatNodes(tokens, ctx);
+}
+
+/**
+ * 从 pre-lexed marked Token[] 生成微信节点。
+ * 推荐使用入口：`XMarkdownMini.parse(content)` → tokens → `tokensToWechatNodes(tokens, ctx)`。
+ * 这条路径让 marked extensions (用户自定义 tokenizer) 自然透传。
+ */
+export function tokensToWechatNodes(tokens: Token[], ctx: RenderContext = {}): UnifiedNode[] {
   const animate = ctx.animation === true;
   const enc = ctx.escapeText === false ? (s: string) => s : escapeHtml;
   return blockTokens(tokens, animate, enc);

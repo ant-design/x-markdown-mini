@@ -2,6 +2,11 @@ import type { PlatformInput } from './platform.js';
 
 export type { Platform, PlatformInput } from './platform.js';
 
+// Re-export marked Token shape so consumers can type their own renderers
+// against the IR exposed by XMarkdownMini.parse(). MarkedExtension is re-exported
+// in preparation for Stage 3's extensions support.
+export type { Token, Tokens, MarkedExtension } from 'marked';
+
 /** Marked 词法器选项。各 transformer 共用，不算"共享 helper"——仅类型契约。 */
 export interface LexerOptions {
   /** GFM 表格、删除线、自动换行（默认 true） */

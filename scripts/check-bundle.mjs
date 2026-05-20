@@ -21,17 +21,19 @@ const dist = join(root, 'dist');
 
 const KB = 1024;
 
-// Budgets are based on the 2026-05 baseline post-remend integration
-// (index.mjs ~98 KB / gzip ~23 KB, index.js ~99 KB / gzip ~24 KB) with
-// ~5 KB raw / ~1 KB gzip headroom. Remend (~12 KB raw / ~3 KB gzip) is
-// bundled to power streamingFixup auto-completion of unclosed markdown
-// formats during AI streaming.
+// Budgets are based on the 2026-05 baseline post-remend + Marked instance
+// integration (index.mjs ~102 KB / gzip ~24 KB, index.js ~104 KB / gzip ~25 KB)
+// with ~5 KB raw / ~1 KB gzip headroom. The bundle ships:
+// - marked (~30 KB raw): the markdown lexer
+// - remend (~16 KB raw): streamingFixup auto-completion of unclosed markdown
+// - Marked instance per XMarkdownMini (~1 KB extra over static Lexer.lex) for
+//   per-instance extensions / walkTokens isolation
 const BUDGETS = [
   // 主库（npm 消费方 + 支付宝默认包根）
-  { file: 'index.mjs', rawMax: 104 * KB, gzipMax: 25 * KB },
-  { file: 'index.js', rawMax: 104 * KB, gzipMax: 25 * KB },
+  { file: 'index.mjs', rawMax: 108 * KB, gzipMax: 26 * KB },
+  { file: 'index.js', rawMax: 110 * KB, gzipMax: 26 * KB },
   // 微信专用主库副本（通过 package.json#miniprogram 进入）
-  { file: 'miniprogram_dist/index.js', rawMax: 104 * KB, gzipMax: 25 * KB },
+  { file: 'miniprogram_dist/index.js', rawMax: 110 * KB, gzipMax: 26 * KB },
   // 共享 helper（alipay 包根 + wechat 包根 各一份）
   { file: 'shared/flattenInline.js', rawMax: 5 * KB },
   { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 5 * KB },
