@@ -2,6 +2,7 @@
   "name": "x-markdown-mini-docs",
   "private": true,
   "scripts": {
+    "check:home": "node scripts/check-homepage.mjs",
     "dev": "dumi dev",
     "build": "dumi build",
     "preview": "dumi preview"

@@ -5,6 +5,7 @@ export default defineConfig({
   publicPath: '/',
   favicons: ['/brand/x-markdown-mark.svg'],
   links: [{ rel: 'stylesheet', href: '/site.css' }],
+  metas: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
   scripts: [{ src: '/site.js', defer: true }],
   themeConfig: {
     name: 'x-markdown-mini',
