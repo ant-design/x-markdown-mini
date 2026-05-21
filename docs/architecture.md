@@ -4,7 +4,7 @@
 
 ```
 ┌──────────┐  marked lexer  ┌──────────┐  renderer.renderTokens  ┌──────────────┐
-│ markdown │ ─────────────▶ │ Token[]  │ ──────────────────────▶ │ MiniNode[]│
+│ markdown │ ─────────────▶ │ Token[]  │ ──────────────────────▶ │ MiniNode[]   │
 └──────────┘                └──────────┘                         └──────────────┘
 ```
 
@@ -83,13 +83,15 @@ new XMarkdownMini({
 src/
 ├── index.ts                    # parse/render/renderNodes 主入口、平台自动识别
 ├── types.ts                    # 公共类型
-├── core/
-│   ├── tokensToWechat.ts       # Token[] → 微信 nodes
-│   ├── tokensToAlipay.ts       # Token[] → 支付宝 nodes
-│   └── index.ts
 ├── platforms/
-│   ├── wechat.ts / alipay.ts   # 平台 renderer
-│   ├── types.ts                # renderer 能力类型
+│   ├── wechat/
+│   │   ├── index.ts            # 微信 renderer
+│   │   └── tokensToWechat.ts   # Token[] → 微信 nodes
+│   ├── alipay/
+│   │   ├── index.ts            # 支付宝 renderer
+│   │   └── tokensToAlipay.ts   # Token[] → 支付宝 nodes
+│   ├── shared/                 # 平台 transformer 共用工具
+│   ├── types.ts                # 平台与 renderer 能力类型
 │   └── index.ts
 └── streaming/
     └── StreamingProcessor.ts   # 流式打字机 + 增量解析

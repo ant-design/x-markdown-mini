@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { StreamingProcessor } from '../streaming/StreamingProcessor.js';
-import { tokensToWechat } from '../core/tokensToWechat.js';
+import { tokensToWechat } from '../platforms/wechat/tokensToWechat.js';
 import { XMarkdownMini } from '../index.js';
 import type { MiniNode } from '../types.js';
 

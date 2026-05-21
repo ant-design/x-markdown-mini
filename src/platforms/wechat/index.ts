@@ -1,5 +1,5 @@
-import { tokensToWechatNodes } from '../core/tokensToWechat.js';
-import type { PlatformRenderer } from './types.js';
+import type { PlatformRenderer } from '../types.js';
+import { tokensToWechatNodes } from './tokensToWechat.js';
 
 export const wechatRenderer: PlatformRenderer = {
   name: 'wechat',

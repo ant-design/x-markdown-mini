@@ -8,9 +8,7 @@ examples/*/dist/
 
 # Docs site (dumi)
 docs-site/node_modules/
-docs-site/.dumi/tmp/
-docs-site/.dumi/tmp-production/
-docs-site/.dumi/tmp-test/
+docs-site/.dumi/
 docs-site/dist/
 
 # Env

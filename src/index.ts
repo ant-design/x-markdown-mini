@@ -38,24 +38,23 @@ export function renderNodes(props: XMarkdownMiniProps): MiniNode[] {
 export { XMarkdownMini } from './XMarkdownMini.js';
 export type { XMarkdownMiniOptions } from './XMarkdownMini.js';
 export type { StreamingFixup } from './streaming/config.js';
-export { resolvePlatform } from './platform.js';
-export type { Platform, PlatformInput } from './platform.js';
 export {
   alipayRenderer,
   getPlatformRenderer,
-  wechatRenderer,
-} from './platforms/index.js';
-export type {
-  PlatformCapabilities,
-  PlatformRenderer,
-} from './platforms/index.js';
-export {
+  resolvePlatform,
   tokensToAlipay,
   tokensToAlipayNodes,
   tokensToWechat,
   tokensToWechatNodes,
-} from './core/index.js';
-export type { LexerOptions } from './core/index.js';
+  wechatRenderer,
+} from './platforms/index.js';
+export type {
+  Platform,
+  PlatformCapabilities,
+  PlatformInput,
+  PlatformRenderer,
+} from './platforms/index.js';
+export type { LexerOptions } from './types.js';
 export { StreamingProcessor } from './streaming/index.js';
 export {
   flattenInlineTokens,

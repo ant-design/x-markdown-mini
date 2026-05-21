@@ -53,7 +53,7 @@ renderNodes({ content, platform: 'alipay' });
 
 新增平台的最小改动：
 
-1. 在 `src/platform.ts` 追加平台类型和运行时 detector。
-2. 在 `src/platforms/` 新增 renderer，声明能力并提供 `renderTokens`。
-3. 在 `src/platforms/index.ts` 注册 renderer。
+1. 在 `src/platforms/types.ts` 追加平台类型。
+2. 在 `src/platforms/index.ts` 追加运行时 detector 并注册 renderer。
+3. 在 `src/platforms/` 新增 renderer，声明能力并提供 `renderTokens`。
 4. 增加组件产物、样式、示例和平台测试。

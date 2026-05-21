@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StreamingProcessor } from '../streaming/index.js';
-import { tokensToWechat } from '../core/tokensToWechat.js';
+import { tokensToWechat } from '../platforms/wechat/tokensToWechat.js';
 import type { LexerOptions, MiniNode } from '../types.js';
 
 interface Collector {

@@ -1,5 +1,5 @@
-import { tokensToAlipayNodes } from '../core/tokensToAlipay.js';
-import type { PlatformRenderer } from './types.js';
+import type { PlatformRenderer } from '../types.js';
+import { tokensToAlipayNodes } from './tokensToAlipay.js';
 
 export const alipayRenderer: PlatformRenderer = {
   name: 'alipay',

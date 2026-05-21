@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { tokensToAlipay } from '../core/tokensToAlipay.js';
+import { tokensToAlipay } from '../platforms/alipay/tokensToAlipay.js';
 import type { MiniNode } from '../types.js';
 
 function flatten(nodes: MiniNode[]): MiniNode[] {

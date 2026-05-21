@@ -31,4 +31,4 @@ export const customRenderer: PlatformRenderer = {
 };
 ```
 
-真正发布新平台还需要在 `src/platform.ts` 增加平台类型与运行时探测，并在 `src/platforms/index.ts` 注册 renderer。
+真正发布新平台还需要在 `src/platforms/types.ts` 增加平台类型，并在 `src/platforms/index.ts` 增加运行时探测和注册 renderer。

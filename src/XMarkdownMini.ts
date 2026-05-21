@@ -1,6 +1,5 @@
 import { Marked, type MarkedExtension, type MarkedOptions, type Token } from 'marked';
-import { resolvePlatform } from './platform.js';
-import { getPlatformRenderer } from './platforms/index.js';
+import { getPlatformRenderer, resolvePlatform } from './platforms/index.js';
 import { StreamingProcessor } from './streaming/StreamingProcessor.js';
 import {
   normalizeStreamingConfig,

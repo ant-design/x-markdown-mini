@@ -8,13 +8,13 @@ import { defineConfig } from 'tsup';
 //   dist/es/<Comp>/index.js                          (alipay 默认包根)
 //   dist/miniprogram_dist/es/<Comp>/index.js         (wechat 通过 package.json#miniprogram 进入)
 //
-// 此时 core 需要走 `../../index.js`（2 上即可到达 dist 或 dist/miniprogram_dist）；
+// 此时主库 API 需要走 `../../index.js`（2 上即可到达 dist 或 dist/miniprogram_dist）；
 // shared/flattenInline 仍是 `../../shared/flattenInline.js`（路径串不变）。
 //
-// 用 bundle: true + 这个插件，把 core 引用 mark 为 external 并把字符串改写为输出端正确的相对路径，
-// 组件输出就只剩 wrapper 代码，core 由各自包根的 index.js 提供。
-const externalCorePlugin = {
-  name: 'external-core',
+// 用 bundle: true + 这个插件，把主库引用 mark 为 external 并把字符串改写为输出端正确的相对路径，
+// 组件输出就只剩 wrapper 代码，主库 API 由各自包根的 index.js 提供。
+const externalRuntimePlugin = {
+  name: 'external-runtime',
   setup(build: any) {
     build.onResolve({ filter: /^\.\.\/\.\.\/\.\.\/index\.js$/ }, () => ({
       path: '../../index.js',
@@ -50,7 +50,7 @@ export default defineConfig([
     clean: false,
     target: 'es2018',
   },
-  // 3) Alipay 组件 — bundle: true 但 core/shared external，输出只剩 wrapper 逻辑
+  // 3) Alipay 组件 — bundle: true 但 runtime/shared external，输出只剩 wrapper 逻辑
   {
     entry: {
       'es/Markdown/index': 'src/components/alipay/Markdown/index.ts',
@@ -64,7 +64,7 @@ export default defineConfig([
     sourcemap: false,
     splitting: false,
     target: 'es2018',
-    esbuildPlugins: [externalCorePlugin],
+    esbuildPlugins: [externalRuntimePlugin],
   },
   // 4) Wechat 组件 — 同上，输出到 miniprogram_dist 子树
   {
@@ -80,6 +80,6 @@ export default defineConfig([
     sourcemap: false,
     splitting: false,
     target: 'es2018',
-    esbuildPlugins: [externalCorePlugin],
+    esbuildPlugins: [externalRuntimePlugin],
   },
 ]);

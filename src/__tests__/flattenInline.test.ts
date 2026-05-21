@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { tokensToWechat } from '../core/tokensToWechat.js';
+import { tokensToWechat } from '../platforms/wechat/tokensToWechat.js';
 import { flattenInlineNodes } from '../components/shared/flattenInline.js';
 import type { MiniNode } from '../types.js';
 

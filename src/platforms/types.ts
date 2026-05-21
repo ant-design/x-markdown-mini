@@ -1,6 +1,9 @@
 import type { Token } from 'marked';
-import type { Platform } from '../platform.js';
 import type { RenderContext, MiniNode } from '../types.js';
+
+export type Platform = 'wechat' | 'alipay';
+
+export type PlatformInput = Platform | 'auto';
 
 export interface PlatformCapabilities {
   supportsOlStart: boolean;

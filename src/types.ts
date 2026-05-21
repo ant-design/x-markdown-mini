@@ -1,7 +1,7 @@
-import type { PlatformInput } from './platform.js';
+import type { PlatformInput } from './platforms/types.js';
 import type { Token } from 'marked';
 
-export type { Platform, PlatformInput } from './platform.js';
+export type { Platform, PlatformInput } from './platforms/types.js';
 
 // Re-export marked Token shape so consumers can type their own renderers
 // against the tokens exposed by XMarkdownMini.parse(). MarkedExtension is re-exported

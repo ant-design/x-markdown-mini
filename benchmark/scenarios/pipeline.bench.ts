@@ -6,7 +6,7 @@
 // Naming: `pipeline/x-markdown-mini/<sample>`.
 import { Bench } from 'tinybench';
 
-import { tokensToWechat } from '../../src/core/tokensToWechat.js';
+import { tokensToWechat } from '../../src/platforms/wechat/tokensToWechat.js';
 
 export interface PipelineSample {
   name: string;

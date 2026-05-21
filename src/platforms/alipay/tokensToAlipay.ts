@@ -1,13 +1,12 @@
-// Single-pass transformer: markdown string -> WeChat-final nodes.
-// Bakes in WeChat rich-text quirks:
-//   - <a href> -> <a data-href class="md-link"> (rich-text doesn't fire <a>
-//     tap events; consumers read data-href via dataset on the bubbled tap)
-//   - No class on other nodes (rich-text ignores internal class anyway)
-//   - <ol start> preserved
-//   - Images keep http:// as-is
+// Single-pass transformer: markdown string -> Alipay-final nodes.
+// Bakes in Alipay rich-text quirks:
+//   - <ol start> dropped (Alipay rich-text doesn't honor it)
+//   - <img src> http:// -> https:// rewrite (Alipay requires https)
+//   - No class on any node (rich-text ignores internal class)
+//   - <a href> preserved as-is
 import { Lexer, type Token, type Tokens, type MarkedOptions } from 'marked';
-import type { LexerOptions, RenderContext, MiniNode } from '../types.js';
-import { renderCustomToken } from './customTokenRenderer.js';
+import type { LexerOptions, RenderContext, MiniNode } from '../../types.js';
+import { renderCustomToken } from '../shared/customTokenRenderer.js';
 
 function escapeHtml(text: string): string {
   let out = '';
@@ -38,30 +37,26 @@ function block(
   return node;
 }
 
-export interface TokensToWechatOptions extends RenderContext {
+export interface TokensToAlipayOptions extends RenderContext {
   lexerOptions?: LexerOptions;
 }
 
 /**
- * 从 markdown 字符串生成微信节点（自带内部 Lexer.lex）。
- * 老调用方保留，新调用方应直接走 `XMarkdownMini.parse(content)` 拿到 Token[]，
- * 再用 `tokensToWechatNodes(tokens, ctx)`，这样 marked extensions 能流过。
+ * 从 markdown 字符串生成支付宝节点（自带内部 Lexer.lex）。
+ * 推荐新调用方走 `XMarkdownMini.parse(content)` → `tokensToAlipayNodes(tokens, ctx)`，
+ * 这样 marked extensions 能流过。
  */
-export function tokensToWechat(
+export function tokensToAlipay(
   content: string,
-  options: TokensToWechatOptions = {}
+  options: TokensToAlipayOptions = {}
 ): MiniNode[] {
   const { lexerOptions, ...ctx } = options;
   const tokens = Lexer.lex(content, buildMarkedOptions(lexerOptions ?? {}));
-  return tokensToWechatNodes(tokens, ctx);
+  return tokensToAlipayNodes(tokens, ctx);
 }
 
-/**
- * 从 pre-lexed marked Token[] 生成微信节点。
- * 推荐使用入口：`XMarkdownMini.parse(content)` → tokens → `tokensToWechatNodes(tokens, ctx)`。
- * 这条路径让 marked extensions (用户自定义 tokenizer) 自然透传。
- */
-export function tokensToWechatNodes(tokens: Token[], ctx: RenderContext = {}): MiniNode[] {
+/** 从 pre-lexed marked Token[] 生成支付宝节点。让 extensions 自然透传。 */
+export function tokensToAlipayNodes(tokens: Token[], ctx: RenderContext = {}): MiniNode[] {
   const animate = ctx.animation === true;
   const enc = ctx.escapeText === false ? (s: string) => s : escapeHtml;
   return blockTokens(tokens, animate, enc, ctx);
@@ -117,13 +112,10 @@ function blockTok(
     case 'list': {
       const t = tok as Tokens.List;
       const ordered = !!t.ordered;
-      const start = typeof t.start === 'number' ? t.start : 1;
       const tag = ordered ? 'ol' : 'ul';
       const children = t.items.map((it) => listItemTok(it, animate, enc, ctx));
-      // wechat keeps ol[start]
-      const extra: Record<string, string | number | boolean> = {};
-      if (ordered && start !== 1) extra.start = start;
-      return block(tag, children, animate, extra);
+      // alipay: olStartSupported=false -> never emit start attr
+      return block(tag, children, animate);
     }
     case 'html': {
       const t = tok as Tokens.HTML;
@@ -262,18 +254,19 @@ function inlineTok(
       const t = tok as Tokens.Link;
       const inner: MiniNode[] = [];
       for (const c of t.tokens ?? []) inlineTok(c, enc, inner, ctx);
-      // WeChat-specific: rewrite href -> data-href + class='md-link'
+      // alipay: keep href, class stripped
       out.push({
         name: 'a',
-        attrs: { 'data-href': t.href ?? '', class: 'md-link' },
+        attrs: { href: t.href ?? '' },
         children: inner.length ? inner : [{ name: 'text', attrs: { value: '' } }],
       });
       return;
     }
     case 'image': {
       const t = tok as Tokens.Image;
-      // wechat: no http->https; class stripped
-      out.push({ name: 'img', attrs: { src: t.href ?? '', alt: t.text ?? '' } });
+      // alipay: force https
+      const src = (t.href ?? '').replace(/^http:\/\//, 'https://');
+      out.push({ name: 'img', attrs: { src, alt: t.text ?? '' } });
       return;
     }
     case 'html': {

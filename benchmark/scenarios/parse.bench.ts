@@ -12,7 +12,7 @@ import MarkdownIt from 'markdown-it';
 import { marked } from 'marked';
 import { remark } from 'remark';
 
-import { tokensToWechat } from '../../src/core/tokensToWechat.js';
+import { tokensToWechat } from '../../src/platforms/wechat/tokensToWechat.js';
 
 export interface ParseSample {
   name: string;

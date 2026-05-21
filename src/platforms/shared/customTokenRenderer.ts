@@ -1,5 +1,5 @@
 import type { Token } from 'marked';
-import type { RenderContext, MiniNode } from '../types.js';
+import type { RenderContext, MiniNode } from '../../types.js';
 
 export function renderCustomToken(
   token: Token,
