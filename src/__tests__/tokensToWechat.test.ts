@@ -38,7 +38,7 @@ describe('tokensToWechat — platform-specific behavior', () => {
     expect(img.attrs?.src).toBe('http://e.com/i.png');
   });
 
-  it('strips class on non-anchor nodes (rich-text ignores internal class)', () => {
+  it('strips class on non-anchor nodes', () => {
     const out = tokensToWechat('# Hi\n\n**bold**');
     const h1 = out[0];
     expect(h1.name).toBe('h1');

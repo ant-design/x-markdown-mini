@@ -29,7 +29,7 @@ export interface InlineRun {
 export interface FlattenInlineTokensOptions {
   /**
    * 是否对文本值做 HTML 转义。
-   * - true：用于原生 `<rich-text>`（它会解码实体）
+   * - true：用于会解码实体的平台节点容器
    * - false：用于自渲染 `<text>{{value}}</text>` 模板（不解码实体）
    */
   escapeText: boolean;

@@ -24,9 +24,9 @@
 - 产物：`marked` 通过 `tsup noExternal` 打进 `dist/index.*` 和 `dist/miniprogram_dist/index.js`，消费方无需单独安装运行时依赖
 - 流式增量解析友好（详见 [streaming.md](./streaming.md)）
 
-### 2. 小程序节点（`MiniNode`）
+### 2. 统一节点（`MiniNode`）
 
-与微信 `rich-text` 的 `nodes` 协议对齐：
+平台 renderer 的统一中间输出。它接近小程序原生节点容器的 `nodes` 形状，但不是富文本抽象：
 
 ```ts
 interface MiniNode {
@@ -39,7 +39,7 @@ interface MiniNode {
 
 组件渲染路径会把 inline 树拍平为小程序 `<text>` 友好的节点。动画通过 `animate: 'block'` 标记，由 NodesRenderer 组件映射为 `md-animate-block`。
 
-### 3. 平台 renderer（`src/platforms/`）
+### 3. 公共 MiniNode renderer 与平台 adapter（`src/platforms/`）
 
 每个平台暴露 `PlatformRenderer`：
 
@@ -51,7 +51,7 @@ interface PlatformRenderer {
 }
 ```
 
-当前内置 `wechatRenderer` 和 `alipayRenderer`。入口通过 `getPlatformRenderer(resolvePlatform(...))` 选择 renderer。
+当前内置 `wechatRenderer` 和 `alipayRenderer`。入口通过 `getPlatformRenderer(resolvePlatform(...))` 选择 renderer。Markdown token 到 MiniNode 的结构映射在 `platforms/shared/miniNodeRenderer.ts`；微信/支付宝只提供 adapter，处理链接属性、图片 URL、有序列表起始序号等平台差异。
 
 ### 4. 自定义 token renderer
 

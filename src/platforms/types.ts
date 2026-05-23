@@ -1,7 +1,9 @@
 import type { Token } from 'marked';
 import type { RenderContext, MiniNode } from '../types.js';
 
-export type Platform = 'wechat' | 'alipay';
+export type BuiltinPlatform = 'wechat' | 'alipay';
+
+export type Platform = BuiltinPlatform | (string & {});
 
 export type PlatformInput = Platform | 'auto';
 

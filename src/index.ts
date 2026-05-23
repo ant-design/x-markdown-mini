@@ -41,6 +41,7 @@ export type { StreamingFixup } from './streaming/config.js';
 export {
   alipayRenderer,
   getPlatformRenderer,
+  registerPlatformRenderer,
   resolvePlatform,
   tokensToAlipay,
   tokensToAlipayNodes,
@@ -50,6 +51,7 @@ export {
 } from './platforms/index.js';
 export type {
   Platform,
+  BuiltinPlatform,
   PlatformCapabilities,
   PlatformInput,
   PlatformRenderer,

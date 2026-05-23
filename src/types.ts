@@ -116,7 +116,7 @@ export interface TokenRenderer {
   render: (token: Token, ctx: RenderContext) => MiniNode | MiniNode[] | null | undefined;
 }
 
-// --- 小程序渲染节点（与 rich-text nodes 形状对齐）---
+// --- 小程序渲染节点（平台 renderer 的统一中间输出）---
 
 /** 渲染上下文：transformer 共用的公共配置。 */
 export interface RenderContext {
@@ -126,7 +126,7 @@ export interface RenderContext {
   selectable?: boolean;
   /**
    * 是否对文本节点的 value 做 HTML 实体转义。
-   * - true（默认）：用于原生 rich-text
+   * - true（默认）：用于会解码实体的平台节点容器
    * - false：用于自渲染组件（<text>{{value}}</text> 不解码实体）
    */
   escapeText?: boolean;

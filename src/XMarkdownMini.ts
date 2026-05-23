@@ -17,7 +17,7 @@ import type {
 
 export interface XMarkdownMiniOptions {
   /**
-   * Whether to escape text nodes. Defaults to true for native rich-text output.
+   * Whether to escape text nodes. Defaults to true for native mini-program node output.
    * Custom component paths should pass false because <text>{{value}}</text>
    * does not decode HTML entities.
    */

@@ -138,4 +138,4 @@ onPatch: (nodes) => {
 }
 ```
 
-由于 `stableNodes` 引用稳定，rich-text 内部的 diff（如有）能跳过这部分。
+由于 `stableNodes` 引用稳定，节点容器内部的 diff（如有）能跳过这部分。

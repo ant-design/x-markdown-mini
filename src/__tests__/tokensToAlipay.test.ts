@@ -26,7 +26,7 @@ describe('tokensToAlipay — platform-specific behavior', () => {
     expect(a.attrs?.class).toBeUndefined();
   });
 
-  it('drops <ol start> attribute (alipay rich-text does not honor it)', () => {
+  it('drops <ol start> attribute for Alipay', () => {
     const out = tokensToAlipay('3. a\n4. b');
     expect(out[0].name).toBe('ol');
     expect(out[0].attrs?.start).toBeUndefined();
@@ -44,7 +44,7 @@ describe('tokensToAlipay — platform-specific behavior', () => {
     expect(img.attrs?.src).toBe('https://secure.com/i.png');
   });
 
-  it('strips class on all nodes (rich-text ignores internal class)', () => {
+  it('strips class on all nodes', () => {
     const out = tokensToAlipay('# Hi\n\n**bold**');
     expect(out[0].attrs?.class).toBeUndefined();
     const strong = find(out, 'strong')!;

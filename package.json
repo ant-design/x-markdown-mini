@@ -41,7 +41,7 @@
     "wechat",
     "alipay",
     "douyin",
-    "rich-text"
+    "mini-program-nodes"
   ],
   "license": "MIT",
   "dependencies": {

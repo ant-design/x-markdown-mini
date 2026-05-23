@@ -19,7 +19,7 @@ pnpm add @ant-design/x-markdown-mini
 
 ### A. 直接用现成的小程序组件（推荐）
 
-包内附带了开箱即用的 **Markdown** / **RichText** 小程序组件。**支付宝、微信使用同一条路径**——
+包内附带了开箱即用的 **Markdown** / **NodesRenderer** 小程序组件。**支付宝、微信使用同一条路径**——
 微信开发者工具读取 `package.json#miniprogram` 字段，自动解析到 wechat 子树；支付宝则走默认包根。
 
 ```jsonc
@@ -70,7 +70,7 @@ const nodes = renderNodes({
 ```
 
 ```xml
-<!-- 微信小程序原生 rich-text -->
+<!-- 也可以直接交给小程序原生节点容器 -->
 <rich-text nodes="{{nodes}}" />
 ```
 

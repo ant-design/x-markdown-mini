@@ -1,17 +1,13 @@
 import { alipayRenderer } from './alipay/index.js';
 import { wechatRenderer } from './wechat/index.js';
-import type { Platform, PlatformInput, PlatformRenderer } from './types.js';
+import type { BuiltinPlatform, Platform, PlatformInput, PlatformRenderer } from './types.js';
 
 /**
  * 平台类型、运行时识别与 renderer 注册。
  *
- * 当前仅支持支付宝（alipay）与微信（wechat）小程序，未识别时回退到 alipay。
- * 拓展新平台时按以下步骤：
- *   1. 在 `src/platforms/types.ts` 的 Platform 联合类型中追加新值；
- *   2. 在下方 DETECTORS 中追加一项 `{ name, read, platform }`；
- *   3. 复制 `wechat/` 为新平台目录，按平台 quirks
- *      调整 `<a>` / `<ol start>` / `<img src>` 等几处分支；
- *   4. 在下方 RENDERERS 中注册平台 renderer。
+ * 当前内置支付宝（alipay）与微信（wechat）小程序，未识别时回退到 alipay。
+ * 内置运行时自动识别仍在 DETECTORS 中维护；第三方平台可通过
+ * registerPlatformRenderer() 注册，然后显式传 platform。
  *
  * 注意：检测使用 `typeof X` 而非读取 `globalThis[X]`，因为旧版支付宝基础库
  * 没有 `globalThis`；而 `typeof` 对未声明的标识符不会抛 ReferenceError。
@@ -25,7 +21,7 @@ interface Detector {
   name: string;
   /** 读取运行时全局对象；未定义时返回 undefined（不抛错） */
   read: () => unknown;
-  platform: Platform;
+  platform: BuiltinPlatform;
 }
 
 const DETECTORS: ReadonlyArray<Detector> = [
@@ -41,9 +37,9 @@ const DETECTORS: ReadonlyArray<Detector> = [
   },
 ];
 
-const DEFAULT_PLATFORM: Platform = 'alipay';
+const DEFAULT_PLATFORM: BuiltinPlatform = 'alipay';
 
-const RENDERERS: Record<Platform, PlatformRenderer> = {
+const RENDERERS: Record<string, PlatformRenderer> = {
   alipay: alipayRenderer,
   wechat: wechatRenderer,
 };
@@ -57,7 +53,7 @@ function isRuntimeObject(obj: unknown): boolean {
   );
 }
 
-function detectPlatformRuntime(): Platform {
+function detectPlatformRuntime(): BuiltinPlatform {
   for (const { read, platform } of DETECTORS) {
     let obj: unknown;
     try {
@@ -78,7 +74,15 @@ export function resolvePlatform(platform?: PlatformInput): Platform {
 }
 
 export function getPlatformRenderer(platform: Platform): PlatformRenderer {
-  return RENDERERS[platform];
+  const renderer = RENDERERS[platform];
+  if (!renderer) {
+    throw new Error(`Unknown platform renderer: ${platform}`);
+  }
+  return renderer;
+}
+
+export function registerPlatformRenderer(renderer: PlatformRenderer): void {
+  RENDERERS[renderer.name] = renderer;
 }
 
 export { alipayRenderer } from './alipay/index.js';
@@ -88,6 +92,7 @@ export { wechatRenderer } from './wechat/index.js';
 export type {
   Platform,
   PlatformCapabilities,
+  BuiltinPlatform,
   PlatformInput,
   PlatformRenderer,
 } from './types.js';

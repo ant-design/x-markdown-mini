@@ -9,6 +9,7 @@ import {
   tokensToWechat,
   tokensToAlipay,
   getPlatformRenderer,
+  registerPlatformRenderer,
 } from '../index.js';
 import type { MiniNode } from '../index.js';
 
@@ -41,6 +42,7 @@ describe('public re-exports', () => {
     expect(typeof tokensToWechat).toBe('function');
     expect(typeof tokensToAlipay).toBe('function');
     expect(typeof getPlatformRenderer).toBe('function');
+    expect(typeof registerPlatformRenderer).toBe('function');
   });
 });
 
@@ -54,6 +56,25 @@ describe('platform renderers', () => {
     expect(alipay.name).toBe('alipay');
     expect(alipay.capabilities.requiresHttpsImage).toBe(true);
     expect(typeof wechat.renderTokens).toBe('function');
+  });
+
+  it('supports registering a custom platform renderer', () => {
+    registerPlatformRenderer({
+      name: 'custom',
+      capabilities: {
+        supportsOlStart: false,
+        requiresHttpsImage: false,
+        anchorHrefMode: 'href',
+        supportsTable: false,
+        supportsPre: false,
+        supportsBlockquote: false,
+      },
+      renderTokens: () => [{ name: 'custom-node' }],
+    });
+
+    expect(getPlatformRenderer('custom').name).toBe('custom');
+    const nodes = renderNodes({ content: '# Hi', platform: 'custom' });
+    expect(nodes).toEqual([{ name: 'custom-node' }]);
   });
 });
 

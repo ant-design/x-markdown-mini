@@ -1,283 +1,49 @@
-// Single-pass transformer: markdown string -> Alipay-final nodes.
-// Bakes in Alipay rich-text quirks:
-//   - <ol start> dropped (Alipay rich-text doesn't honor it)
-//   - <img src> http:// -> https:// rewrite (Alipay requires https)
-//   - No class on any node (rich-text ignores internal class)
-//   - <a href> preserved as-is
-import { Lexer, type Token, type Tokens, type MarkedOptions } from 'marked';
-import type { LexerOptions, RenderContext, MiniNode } from '../../types.js';
-import { renderCustomToken } from '../shared/customTokenRenderer.js';
-
-function escapeHtml(text: string): string {
-  let out = '';
-  for (let i = 0; i < text.length; i++) {
-    const ch = text.charCodeAt(i);
-    if (ch === 38) out += '&amp;';
-    else if (ch === 60) out += '&lt;';
-    else if (ch === 62) out += '&gt;';
-    else if (ch === 34) out += '&quot;';
-    else out += text[i];
-  }
-  return out;
-}
+import { Lexer, type MarkedOptions, type Token } from 'marked';
+import type { LexerOptions, MiniNode, RenderContext } from '../../types.js';
+import type { PlatformCapabilities } from '../types.js';
+import {
+  renderTokensToMiniNodes,
+  type MiniNodePlatformAdapter,
+} from '../shared/miniNodeRenderer.js';
 
 function buildMarkedOptions(opts: LexerOptions): MarkedOptions {
   return { gfm: opts.gfm !== false, breaks: !!opts.breaks };
 }
 
-function block(
-  name: string,
-  children: MiniNode[],
-  animate: boolean,
-  extra?: Record<string, string | number | boolean>
-): MiniNode {
-  const node: MiniNode = { name, attrs: { ...(extra ?? {}) } };
-  if (children.length) node.children = children;
-  if (animate) node.animate = 'block';
-  return node;
-}
+export const alipayCapabilities: PlatformCapabilities = {
+  supportsOlStart: false,
+  requiresHttpsImage: true,
+  anchorHrefMode: 'href',
+  supportsTable: true,
+  supportsPre: true,
+  supportsBlockquote: true,
+};
+
+const alipayAdapter: MiniNodePlatformAdapter = {
+  capabilities: alipayCapabilities,
+  linkAttrs: (href) => ({ href }),
+  imageSrc: (src) => src.replace(/^http:\/\//, 'https://'),
+  olAttrs: () => ({}),
+};
 
 export interface TokensToAlipayOptions extends RenderContext {
   lexerOptions?: LexerOptions;
 }
 
 /**
- * 从 markdown 字符串生成支付宝节点（自带内部 Lexer.lex）。
- * 推荐新调用方走 `XMarkdownMini.parse(content)` → `tokensToAlipayNodes(tokens, ctx)`，
- * 这样 marked extensions 能流过。
+ * Converts markdown into Alipay mini-program nodes.
+ * Kept for compatibility; new code can parse once and call tokensToAlipayNodes().
  */
 export function tokensToAlipay(
   content: string,
-  options: TokensToAlipayOptions = {}
+  options: TokensToAlipayOptions = {},
 ): MiniNode[] {
   const { lexerOptions, ...ctx } = options;
   const tokens = Lexer.lex(content, buildMarkedOptions(lexerOptions ?? {}));
   return tokensToAlipayNodes(tokens, ctx);
 }
 
-/** 从 pre-lexed marked Token[] 生成支付宝节点。让 extensions 自然透传。 */
+/** Converts pre-lexed marked Token[] into Alipay mini-program nodes. */
 export function tokensToAlipayNodes(tokens: Token[], ctx: RenderContext = {}): MiniNode[] {
-  const animate = ctx.animation === true;
-  const enc = ctx.escapeText === false ? (s: string) => s : escapeHtml;
-  return blockTokens(tokens, animate, enc, ctx);
-}
-
-function blockTokens(
-  tokens: Token[],
-  animate: boolean,
-  enc: (s: string) => string,
-  ctx: RenderContext,
-): MiniNode[] {
-  const out: MiniNode[] = [];
-  for (const tok of tokens) {
-    const node = blockTok(tok, animate, enc, ctx);
-    if (node) out.push(node);
-  }
-  return out;
-}
-
-function blockTok(
-  tok: Token,
-  animate: boolean,
-  enc: (s: string) => string,
-  ctx: RenderContext,
-): MiniNode | null {
-  switch (tok.type) {
-    case 'space': return null;
-    case 'heading': {
-      const t = tok as Tokens.Heading;
-      const depth = Math.min(6, Math.max(1, t.depth ?? 1));
-      return block(`h${depth}`, inlineTokens(t.tokens ?? [], enc, ctx), animate);
-    }
-    case 'paragraph': {
-      const t = tok as Tokens.Paragraph;
-      return block('p', inlineTokens(t.tokens ?? [], enc, ctx), animate);
-    }
-    case 'code': {
-      const t = tok as Tokens.Code;
-      const codeChild: MiniNode = {
-        name: 'code', attrs: {},
-        children: [{ name: 'text', attrs: { value: enc(t.text ?? '') } }],
-      };
-      return block('pre', [codeChild], animate);
-    }
-    case 'hr':
-      return animate
-        ? { name: 'hr', attrs: {}, animate: 'block' as const }
-        : { name: 'hr', attrs: {} };
-    case 'blockquote': {
-      const t = tok as Tokens.Blockquote;
-      return block('blockquote', blockTokens(t.tokens ?? [], animate, enc, ctx), animate);
-    }
-    case 'list': {
-      const t = tok as Tokens.List;
-      const ordered = !!t.ordered;
-      const tag = ordered ? 'ol' : 'ul';
-      const children = t.items.map((it) => listItemTok(it, animate, enc, ctx));
-      // alipay: olStartSupported=false -> never emit start attr
-      return block(tag, children, animate);
-    }
-    case 'html': {
-      const t = tok as Tokens.HTML;
-      const raw = (t.text ?? t.raw ?? '').replace(/\s+$/, '');
-      return { name: 'div', attrs: {}, children: [{ name: 'text', attrs: { value: raw } }] };
-    }
-    case 'table': {
-      const t = tok as Tokens.Table;
-      const headCells: MiniNode[] = (t.header ?? []).map((cell) => ({
-        name: 'th', attrs: {},
-        children: inlineTokens(cell.tokens ?? [], enc, ctx),
-      }));
-      const rowNodes: MiniNode[] = (t.rows ?? []).map((row) => ({
-        name: 'tr', attrs: {},
-        children: row.map((cell) => ({
-          name: 'td', attrs: {},
-          children: inlineTokens(cell.tokens ?? [], enc, ctx),
-        })),
-      }));
-      const thead: MiniNode = { name: 'thead', attrs: {}, children: [{ name: 'tr', attrs: {}, children: headCells }] };
-      const tbody: MiniNode = { name: 'tbody', attrs: {}, children: rowNodes };
-      return block('table', [thead, tbody], animate);
-    }
-    case 'text': {
-      const t = tok as Tokens.Text;
-      const inline = t.tokens
-        ? inlineTokens(t.tokens, enc, ctx)
-        : [{ name: 'text', attrs: { value: enc(t.text ?? '') } } as MiniNode];
-      return block('p', inline, animate);
-    }
-    case 'def': return null;
-    default: {
-      const custom = renderCustomToken(tok, ctx);
-      return custom.length ? block('div', custom, animate) : null;
-    }
-  }
-}
-
-function listItemTok(
-  item: Tokens.ListItem,
-  animate: boolean,
-  enc: (s: string) => string,
-  ctx: RenderContext,
-): MiniNode {
-  const blocks = item.tokens ?? [];
-  const children: MiniNode[] = [];
-  if (blocks.length === 1 && blocks[0].type === 'paragraph') {
-    const p = blocks[0] as Tokens.Paragraph;
-    children.push(...inlineTokens(p.tokens ?? [], enc, ctx));
-  } else {
-    for (const b of blocks) {
-      if (b.type === 'paragraph') {
-        const p = b as Tokens.Paragraph;
-        children.push(...inlineTokens(p.tokens ?? [], enc, ctx));
-      } else if (b.type === 'text') {
-        const t = b as Tokens.Text;
-        const inline = t.tokens
-          ? inlineTokens(t.tokens, enc, ctx)
-          : [{ name: 'text', attrs: { value: enc(t.text ?? '') } } as MiniNode];
-        children.push(...inline);
-      } else {
-        const node = blockTok(b, animate, enc, ctx);
-        if (node) children.push(node);
-      }
-    }
-  }
-  return block('li', children, false);
-}
-
-function inlineTokens(
-  tokens: Token[],
-  enc: (s: string) => string,
-  ctx: RenderContext,
-): MiniNode[] {
-  const out: MiniNode[] = [];
-  for (const tok of tokens) inlineTok(tok, enc, out, ctx);
-  return out;
-}
-
-function inlineTok(
-  tok: Token,
-  enc: (s: string) => string,
-  out: MiniNode[],
-  ctx: RenderContext,
-): void {
-  switch (tok.type) {
-    case 'text': {
-      const t = tok as Tokens.Text;
-      if (t.tokens && t.tokens.length) {
-        for (const inner of t.tokens) inlineTok(inner, enc, out, ctx);
-      } else {
-        const v = enc(t.text ?? '');
-        if (v) out.push({ name: 'text', attrs: { value: v } });
-      }
-      return;
-    }
-    case 'escape': {
-      const t = tok as Tokens.Escape;
-      const v = enc(t.text ?? '');
-      if (v) out.push({ name: 'text', attrs: { value: v } });
-      return;
-    }
-    case 'strong': {
-      const t = tok as Tokens.Strong;
-      const inner: MiniNode[] = [];
-      for (const c of t.tokens ?? []) inlineTok(c, enc, inner, ctx);
-      out.push({ name: 'strong', attrs: {}, children: inner });
-      return;
-    }
-    case 'em': {
-      const t = tok as Tokens.Em;
-      const inner: MiniNode[] = [];
-      for (const c of t.tokens ?? []) inlineTok(c, enc, inner, ctx);
-      out.push({ name: 'em', attrs: {}, children: inner });
-      return;
-    }
-    case 'del': {
-      const t = tok as Tokens.Del;
-      const inner: MiniNode[] = [];
-      for (const c of t.tokens ?? []) inlineTok(c, enc, inner, ctx);
-      out.push({ name: 'del', attrs: {}, children: inner });
-      return;
-    }
-    case 'codespan': {
-      const t = tok as Tokens.Codespan;
-      out.push({
-        name: 'code', attrs: {},
-        children: [{ name: 'text', attrs: { value: enc(t.text ?? '') } }],
-      });
-      return;
-    }
-    case 'br':
-      out.push({ name: 'br', attrs: {} });
-      return;
-    case 'link': {
-      const t = tok as Tokens.Link;
-      const inner: MiniNode[] = [];
-      for (const c of t.tokens ?? []) inlineTok(c, enc, inner, ctx);
-      // alipay: keep href, class stripped
-      out.push({
-        name: 'a',
-        attrs: { href: t.href ?? '' },
-        children: inner.length ? inner : [{ name: 'text', attrs: { value: '' } }],
-      });
-      return;
-    }
-    case 'image': {
-      const t = tok as Tokens.Image;
-      // alipay: force https
-      const src = (t.href ?? '').replace(/^http:\/\//, 'https://');
-      out.push({ name: 'img', attrs: { src, alt: t.text ?? '' } });
-      return;
-    }
-    case 'html': {
-      const t = tok as Tokens.HTML | Tokens.Tag;
-      out.push({ name: 'text', attrs: { value: enc(t.text ?? '') } });
-      return;
-    }
-    default: {
-      const custom = renderCustomToken(tok, ctx);
-      if (custom.length) out.push(...custom);
-      return;
-    }
-  }
+  return renderTokensToMiniNodes(tokens, alipayAdapter, ctx);
 }

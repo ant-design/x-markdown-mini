@@ -13,7 +13,7 @@
 
 ## 适配规则
 
-入口会通过 `getPlatformRenderer(platform)` 选择 renderer。当前微信/支付宝差异直接编进各自 `renderTokens`，避免二次树遍历。
+入口会通过 `getPlatformRenderer(platform)` 选择 renderer。Markdown token 到 MiniNode 的结构映射由公共层完成；微信/支付宝差异集中在各自 adapter 中，避免二次树遍历。
 
 ### 当前差异
 
@@ -22,7 +22,7 @@
 
 ### 微信特有
 
-- `<a href="..." class="md-link">` → `<a data-href="..." class="md-link">`：因为微信 rich-text 不会自动响应 `<a>` 跳转，消费方需要在 `<rich-text>` 上绑 `bindtap` 并读 `event.target.dataset.href`：
+- `<a href="..." class="md-link">` → `<a data-href="..." class="md-link">`：因为微信原生节点容器不会自动响应 `<a>` 跳转，消费方需要在节点容器上绑 `bindtap` 并读 `event.target.dataset.href`：
 
   ```xml
   <rich-text nodes="{{nodes}}" bindtap="onTap" />
