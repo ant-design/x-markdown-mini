@@ -9,29 +9,49 @@ const css = read('public/site.css');
 const dumiConfig = read('.dumirc.ts');
 
 const requiredMarkup = [
+  'xmd-home-v3',
   'xmd-home-slogan',
+  'xmd-powered',
+  'xmd-what',
+  'xmd-pipeline',
   'xmd-capability-grid',
   'xmd-capability-card',
-  'xmd-feature-demo',
-  'xmd-performance',
-  'xmd-package-table',
-  '多端可用',
-  'AI 流式友好',
-  '高扩展',
-  '高性能',
+  'xmd-playground-callout',
+  'xmd-playground-panel',
+  'xmd-get-started',
+  'xmd-start-code',
+  'xmd-docs-map',
+  'xmd-doc-map-grid',
+  'xmd-final-cta',
+  'Introduction',
+  'Features',
+  'Playground',
+  'Get started in seconds',
+  'Showcase',
+  '多端节点输出',
+  '流式体验',
+  'Headless API',
+  'Typography & GFM',
+  'renderNodes',
   'npm pack --dry-run',
   'benchmark/baseline.json',
 ];
 
 const requiredCss = [
+  '.markdown .xmd-home-v3',
   '.markdown .xmd-home-slogan',
+  '.markdown .xmd-powered',
+  '.markdown .xmd-what',
+  '.markdown .xmd-pipeline',
   '.markdown .xmd-capability-grid',
   '.markdown .xmd-capability-card',
-  '.markdown .xmd-feature-demo',
-  '@keyframes xmd-stream-caret',
-  '@keyframes xmd-demo-progress',
-  '.markdown .xmd-performance',
-  '.markdown .xmd-package-table',
+  '.markdown .xmd-playground-callout',
+  '.markdown .xmd-playground-panel',
+  '.markdown .xmd-get-started',
+  '.markdown .xmd-start-code',
+  '.markdown .xmd-docs-map',
+  '.markdown .xmd-doc-map-grid',
+  '.markdown .xmd-final-cta',
   '.dumi-default-navbar > li > a',
 ];
 
@@ -41,23 +61,23 @@ const missing = [
   ...['name: \'viewport\'', 'width=device-width'].filter((item) => !dumiConfig.includes(item)).map((item) => `.dumirc.ts: ${item}`),
 ];
 
-if (index.includes('Markdown renderer for mini programs')) {
-  missing.push('docs/index.md: remove English hero kicker');
-}
-
-for (const removedCopy of ['设计目标', '首页只讲四件事']) {
+for (const removedCopy of ['设计目标']) {
   if (index.includes(removedCopy)) {
     missing.push(`docs/index.md: remove capability heading copy ${removedCopy}`);
   }
 }
 
-for (const removedNumber of ['>01</', '>02</', '>03</', '>04</']) {
-  if (index.includes(removedNumber)) {
-    missing.push(`docs/index.md: remove capability number ${removedNumber}`);
-  }
-}
-
-for (const href of ['href="/docs/platforms"', 'href="/docs/streaming"', 'href="/docs/api"', 'href="#performance"']) {
+for (const href of [
+  'href="/docs/platforms"',
+  'href="/docs/streaming"',
+  'href="/docs/api"',
+  'href="/docs/custom-platform"',
+  'href="/docs/adapter-rules"',
+  'href="/playground"',
+  'href="/examples/markdown"',
+  'href="/examples/streaming"',
+  'href="/docs/types"',
+]) {
   if (!index.includes(href)) {
     missing.push(`docs/index.md: capability card missing ${href}`);
   }
