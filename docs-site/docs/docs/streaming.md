@@ -16,6 +16,12 @@ LLM 一边吐字，UI 一边出节点。本库的流式策略围绕两个目标�
 1. **稳定**：已经渲染完的块不会因为后续 token 改变结构（避免「跳变」）
 2. **省**：不要每来一个 token 就把整段从头解析一次
 
+## 基础流式
+
+每次 setData 把累计的 markdown 全量传入；`hasNextChunk=false` 时触发 `onRenderComplete`。
+
+<code src="../../src/demos/streaming/Basic.tsx"></code>
+
 ```ts
 render({
   content: accumulatedMarkdown,

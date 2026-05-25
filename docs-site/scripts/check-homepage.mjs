@@ -10,48 +10,29 @@ const dumiConfig = read('.dumirc.ts');
 
 const requiredMarkup = [
   'xmd-home-v3',
-  'xmd-home-slogan',
-  'xmd-powered',
-  'xmd-what',
-  'xmd-pipeline',
-  'xmd-capability-grid',
-  'xmd-capability-card',
-  'xmd-playground-callout',
-  'xmd-playground-panel',
-  'xmd-get-started',
-  'xmd-start-code',
-  'xmd-docs-map',
-  'xmd-doc-map-grid',
-  'xmd-final-cta',
-  'Introduction',
-  'Features',
-  'Playground',
-  'Get started in seconds',
-  'Showcase',
-  '多端节点输出',
-  '流式体验',
-  'Headless API',
-  'Typography & GFM',
-  'renderNodes',
-  'npm pack --dry-run',
-  'benchmark/baseline.json',
+  'xmd-home-minimal',
+  'xmd-home-wordmark',
+  'xmd-home-animated-title',
+  'xmd-home-recording',
+  'xmd-home-hero-gif',
+  'xmd-gif-placeholder',
+  '多端',
+  '流式友好',
+  '可扩展',
+  '高性能',
+  'Markdown 渲染器',
+  '预留录屏展示位',
 ];
 
 const requiredCss = [
   '.markdown .xmd-home-v3',
-  '.markdown .xmd-home-slogan',
-  '.markdown .xmd-powered',
-  '.markdown .xmd-what',
-  '.markdown .xmd-pipeline',
-  '.markdown .xmd-capability-grid',
-  '.markdown .xmd-capability-card',
-  '.markdown .xmd-playground-callout',
-  '.markdown .xmd-playground-panel',
-  '.markdown .xmd-get-started',
-  '.markdown .xmd-start-code',
-  '.markdown .xmd-docs-map',
-  '.markdown .xmd-doc-map-grid',
-  '.markdown .xmd-final-cta',
+  '.markdown .xmd-home-minimal',
+  '.markdown .xmd-home-wordmark',
+  '.markdown .xmd-home-animated-title',
+  '.markdown .xmd-home-recording',
+  '.markdown .xmd-home-hero-gif',
+  '.markdown .xmd-gif-placeholder',
+  '@keyframes xmdCharType',
   '.dumi-default-navbar > li > a',
 ];
 
@@ -61,25 +42,17 @@ const missing = [
   ...['name: \'viewport\'', 'width=device-width'].filter((item) => !dumiConfig.includes(item)).map((item) => `.dumirc.ts: ${item}`),
 ];
 
-for (const removedCopy of ['设计目标']) {
+for (const removedCopy of [
+  '设计目标',
+  '适合这些小程序场景',
+  '小程序 Markdown 渲染器',
+  'Introduction',
+  'Features',
+  'Get started in seconds',
+  'Showcase',
+]) {
   if (index.includes(removedCopy)) {
     missing.push(`docs/index.md: remove capability heading copy ${removedCopy}`);
-  }
-}
-
-for (const href of [
-  'href="/docs/platforms"',
-  'href="/docs/streaming"',
-  'href="/docs/api"',
-  'href="/docs/custom-platform"',
-  'href="/docs/adapter-rules"',
-  'href="/playground"',
-  'href="/examples/markdown"',
-  'href="/examples/streaming"',
-  'href="/docs/types"',
-]) {
-  if (!index.includes(href)) {
-    missing.push(`docs/index.md: capability card missing ${href}`);
   }
 }
 

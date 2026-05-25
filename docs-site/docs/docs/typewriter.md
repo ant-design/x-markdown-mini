@@ -13,6 +13,8 @@ group:
 
 `chunkDelay` 或 `charDelay` 任一 > 0 时，处理器会按语义切块逐块推进，每步走一次「commit + tail re-parse + onPatch」。
 
+<code src="../../src/demos/streaming/Typewriter.tsx"></code>
+
 ```ts
 streaming: {
   semantic: {

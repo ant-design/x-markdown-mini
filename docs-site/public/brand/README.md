@@ -1,18 +1,14 @@
-# x-markdown Brand Mark (SVG)
+# x-markdown Brand Mark
 
 Shared mark for the entire `x-markdown` series.
 
 ## Files
 
-- `x-markdown-mark.svg`: default colored brand mark.
-- `x-markdown-mark-mono.svg`: monochrome variant (inherits `currentColor`).
+- `x-markdown-mark.png`: brand mark used for favicon and site logo.
+- `x-markdown-logo.png`: large brand mark used on the home page hero.
 
 ## Example
 
 ```html
-<img src="/brand/x-markdown-mark.svg" alt="x-markdown" width="24" height="24" />
-```
-
-```html
-<img src="/brand/x-markdown-mark-mono.svg" alt="x-markdown" width="24" height="24" style="color:#1f1f1f" />
+<img src="/brand/x-markdown-mark.png" alt="x-markdown" height="24" />
 ```

@@ -40,6 +40,198 @@
 
   document.addEventListener('click', onClick, true);
 
+  var searchItems = [
+    ['首页', '/', 'x-markdown-mini Markdown 小程序 渲染层 AI 流式内容'],
+    ['在线体验', '/playground', 'Playground 浏览器编辑 Markdown 实时预览 微信 支付宝'],
+    ['文档', '/docs/quickstart', 'Docs 快速开始 安装 使用 文档'],
+    ['快速开始', '/docs/quickstart', 'install npm pnpm 组件接入'],
+    ['一次性渲染', '/docs/oneshot', 'renderNodes parse markdown 一次性渲染'],
+    ['流式渲染', '/docs/streaming', 'streaming stableNodes liveTail 流式'],
+    ['打字机模式', '/docs/typewriter', 'typewriter 打字机 动画'],
+    ['动画', '/docs/animation', 'animation transitions 流式动画'],
+    ['能力矩阵', '/docs/platforms', '微信 支付宝 平台 能力矩阵'],
+    ['适配规则', '/docs/adapter-rules', 'adapter rules 标签 属性 降级'],
+    ['自定义平台', '/docs/custom-platform', 'custom platform renderer 自定义平台'],
+    ['API 参考', '/docs/api', 'API renderNodes tokens types'],
+    ['类型导出', '/docs/types', 'TypeScript 类型导出'],
+    ['Changelog', '/docs/changelog', '更新日志 版本变化'],
+    ['Markdown 示例', '/examples/markdown', 'Markdown GFM 表格 代码块 示例'],
+    ['流式示例', '/examples/streaming', 'Streaming demo basic typewriter animation'],
+  ];
+
+  function getSearchModal() {
+    return document.querySelector('.xmd-search-modal');
+  }
+
+  function closeSearchModal() {
+    var modal = getSearchModal();
+    if (modal) {
+      modal.remove();
+      document.body.removeAttribute('data-xmd-search-open');
+    }
+  }
+
+  function renderSearchResults(modal, keyword) {
+    var list = modal.querySelector('.xmd-search-results');
+    var query = keyword.trim().toLowerCase();
+    var results = searchItems
+      .map(function (item) {
+        var title = item[0].toLowerCase();
+        var haystack = item.join(' ').toLowerCase();
+        var score = !query
+          ? 1
+          : title === query
+            ? 4
+            : title.indexOf(query) >= 0
+              ? 3
+              : haystack.indexOf(query) >= 0
+                ? 2
+                : 0;
+        return { item: item, score: score };
+      })
+      .filter(function (entry) {
+        return entry.score > 0;
+      })
+      .sort(function (a, b) {
+        return b.score - a.score;
+      })
+      .slice(0, 8);
+
+    list.innerHTML = results.length
+      ? results
+          .map(function (entry) {
+            return (
+              '<a class="xmd-search-result" href="' +
+              entry.item[1] +
+              '">' +
+              '<span>' +
+              entry.item[0] +
+              '</span>' +
+              '<small>' +
+              entry.item[2] +
+              '</small>' +
+              '</a>'
+            );
+          })
+          .join('')
+      : '<div class="xmd-search-empty">未找到相关内容</div>';
+  }
+
+  function openSearchModal() {
+    var existing = getSearchModal();
+    if (existing) {
+      var existingInput = existing.querySelector('input');
+      if (existingInput) existingInput.focus();
+      return;
+    }
+
+    var modal = document.createElement('div');
+    modal.className = 'xmd-search-modal';
+    modal.innerHTML =
+      '<div class="xmd-search-backdrop" data-xmd-search-close></div>' +
+      '<section class="xmd-search-panel" role="dialog" aria-modal="true" aria-label="站内搜索">' +
+      '<div class="xmd-search-input-wrap">' +
+      '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>' +
+      '<input type="search" placeholder="输入关键字搜索..." autocomplete="off" />' +
+      '<kbd>esc</kbd>' +
+      '</div>' +
+      '<div class="xmd-search-results"></div>' +
+      '</section>';
+
+    document.body.appendChild(modal);
+    document.body.setAttribute('data-xmd-search-open', 'true');
+
+    var input = modal.querySelector('input');
+    renderSearchResults(modal, '');
+    input.addEventListener('input', function () {
+      renderSearchResults(modal, input.value);
+    });
+    input.focus();
+  }
+
+  function forceSearchModal(ev) {
+    var isApple = /(mac|iphone|ipod|ipad)/i.test(navigator.platform || '');
+    var isSearchShortcut =
+      (isApple ? ev.metaKey : ev.ctrlKey) && ev.key && ev.key.toLowerCase() === 'k';
+
+    if (!isSearchShortcut) return;
+
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    openSearchModal();
+  }
+
+  function onSearchShortcutClick(ev) {
+    var el = ev.target.closest('.dumi-default-search-bar');
+    if (!el) return;
+
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    openSearchModal();
+  }
+
+  function onSearchModalClick(ev) {
+    if (ev.target.closest('[data-xmd-search-close]')) closeSearchModal();
+  }
+
+  function onSearchModalKeydown(ev) {
+    if (ev.key === 'Escape') closeSearchModal();
+  }
+
+  document.addEventListener('keydown', forceSearchModal, true);
+  document.addEventListener('click', onSearchShortcutClick, true);
+  document.addEventListener('click', onSearchModalClick, true);
+  document.addEventListener('keydown', onSearchModalKeydown, true);
+
+  function processTitleTypewriter() {
+    var title = document.querySelector('.xmd-home-animated-title');
+    if (!title || title.dataset.xmdTyped === '1') return;
+    title.dataset.xmdTyped = '1';
+
+    var spans = [];
+    for (var n = 0; n < title.children.length; n++) {
+      var child = title.children[n];
+      if (child.tagName === 'SPAN') spans.push(child);
+    }
+    if (!spans.length) return;
+
+    var PHRASE_GAP = 4;
+    var flat = [];
+    for (var p = 0; p < spans.length; p++) {
+      var chars = Array.from(spans[p].textContent);
+      for (var c = 0; c < chars.length; c++) {
+        flat.push({ phrase: spans[p], char: chars[c] });
+      }
+      if (p < spans.length - 1) {
+        for (var g = 0; g < PHRASE_GAP; g++) flat.push(null);
+      }
+    }
+    for (var s = 0; s < spans.length; s++) spans[s].textContent = '';
+
+    title.classList.add('xmd-typed');
+
+    var i = 0;
+    var CHAR_DELAY = 55;
+    var timer = setInterval(function () {
+      if (i >= flat.length) { clearInterval(timer); return; }
+      var item = flat[i];
+      i++;
+      if (!item) return;
+      var ch = document.createElement('span');
+      ch.className = 'xmd-char';
+      ch.textContent = item.char;
+      item.phrase.appendChild(ch);
+    }, CHAR_DELAY);
+  }
+
+  function setupTitleTypewriter() {
+    processTitleTypewriter();
+    var observer = new MutationObserver(function () {
+      processTitleTypewriter();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   function setupDevDebug() {
     var params = new URLSearchParams(window.location.search);
     var isLocal =
@@ -63,9 +255,14 @@
     }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupDevDebug);
-  } else {
+  function bootstrap() {
     setupDevDebug();
+    setupTitleTypewriter();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrap);
+  } else {
+    bootstrap();
   }
 })();

@@ -13,6 +13,8 @@ group:
 
 `enableAnimation: true` 时，每个块级节点的 `class` 会拼上 `md-animate-block`。在小程序 WXSS / ACSS 写：
 
+<code src="../../src/demos/streaming/Animation.tsx"></code>
+
 ```css
 .md-animate-block {
   animation: md-fade-in 240ms ease-out both;

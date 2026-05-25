@@ -1,5 +1,6 @@
 html {
   background: #ffffff;
+  color-scheme: light;
 }
 
 body {
@@ -14,11 +15,12 @@ body {
 /* ----- header ----- */
 
 .dumi-default-header {
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
 }
 
 .dumi-default-header:not([data-static]) {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: saturate(180%) blur(18px);
 }
 
@@ -26,16 +28,16 @@ body {
   display: flex !important;
   align-items: center !important;
   width: 100% !important;
-  max-width: 1200px !important;
-  height: 64px !important;
-  padding: 0 32px !important;
+  max-width: 100% !important;
+  height: 56px !important;
+  padding: 0 28px !important;
   box-sizing: border-box !important;
 }
 
 .dumi-default-header-left {
   flex: 0 0 auto !important;
   width: auto !important;
-  margin-inline-end: 28px !important;
+  margin-inline-end: 10px !important;
   min-width: 0 !important;
 }
 
@@ -43,20 +45,32 @@ body {
   gap: 8px;
   width: auto !important;
   min-width: max-content !important;
-  color: #0b0d10;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0;
+  color: #111827;
+  font-family:
+    "Avenir Next", Avenir, "Inter", "SF Pro Display", "PingFang SC",
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-size: 14px;
+  font-weight: 760;
+  letter-spacing: 0.005em;
   line-height: 1;
   white-space: nowrap;
   overflow: visible !important;
+  text-rendering: geometricPrecision;
+  transition: color 0.15s, opacity 0.15s;
+}
+
+.dumi-default-logo:hover {
+  color: #0f5cff;
+  opacity: 0.94;
 }
 
 .dumi-default-logo img {
-  width: 28px;
-  height: 28px;
+  width: auto;
+  height: 22px;
   margin-inline-end: 0;
   display: block;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 /* turn the right-aside into a transparent flex parent so we can reorder */
@@ -64,39 +78,53 @@ body {
   flex: 1 1 auto !important;
   display: flex !important;
   align-items: center !important;
-  gap: 12px !important;
+  gap: 8px !important;
   min-width: 0 !important;
   overflow: hidden !important;
 }
 
 .dumi-default-header-right-aside {
-  display: contents !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-inline-start: auto !important;
+  min-width: 0 !important;
 }
 
-/* search comes right after the title */
+/* search and social actions sit at the far right of the header */
 .dumi-default-search-bar {
-  order: 1 !important;
-  flex: 0 1 260px !important;
-  width: clamp(180px, 22vw, 260px) !important;
+  flex: 0 0 240px !important;
+  width: 240px !important;
   min-width: 0 !important;
-  margin-inline-end: auto !important;
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.04);
-  border-color: transparent !important;
-  box-shadow: none !important;
-  height: 36px !important;
+  margin-inline-start: 0 !important;
+  margin-inline-end: 0 !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 0 0 1px rgba(255, 255, 255, 0.72) inset !important;
+  height: 34px !important;
+  font-size: 12px;
   box-sizing: border-box;
   overflow: hidden !important;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .dumi-default-search-bar:hover,
 .dumi-default-search-bar:focus-within {
-  background: rgba(15, 23, 42, 0.06);
-  border-color: rgba(15, 23, 42, 0.08);
-  box-shadow: none !important;
+  background: #ffffff;
+  border-color: rgba(22, 119, 255, 0.34) !important;
+  box-shadow:
+    0 6px 18px rgba(22, 119, 255, 0.08),
+    0 0 0 3px rgba(22, 119, 255, 0.08) !important;
 }
 
 .dumi-default-search-bar-input {
+  height: 32px !important;
   min-width: 0 !important;
   background: transparent;
   border: 0 !important;
@@ -112,16 +140,28 @@ body {
 
 .dumi-default-search-shortcut {
   flex: 0 0 auto !important;
-  border: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 20px !important;
+  min-width: 22px !important;
+  padding: 0 6px !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 5px !important;
   outline: 0 !important;
-  box-shadow: none !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  color: #64748b !important;
+  box-shadow: 0 1px 1px rgba(15, 23, 42, 0.04) !important;
+  box-sizing: border-box !important;
   filter: none !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
 }
 
-/* nav comes after the search */
+/* nav hugs the brand; right-side tools are pushed away by the aside */
 .dumi-default-navbar {
-  order: 2 !important;
   flex: 0 1 auto !important;
+  margin-inline-start: 0 !important;
   min-width: 0 !important;
   overflow: hidden !important;
   white-space: nowrap !important;
@@ -130,50 +170,233 @@ body {
 .dumi-default-navbar > li {
   display: inline-flex !important;
   align-items: center !important;
-  height: 64px !important;
+  height: 56px !important;
+  margin: 0 !important;
+  font-family:
+    "Avenir Next", Avenir, "Inter", "SF Pro Text", "PingFang SC",
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
   font-size: 14px;
-  color: #4b5563;
+  font-weight: 500;
+  color: #5f6876;
   flex: 0 0 auto;
-  line-height: 1.4 !important;
+  line-height: 1.35 !important;
   overflow: visible !important;
 }
 
 .dumi-default-navbar > li:not(:last-child) {
-  margin-inline-end: 24px;
+  margin-inline-end: 4px !important;
 }
 
 .dumi-default-navbar > li > a,
 .dumi-default-navbar > li > span {
   display: inline-flex !important;
   align-items: center !important;
-  height: 64px !important;
-  line-height: 1.4 !important;
+  height: 28px !important;
+  padding: 0 7px !important;
+  font-family:
+    "Avenir Next", Avenir, "Inter", "SF Pro Text", "PingFang SC",
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1.35 !important;
   overflow: visible !important;
+  border-radius: 7px;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.dumi-default-navbar > li > a:hover,
+.dumi-default-navbar > li > span:hover {
+  color: #0b0d10;
+  background: rgba(15, 23, 42, 0.045);
 }
 
 .dumi-default-navbar > li > a.active,
 .dumi-default-navbar > li > span.active,
 .dumi-default-navbar > li > .dumi-default-navbar-dropdown > li > a.active {
   color: #0b0d10;
-  font-weight: 600;
+  font-weight: 500;
+  background: rgba(22, 119, 255, 0.07);
 }
 
 /* social icons / lang switch / etc come at the very end */
 .dumi-default-lang-switch,
 .dumi-default-rtl-switch,
 .dumi-default-color-switch,
+a.dumi-default-icon,
 .dumi-default-icon {
-  order: 3 !important;
   flex: 0 0 auto !important;
 }
 
+.dumi-default-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  color: #111827 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-color: transparent !important;
+  transition: none !important;
+}
+
+a.dumi-default-icon:hover,
+a.dumi-default-icon:focus,
+a.dumi-default-icon:active,
+.dumi-default-icon:hover,
+.dumi-default-icon:focus,
+.dumi-default-icon:active {
+  border-color: transparent !important;
+  color: #111827 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-color: transparent !important;
+  transform: none !important;
+}
+
+.dumi-default-icon::after,
+.dumi-default-icon::before,
+.dumi-default-icon:hover::after,
+.dumi-default-icon:hover::before,
+.dumi-default-icon:focus::after,
+.dumi-default-icon:focus::before,
+.dumi-default-icon:active::after,
+.dumi-default-icon:active::before {
+  display: none !important;
+  content: none !important;
+}
+
 .dumi-default-icon > svg {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
+  fill: currentColor !important;
+}
+
+.dumi-default-icon:hover > svg,
+.dumi-default-icon:focus > svg,
+.dumi-default-icon:active > svg {
+  fill: currentColor !important;
 }
 
 .dumi-default-header-menu-btn {
   flex: 0 0 auto;
+}
+
+.xmd-search-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  padding: 92px 20px 20px;
+  box-sizing: border-box;
+}
+
+.xmd-search-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.34);
+  backdrop-filter: blur(8px);
+}
+
+.xmd-search-panel {
+  position: relative;
+  width: min(620px, 100%);
+  max-height: min(540px, calc(100vh - 128px));
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
+}
+
+.xmd-search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 14px;
+  color: #64748b;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+}
+
+.xmd-search-input-wrap input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  color: #0b0d10;
+  font: inherit;
+  font-size: 15px;
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.xmd-search-input-wrap kbd {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  color: #64748b;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 5px;
+}
+
+.xmd-search-results {
+  max-height: calc(min(540px, 100vh - 128px) - 56px);
+  overflow-y: auto;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.xmd-search-result {
+  display: block;
+  padding: 12px 14px;
+  color: #0b0d10;
+  text-decoration: none;
+  border-radius: 7px;
+}
+
+.xmd-search-result:hover {
+  background: rgba(15, 23, 42, 0.045);
+}
+
+.xmd-search-result span,
+.xmd-search-result small {
+  display: block;
+}
+
+.xmd-search-result span {
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.xmd-search-result small {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.xmd-search-empty {
+  padding: 28px 14px;
+  color: #64748b;
+  font-size: 14px;
+  text-align: center;
 }
 
 /* ----- doc layout ----- */
@@ -185,7 +408,7 @@ body {
 
 .dumi-default-doc-layout > main {
   max-width: 1200px;
-  padding: 28px 32px 0;
+  padding: 40px 32px 0;
   gap: 32px;
 }
 
@@ -254,9 +477,11 @@ body {
 }
 
 .dumi-default-sidebar dd > a.active {
-  color: #0b0d10;
+  color: #1677ff;
   font-weight: 600;
-  background: rgba(22, 119, 255, 0.08);
+  background: rgba(22, 119, 255, 0.06);
+  border-inline-start: 2px solid #1677ff;
+  padding-inline-start: 10px;
 }
 
 /* ----- TOC (right side) ----- */
@@ -300,23 +525,28 @@ body {
 .markdown h1 {
   margin-top: 0;
   color: #0b0d10;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 650;
-  line-height: 1.2;
+  line-height: 1.25;
   letter-spacing: 0;
 }
 
 .markdown h2 {
-  margin-top: 40px;
+  margin-top: 36px;
   color: #0b0d10;
   font-size: 20px;
   font-weight: 650;
+  line-height: 1.35;
   letter-spacing: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .markdown h3 {
+  margin-top: 24px;
   color: #0b0d10;
-  font-size: 17px;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .markdown p,
@@ -379,8 +609,8 @@ body {
 
 .markdown .xmd-home-mark {
   display: block;
-  width: 72px;
-  height: 72px;
+  width: auto;
+  height: 52px;
   margin: 0 auto 20px;
 }
 
@@ -1341,20 +1571,20 @@ body[data-xmd-debug="true"] .xmd-home > * {
 
 @media (max-width: 1024px) {
   .dumi-default-header-content {
-    padding: 0 24px !important;
+    padding: 0 20px !important;
   }
 
   .dumi-default-header-left {
-    margin-inline-end: 20px !important;
+    margin-inline-end: 14px !important;
   }
 
   .dumi-default-search-bar {
-    flex-basis: 220px !important;
-    width: 220px !important;
+    flex-basis: 190px !important;
+    width: 190px !important;
   }
 
   .dumi-default-navbar > li:not(:last-child) {
-    margin-inline-end: 18px;
+    margin-inline-end: 4px !important;
   }
 
   .dumi-default-doc-layout > main {
@@ -1400,6 +1630,10 @@ body[data-xmd-debug="true"] .xmd-home > * {
   .dumi-default-logo {
     min-width: 0 !important;
     font-size: 0;
+  }
+
+  .dumi-default-logo img {
+    height: 22px;
   }
 
   /* restore mobile menu overlay layout */
@@ -1577,6 +1811,11 @@ body[data-xmd-debug="true"] .xmd-home > * {
     max-width: calc(100vw - 116px);
   }
 
+  .markdown .xmd-home-command[data-copied]::after {
+    display: none;
+    content: "" !important;
+  }
+
   .markdown .xmd-home-meta {
     justify-content: center;
     overflow: hidden;
@@ -1638,13 +1877,69 @@ body[data-xmd-debug="true"] .xmd-home > * {
   padding-bottom: 64px;
 }
 
+.markdown .xmd-home-minimal {
+  display: grid;
+  gap: 34px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 74px 0 68px;
+}
+
+.markdown .xmd-home-wordmark {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.markdown .xmd-home-animated-title {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 14px;
+  max-width: 760px;
+  margin: 0;
+  color: #0b0d10;
+  font-size: 34px;
+  font-weight: 760;
+  line-height: 1.22;
+  letter-spacing: 0;
+}
+
+.markdown .xmd-home-animated-title > span {
+  display: inline-block;
+  opacity: 0;
+  animation: xmdCharType 0.5s ease 0.3s forwards;
+}
+
+.markdown .xmd-home-animated-title.xmd-typed > span {
+  opacity: 1;
+  animation: none;
+}
+
+.markdown .xmd-home-animated-title .xmd-char {
+  display: inline-block;
+  white-space: pre;
+}
+
+@keyframes xmdCharType {
+  to {
+    opacity: 1;
+  }
+}
+
+.markdown .xmd-home-recording {
+  max-width: 920px;
+  width: 100%;
+  margin: 0 auto;
+}
+
 .markdown .xmd-home-v3 .xmd-home-hero {
   display: grid;
   grid-template-columns: minmax(0, 0.92fr) minmax(380px, 0.8fr);
   gap: 46px;
   align-items: center;
   max-width: 1080px;
-  padding: 66px 0 54px;
+  padding: 70px 0 56px;
   text-align: left;
 }
 
@@ -1655,7 +1950,7 @@ body[data-xmd-debug="true"] .xmd-home > * {
 .markdown .xmd-home-v3 .xmd-home-hero h1 {
   max-width: 680px;
   margin: 0;
-  font-size: 56px;
+  font-size: 54px;
   line-height: 1.06;
 }
 
@@ -1670,142 +1965,88 @@ body[data-xmd-debug="true"] .xmd-home > * {
   justify-content: flex-start;
 }
 
-.markdown .xmd-home-hero-visual {
+.markdown .xmd-home-v3.xmd-home-minimal .xmd-home-actions {
+  justify-content: center;
+  margin-top: 26px;
+}
+
+.markdown .xmd-home-v3.xmd-home-minimal .xmd-home-actions a,
+.markdown .xmd-home-v3.xmd-home-minimal .xmd-home-actions .xmd-home-command {
+  box-sizing: border-box;
+  height: 44px;
+  border-width: 1px;
+  border-style: solid;
+  line-height: 1;
+}
+
+.markdown .xmd-home-v3.xmd-home-minimal .xmd-home-actions a:hover,
+.markdown .xmd-home-v3.xmd-home-minimal .xmd-home-actions .xmd-home-command:hover {
+  height: 44px;
+  border-width: 1px;
+}
+
+.markdown .xmd-home-hero-gif {
   position: relative;
   min-height: 430px;
   min-width: 0;
   overflow: hidden;
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 48%, #ecfeff 100%);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.96) 48%, rgba(239, 246, 255, 0.9) 100%),
+    #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 8px;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.09);
 }
 
-.markdown .xmd-home-brand {
+.markdown .xmd-gif-placeholder {
   position: absolute;
-  top: 24px;
-  right: 20px;
-  width: 164px;
-  height: auto;
-  opacity: 0.18;
-  pointer-events: none;
-}
-
-.markdown .xmd-hero-console {
-  position: absolute;
-  top: 44px;
-  left: 28px;
-  right: 52px;
+  inset: 28px;
   display: grid;
-  gap: 8px;
-  padding: 20px;
-  color: #dbeafe;
-  background: #111827;
-  border: 1px solid rgba(15, 23, 42, 0.18);
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 32px;
+  color: #334155;
+  text-align: center;
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.055) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(15, 23, 42, 0.055) 1px, transparent 1px),
+    rgba(255, 255, 255, 0.72);
+  background-size: 28px 28px;
+  border: 1px dashed rgba(15, 23, 42, 0.22);
   border-radius: 8px;
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.18);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 13px;
-  line-height: 1.45;
+  box-sizing: border-box;
 }
 
-.markdown .xmd-hero-console span {
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.markdown .xmd-hero-console span:nth-child(2),
-.markdown .xmd-hero-console span:nth-child(3) {
-  color: #bbf7d0;
-}
-
-.markdown .xmd-hero-phone {
-  position: absolute;
-  right: 28px;
-  bottom: 28px;
-  width: 245px;
-  min-width: 0;
-  padding: 18px 16px;
+.markdown .xmd-gif-placeholder span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  color: #1677ff;
   background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 8px;
-  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.15);
-}
-
-.markdown .xmd-hero-phone-bar {
-  width: 42px;
-  height: 4px;
-  margin: 0 auto 18px;
-  background: #d1d5db;
+  border: 1px solid rgba(22, 119, 255, 0.22);
   border-radius: 999px;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
 }
 
-.markdown .xmd-hero-phone h3 {
+.markdown .xmd-gif-placeholder strong {
   margin: 0;
   color: #0b0d10;
-  font-size: 17px;
+  font-size: 20px;
+  font-weight: 760;
   line-height: 1.35;
 }
 
-.markdown .xmd-hero-phone p {
-  margin: 10px 0 0;
-  color: #4b5563;
-  font-size: 13px;
-  line-height: 1.62;
-}
-
-.markdown .xmd-hero-phone pre {
-  margin: 14px 0 0;
-  padding: 11px 12px;
-  color: #e5e7eb;
-  background: #111827;
-  border: 0;
-  border-radius: 6px;
-}
-
-.markdown .xmd-hero-phone code {
-  color: inherit;
-  background: transparent;
-  padding: 0;
-  font-size: 11px;
-}
-
-.markdown .xmd-powered {
-  max-width: 1080px;
-  margin-top: 0;
-  padding: 20px 0 44px;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
-}
-
-.markdown .xmd-powered p {
-  margin: 0 0 16px;
+.markdown .xmd-gif-placeholder p {
+  max-width: 320px;
+  margin: 0;
   color: #64748b;
-  font-size: 13px;
-  font-weight: 650;
-  line-height: 1.4;
-}
-
-.markdown .xmd-powered div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.markdown .xmd-powered span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  padding: 0 12px;
-  color: #334155;
-  background: #f8fafc;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 650;
-  line-height: 1;
+  font-size: 14px;
+  line-height: 1.62;
 }
 
 .markdown .xmd-what {
@@ -1883,6 +2124,8 @@ body[data-xmd-debug="true"] .xmd-home > * {
 
 .markdown .xmd-home-v3 .xmd-capability-card {
   text-align: left;
+  min-height: 156px;
+  box-sizing: border-box;
 }
 
 .markdown .xmd-home-v3 .xmd-capability-card code {
@@ -1918,11 +2161,13 @@ body[data-xmd-debug="true"] .xmd-home > * {
   padding: 12px;
   background: #f8fafc;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  overflow-x: auto;
 }
 
 .markdown .xmd-playground-tabs span {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   min-height: 28px;
   padding: 0 10px;
   color: #475569;
@@ -1974,6 +2219,7 @@ body[data-xmd-debug="true"] .xmd-home > * {
   font-size: 12px;
   line-height: 1.4;
   text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .markdown .xmd-docs-map {
@@ -2046,6 +2292,8 @@ body[data-xmd-debug="true"] .xmd-home > * {
   padding: 19px;
   color: #0b0d10;
   text-decoration: none;
+  min-height: 146px;
+  box-sizing: border-box;
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
@@ -2079,6 +2327,10 @@ body[data-xmd-debug="true"] .xmd-home > * {
 }
 
 @media (max-width: 1024px) {
+  .markdown .xmd-home-minimal {
+    padding: 64px 0 58px;
+  }
+
   .markdown .xmd-home-v3 .xmd-home-hero,
   .markdown .xmd-what,
   .markdown .xmd-playground-callout,
@@ -2090,7 +2342,11 @@ body[data-xmd-debug="true"] .xmd-home > * {
     font-size: 48px;
   }
 
-  .markdown .xmd-home-hero-visual {
+  .markdown .xmd-home-animated-title {
+    font-size: 32px;
+  }
+
+  .markdown .xmd-home-hero-gif {
     max-width: 680px;
   }
 
@@ -2105,13 +2361,24 @@ body[data-xmd-debug="true"] .xmd-home > * {
     padding-bottom: 38px;
   }
 
+  .markdown .xmd-home-minimal {
+    gap: 26px;
+    padding: 44px 0 42px;
+  }
+
+  .markdown .xmd-home-animated-title {
+    gap: 8px 10px;
+    font-size: 26px;
+    line-height: 1.25;
+  }
+
   .markdown .xmd-home-v3 .xmd-home-hero {
     gap: 30px;
     padding: 42px 0 34px;
   }
 
   .markdown .xmd-home-v3 .xmd-home-hero h1 {
-    font-size: 34px;
+    font-size: 32px;
     line-height: 1.12;
   }
 
@@ -2123,27 +2390,21 @@ body[data-xmd-debug="true"] .xmd-home > * {
     align-items: stretch;
   }
 
-  .markdown .xmd-home-hero-visual {
-    min-height: 390px;
+  .markdown .xmd-home-hero-gif {
+    min-height: 404px;
   }
 
-  .markdown .xmd-home-brand {
-    width: 132px;
-  }
-
-  .markdown .xmd-hero-console {
-    top: 22px;
-    left: 16px;
-    right: 16px;
+  .markdown .xmd-gif-placeholder {
+    inset: 16px;
     padding: 16px;
-    font-size: 12px;
   }
 
-  .markdown .xmd-hero-phone {
-    right: 16px;
-    bottom: 16px;
-    left: 16px;
-    width: auto;
+  .markdown .xmd-gif-placeholder strong {
+    font-size: 18px;
+  }
+
+  .markdown .xmd-gif-placeholder p {
+    font-size: 13px;
   }
 
   .markdown .xmd-what,
@@ -2176,21 +2437,15 @@ body[data-xmd-debug="true"] .xmd-home > * {
     text-align: left;
   }
 
-  .markdown .xmd-powered {
-    padding-top: 16px;
-    padding-bottom: 30px;
-  }
-
-  .markdown .xmd-powered div {
-    gap: 8px;
-  }
-
-  .markdown .xmd-powered span {
-    min-height: 32px;
-    font-size: 12px;
-  }
-
   .markdown .xmd-final-cta h2 {
     font-size: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .markdown .xmd-home-animated-title span {
+    opacity: 1;
+    transform: none;
+    animation: none;
   }
 }

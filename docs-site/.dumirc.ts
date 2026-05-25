@@ -3,36 +3,26 @@ import { defineConfig } from 'dumi';
 export default defineConfig({
   outputPath: 'dist',
   publicPath: '/',
-  favicons: ['/brand/x-markdown-mark.svg'],
+  favicons: ['/brand/x-markdown-mark.png'],
   links: [{ rel: 'stylesheet', href: '/site.css' }],
   metas: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
   scripts: [{ src: '/site.js', defer: true }],
   themeConfig: {
     name: 'x-markdown-mini',
-    logo: '/brand/x-markdown-mark.svg',
+    logo: '/brand/x-markdown-mark.png',
     nav: [
-      { title: '首页', link: '/' },
-      { title: 'Examples', link: '/examples/markdown' },
-      { title: 'Playground', link: '/playground' },
-      { title: 'Docs', link: '/docs/quickstart' },
-      { title: 'GitHub', link: 'https://github.com/ant-design/x-markdown-mini' },
+      { title: '在线体验', link: '/playground' },
+      { title: '文档', link: '/docs/quickstart' },
     ],
+    socialLinks: {
+      github: 'https://github.com/ant-design/x-markdown-mini',
+    },
     sidebar: {
-      '/examples': [
-        {
-          title: '组件',
-          children: [
-            { title: 'Markdown', link: '/examples/markdown' },
-            { title: '流式渲染', link: '/examples/streaming' },
-          ],
-        },
-      ],
       '/docs': [
         {
           title: '入门',
           children: [
             { title: '快速开始', link: '/docs/quickstart' },
-            { title: '一次性渲染', link: '/docs/oneshot' },
           ],
         },
         {
@@ -60,9 +50,6 @@ export default defineConfig({
           ],
         },
       ],
-    },
-    socialLinks: {
-      github: 'https://github.com/ant-design/x-markdown-mini',
     },
     footer: 'MIT Licensed · Built for multi-mini-program markdown rendering.',
     prefersColor: { default: 'light', switch: false },
