@@ -221,12 +221,14 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
       const partial = chars.slice(0, pos);
       setMarkdown(partial);
 
+      const isLast = pos >= chars.length;
+
       try {
         const nodes = instance.renderNodes({
           content: partial,
           platform,
           selectable,
-          streaming: true,
+          streaming: { hasNextChunk: !isLast, enableAnimation: false },
           onPatch: (patched) => {
             setStreamNodes([...patched]);
           },
@@ -235,6 +237,11 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
         if (nodes.length > 0) setStreamNodes(nodes);
       } catch {
         // ignore errors during partial parse
+      }
+
+      if (isLast) {
+        setIsStreaming(false);
+        return;
       }
 
       streamRaf.current = (requestAnimationFrame(() => {
