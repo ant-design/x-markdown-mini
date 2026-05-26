@@ -7,7 +7,7 @@ import {
 } from '@ant-design/x-markdown-mini';
 import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
 import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
-import { nodesToHTML } from '../../utils/nodesToHTML';
+import { renderMiniNodes } from '../../utils/nodesToReact';
 import { useDocPlatform } from '../useDocPlatform';
 import './index.less';
 
@@ -105,13 +105,6 @@ function detectIssues(nodes: MiniNode[], platform: DemoPlatform): DegradeIssue[]
   return issues;
 }
 
-function escapeHtml(s: string): string {
-  if (typeof document === 'undefined') return s;
-  const div = document.createElement('div');
-  div.textContent = s;
-  return div.innerHTML;
-}
-
 export interface PlaygroundProps {
   initialMarkdown?: string;
 }
@@ -180,19 +173,25 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
     };
   }, []);
 
-  // Non-streaming render
-  const { html, issues } = useMemo(() => {
-    if (isStreaming) return { html: nodesToHTML(streamNodes as any), issues: [] };
+  // Render MiniNodes as React elements with stable keys so React reconciles
+  // and preserves existing DOM elements. This prevents CSS animation replay
+  // on streaming updates — only new blocks animate in.
+  const { reactNodes, issues } = useMemo(() => {
+    if (isStreaming) return { reactNodes: renderMiniNodes(streamNodes), issues: [] };
     try {
       const instance = getOrCreateInstance();
       const nodes = instance.renderNodes({ content: markdown, platform, selectable });
       return {
-        html: nodesToHTML(nodes as any),
+        reactNodes: renderMiniNodes(nodes),
         issues: detectIssues(nodes, platform),
       };
     } catch (e) {
       return {
-        html: `<p class="xmd-preview-error">渲染失败：${escapeHtml(String(e))}</p>`,
+        reactNodes: [
+          <p key="error" className="xmd-preview-error">
+            渲染失败：{String(e)}
+          </p>,
+        ],
         issues: [] as DegradeIssue[],
       };
     }
@@ -228,7 +227,7 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
           content: partial,
           platform,
           selectable,
-          streaming: { hasNextChunk: !isLast, enableAnimation: false },
+          streaming: { hasNextChunk: !isLast, enableAnimation: true },
           onPatch: (patched) => {
             setStreamNodes([...patched]);
           },
@@ -379,10 +378,9 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
                 <span className="xmd-nav-title">{PLATFORM_LABEL[platform]}</span>
                 <span className="xmd-nav-more" aria-hidden>···</span>
               </div>
-              <div
-                className="xmd-phone-screen"
-                dangerouslySetInnerHTML={{ __html: html }}
-              />
+              <div className="xmd-phone-screen">
+                {reactNodes}
+              </div>
               <div className="xmd-phone-home-indicator" aria-hidden />
             </div>
           </div>
