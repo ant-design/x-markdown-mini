@@ -27,6 +27,25 @@ const externalRuntimePlugin = {
   },
 };
 
+// 插件源码在 src/plugins/<Name>/index.ts，引用主库是 `../../index.js`（2 上）。
+// 构建后插件输出到 dist/plugins/<Name>/index.js，到 dist/index.js 也是 2 上，路径不变。
+// 但插件 bundle 需要 noExternal 卡住 katex / highlight.js，同时 external 掉主库避免重复。
+const externalRuntimePluginForPlugins = {
+  name: 'external-runtime-plugins',
+  setup(build: any) {
+    // src/plugins/Latex/index.ts → ../../index.js  (unchanged after build)
+    build.onResolve({ filter: /^\.\.\/\.\.\/index\.js$/ }, () => ({
+      path: '../../index.js',
+      external: true,
+    }));
+    // Main library bundled deps — don't duplicate them in plugin bundles
+    build.onResolve({ filter: /^(marked|remend)$/ }, () => ({
+      path: '../../index.js',
+      external: true,
+    }));
+  },
+};
+
 export default defineConfig([
   // 1) 主库 bundle — npm 消费方 + 支付宝默认包根
   {
@@ -81,5 +100,41 @@ export default defineConfig([
     splitting: false,
     target: 'es2018',
     esbuildPlugins: [externalRuntimePlugin],
+  },
+  // 5) Plugin bundles — alipay 默认包根
+  //    Each plugin bundles its own deps (katex, highlight.js) but externalises
+  //    the main library (marked + remend already in dist/index.js).
+  {
+    entry: {
+      'plugins/Latex/index': 'src/plugins/Latex/index.ts',
+      'plugins/CodeHighlight/index': 'src/plugins/CodeHighlight/index.ts',
+    },
+    outDir: 'dist',
+    format: ['cjs', 'esm'],
+    dts: true,
+    clean: false,
+    sourcemap: false,
+    splitting: false,
+    target: 'es2018',
+    noExternal: ['katex', 'highlight.js'],
+    esbuildPlugins: [externalRuntimePluginForPlugins],
+  },
+  // 6) Plugin bundles — wechat 子树（由 copy-miniprogram-dist.mjs 不再需要，
+  //    因为 tsup 直接输出；保留此入口以保持一致性）
+  {
+    entry: {
+      'plugins/Latex/index': 'src/plugins/Latex/index.ts',
+      'plugins/CodeHighlight/index': 'src/plugins/CodeHighlight/index.ts',
+    },
+    outDir: 'dist/miniprogram_dist',
+    format: ['cjs'],
+    bundle: true,
+    dts: false,
+    clean: false,
+    sourcemap: false,
+    splitting: false,
+    target: 'es2018',
+    noExternal: ['katex', 'highlight.js'],
+    esbuildPlugins: [externalRuntimePluginForPlugins],
   },
 ]);

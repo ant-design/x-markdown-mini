@@ -1,4 +1,16 @@
 (function () {
+  var PLATFORM_STORAGE_KEY = 'xmd-doc-platform';
+
+  function getDocPlatform() {
+    var saved = window.localStorage.getItem(PLATFORM_STORAGE_KEY);
+    return saved === 'wechat' || saved === 'alipay' ? saved : 'alipay';
+  }
+
+  function initPlatformAttribute() {
+    var platform = getDocPlatform();
+    document.documentElement.setAttribute('data-xmd-doc-platform', platform);
+  }
+
   function flash(el) {
     el.setAttribute('data-copied', 'true');
     setTimeout(function () {
@@ -43,8 +55,8 @@
   var searchItems = [
     ['首页', '/', 'x-markdown-mini Markdown 小程序 渲染层 AI 流式内容'],
     ['在线体验', '/playground', 'Playground 浏览器编辑 Markdown 实时预览 微信 支付宝'],
-    ['文档', '/docs/quickstart', 'Docs 快速开始 安装 使用 文档'],
-    ['快速开始', '/docs/quickstart', 'install npm pnpm 组件接入'],
+    ['文档', '/docs/quickstart', 'Docs 特性 API 示例 DEMO 文档'],
+    ['文档概览', '/docs/quickstart', 'features API renderNodes markdown demo'],
     ['一次性渲染', '/docs/oneshot', 'renderNodes parse markdown 一次性渲染'],
     ['流式渲染', '/docs/streaming', 'streaming stableNodes liveTail 流式'],
     ['打字机模式', '/docs/typewriter', 'typewriter 打字机 动画'],
@@ -183,55 +195,6 @@
   document.addEventListener('click', onSearchModalClick, true);
   document.addEventListener('keydown', onSearchModalKeydown, true);
 
-  function processTitleTypewriter() {
-    var title = document.querySelector('.xmd-home-animated-title');
-    if (!title || title.dataset.xmdTyped === '1') return;
-    title.dataset.xmdTyped = '1';
-
-    var spans = [];
-    for (var n = 0; n < title.children.length; n++) {
-      var child = title.children[n];
-      if (child.tagName === 'SPAN') spans.push(child);
-    }
-    if (!spans.length) return;
-
-    var PHRASE_GAP = 4;
-    var flat = [];
-    for (var p = 0; p < spans.length; p++) {
-      var chars = Array.from(spans[p].textContent);
-      for (var c = 0; c < chars.length; c++) {
-        flat.push({ phrase: spans[p], char: chars[c] });
-      }
-      if (p < spans.length - 1) {
-        for (var g = 0; g < PHRASE_GAP; g++) flat.push(null);
-      }
-    }
-    for (var s = 0; s < spans.length; s++) spans[s].textContent = '';
-
-    title.classList.add('xmd-typed');
-
-    var i = 0;
-    var CHAR_DELAY = 55;
-    var timer = setInterval(function () {
-      if (i >= flat.length) { clearInterval(timer); return; }
-      var item = flat[i];
-      i++;
-      if (!item) return;
-      var ch = document.createElement('span');
-      ch.className = 'xmd-char';
-      ch.textContent = item.char;
-      item.phrase.appendChild(ch);
-    }, CHAR_DELAY);
-  }
-
-  function setupTitleTypewriter() {
-    processTitleTypewriter();
-    var observer = new MutationObserver(function () {
-      processTitleTypewriter();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
-
   function setupDevDebug() {
     var params = new URLSearchParams(window.location.search);
     var isLocal =
@@ -257,7 +220,7 @@
 
   function bootstrap() {
     setupDevDebug();
-    setupTitleTypewriter();
+    initPlatformAttribute();
   }
 
   if (document.readyState === 'loading') {

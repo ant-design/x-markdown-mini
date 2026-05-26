@@ -67,6 +67,7 @@ export {
 export type {
   MarkedExtension,
   MiniNode,
+  Plugin,
   RenderContext,
   SemanticStreamingConfig,
   StreamingConfig,

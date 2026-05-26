@@ -43,6 +43,12 @@ const BUDGETS = [
   // Wechat 组件
   { file: 'miniprogram_dist/es/Markdown/index.js', rawMax: 5 * KB },
   { file: 'miniprogram_dist/es/NodesRenderer/index.js', rawMax: 5 * KB },
+  // Plugin bundles (separate entries — not counted against main lib budget)
+  // KaTeX includes font data and CSS; highlight.js/lib/common bundles ~18 languages.
+  { file: 'plugins/Latex/index.js', rawMax: 500 * KB, gzipMax: 110 * KB },
+  { file: 'plugins/CodeHighlight/index.js', rawMax: 200 * KB, gzipMax: 50 * KB },
+  { file: 'miniprogram_dist/plugins/Latex/index.js', rawMax: 500 * KB, gzipMax: 110 * KB },
+  { file: 'miniprogram_dist/plugins/CodeHighlight/index.js', rawMax: 200 * KB, gzipMax: 50 * KB },
 ];
 
 // Files whose JS source must pass the syntax + named-group checks.
@@ -58,6 +64,10 @@ const COMPAT_CJS_FILES = [
   'es/NodesRenderer/index.js',
   'miniprogram_dist/es/Markdown/index.js',
   'miniprogram_dist/es/NodesRenderer/index.js',
+  'plugins/Latex/index.js',
+  'plugins/CodeHighlight/index.js',
+  'miniprogram_dist/plugins/Latex/index.js',
+  'miniprogram_dist/plugins/CodeHighlight/index.js',
 ];
 const COMPAT_FILES = [...COMPAT_ESM_FILES, ...COMPAT_CJS_FILES];
 

@@ -1,5 +1,5 @@
 import { XMarkdownMini } from '../../../index.js';
-import type { MiniNode, StreamingConfig } from '../../../index.js';
+import type { MiniNode, Plugin, StreamingConfig } from '../../../index.js';
 import { flattenInlineNodes } from '../../shared/flattenInline.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
@@ -10,6 +10,7 @@ interface MarkdownProps {
   selectable: boolean;
   options: Record<string, unknown> | null;
   className: string;
+  plugins: Plugin[] | null;
   onTap?: (e?: unknown) => void;
   onAppear?: (e?: unknown) => void;
   onRenderStart?: () => void;
@@ -23,6 +24,7 @@ const defaultProps: MarkdownProps = {
   selectable: true,
   options: null,
   className: '',
+  plugins: null,
 };
 
 Component({
@@ -33,16 +35,22 @@ Component({
   md: null as XMarkdownMini | null,
 
   didMount(this: any) {
-    this.md = new XMarkdownMini({ escapeText: false });
+    this.md = new XMarkdownMini({ escapeText: false, plugins: this.props.plugins ?? undefined });
     this._render(this.props);
   },
 
   didUpdate(this: any, prevProps: MarkdownProps) {
     const p = this.props as MarkdownProps;
+    // Re-create XMarkdownMini when plugins change (extensions/tokenRenderers are instance-scoped)
+    if (prevProps.plugins !== p.plugins) {
+      this.md?.reset();
+      this.md = new XMarkdownMini({ escapeText: false, plugins: p.plugins ?? undefined });
+    }
     if (
       prevProps.content !== p.content ||
       prevProps.streaming !== p.streaming ||
-      prevProps.selectable !== p.selectable
+      prevProps.selectable !== p.selectable ||
+      prevProps.plugins !== p.plugins
     ) {
       this._render(p);
     }

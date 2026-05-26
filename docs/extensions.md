@@ -97,6 +97,157 @@ b.parse('@x');  // 纯文本（b 不感知 mention）
 
 每个 `XMarkdownMini` 实例构造时 `new Marked(...extensions)`，扩展只装在自己的 defaults 上，不会泄漏到全局 `marked` 单例。
 
+## 插件系统
+
+插件 = `extensions` + `tokenRenderers` 的自包含封装。用 `plugins` 数组传入，自动展开到对应的 `extensions` 和 `tokenRenderers`。
+
+```ts
+import type { Plugin } from '@ant-design/x-markdown-mini';
+
+interface Plugin {
+  extensions?: MarkedExtension[];
+  tokenRenderers?: TokenRenderer[];
+}
+```
+
+### 使用方式
+
+```ts
+import { XMarkdownMini } from '@ant-design/x-markdown-mini';
+import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
+import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
+
+const md = new XMarkdownMini({
+  plugins: [Latex(), CodeHighlight()],
+});
+
+const nodes = md.renderNodes({
+  content: '$x^2$ and ```js\nconst x = 1;\n```',
+  platform: 'alipay',
+});
+```
+
+`plugins` 可以和 `extensions` / `tokenRenderers` 同时使用，两者会合并：
+
+```ts
+const md = new XMarkdownMini({
+  extensions: [myExt],
+  tokenRenderers: [{ token: 'mention', render }],
+  plugins: [Latex(), CodeHighlight()],
+});
+// 等价于 extensions: [myExt, ...Latex()extensions, ...CodeHighlight().extensions]
+//      tokenRenderers: [{ token: 'mention', render }, ...Latex().tokenRenderers, ...]
+```
+
+### 内置插件
+
+#### Latex
+
+数学公式渲染，基于 [KaTeX](https://katex.org/)。
+
+```ts
+import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
+
+const md = new XMarkdownMini({ plugins: [Latex()] });
+```
+
+支持行内公式 `$x^2$` 和块级公式 `$$...\n...$$`。
+
+**样式引入**：插件需要单独引入样式文件。
+
+- 支付宝小程序：`@import "@ant-design/x-markdown-mini/plugins/Latex/style.acss";`
+- 微信小程序：`@import "@ant-design/x-markdown-mini/plugins/Latex/style.wxss";`
+
+样式包含 KaTeX 字体（通过 CDN 加载）和公式排版。
+
+**选项**：
+
+```ts
+Latex({
+  // 透传给 katex.renderToString() 的选项
+  katexOptions: { throwOnError: false, strict: false },
+  // KaTeX 渲染出错时的回调，返回 MiniNode[] 替代默认错误显示
+  onError(tex, err) {
+    return [{ name: 'text', attrs: { value: `[公式错误: ${err.message}]` } }];
+  },
+})
+```
+
+#### CodeHighlight
+
+代码语法高亮，基于 [highlight.js](https://highlightjs.org/)。
+
+```ts
+import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
+
+const md = new XMarkdownMini({ plugins: [CodeHighlight()] });
+```
+
+默认注册 18 种常用语言（javascript、typescript、python、java、css、xml、json、sql、bash、shell、c、cpp、go、rust、yaml、markdown、diff、plaintext）。只对标注了语言的围栏代码块生效，无语言标注时回退到默认渲染。
+
+**样式引入**：
+
+- 支付宝小程序：`@import "@ant-design/x-markdown-mini/plugins/CodeHighlight/style.acss";`
+- 微信小程序：`@import "@ant-design/x-markdown-mini/plugins/CodeHighlight/style.wxss";`
+
+默认样式为 GitHub 浅色主题（`.hljs-keyword`、`.hljs-string` 等类名）。
+
+**选项**：
+
+```ts
+// 自定义语言子集（只注册需要的语言，减小产物体积）
+import javascript from 'highlight.js/lib/languages/javascript';
+import python from 'highlight.js/lib/languages/python';
+
+CodeHighlight({
+  languages: { javascript, python },
+})
+
+// 透传 hljs.highlight() 选项
+CodeHighlight({
+  hljsOptions: { ignoreIllegals: true },
+})
+```
+
+### 小程序组件使用
+
+支付宝和微信组件均支持 `plugins` 属性：
+
+```xml
+<!-- 支付宝 axml -->
+<markdown content="{{content}}" plugins="{{plugins}}" />
+```
+
+```ts
+// 支付宝组件 JS
+import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
+import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
+
+Component({
+  data: { plugins: [Latex(), CodeHighlight()] },
+});
+```
+
+```xml
+<!-- 微信 wxml -->
+<markdown content="{{content}}" plugins="{{plugins}}" />
+```
+
+```js
+// 微信组件 JS
+const Latex = require('@ant-design/x-markdown-mini/plugins/Latex').default;
+const CodeHighlight = require('@ant-design/x-markdown-mini/plugins/CodeHighlight').default;
+
+Component({
+  properties: {
+    plugins: { type: Array, value: [] },
+  },
+  data: { plugins: [Latex(), CodeHighlight()] },
+});
+```
+
 ## 体积成本
 
 extensions 本身打包到用户代码里（不影响 `x-markdown-mini` 的 dist size）。本库已捆绑 marked + remend，自定义扩展不引入额外的 marked 副本。
+
+内置插件按需引入：主库（~105 KB）不含 KaTeX 和 highlight.js。`plugins/Latex`（~486 KB，含 KaTeX）和 `plugins/CodeHighlight`（~184 KB，含 highlight.js/lib/common）各自独立打包，仅在 import 时才增大产物体积。

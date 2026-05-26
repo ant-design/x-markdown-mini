@@ -137,6 +137,8 @@ function blockTok(
       return block('p', inlineTokens(t.tokens ?? [], adapter, enc, ctx), animate, adapter, tok);
     }
     case 'code': {
+      const custom = renderCustomToken(tok, ctx);
+      if (custom.length) return block('pre', custom, animate, adapter, tok);
       const t = tok as Tokens.Code;
       if (!supports(adapter, 'supportsPre')) {
         return textBlock(enc(t.text ?? ''), animate, adapter, tok);

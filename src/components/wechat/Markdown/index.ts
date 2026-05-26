@@ -1,5 +1,5 @@
 import { XMarkdownMini } from '../../../index.js';
-import type { MiniNode, StreamingConfig } from '../../../index.js';
+import type { MiniNode, Plugin, StreamingConfig } from '../../../index.js';
 import { flattenInlineNodes } from '../../shared/flattenInline.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
@@ -15,6 +15,7 @@ Component({
     selectable: { type: Boolean, value: true },
     options: { type: null, value: null },
     className: { type: String, value: '' },
+    plugins: { type: null, value: null },
   },
   data: {
     nodes: [] as MiniNode[],
@@ -22,7 +23,7 @@ Component({
   md: null as XMarkdownMini | null,
   lifetimes: {
     attached(this: any) {
-      this.md = new XMarkdownMini({ escapeText: false });
+      this.md = new XMarkdownMini({ escapeText: false, plugins: this.data.plugins ?? undefined });
       this._render();
     },
     detached(this: any) {
@@ -33,6 +34,13 @@ Component({
   observers: {
     'content, streaming, selectable'(this: any) {
       if (this.md) this._render();
+    },
+    'plugins'(this: any) {
+      if (this.md) {
+        this.md.reset();
+        this.md = new XMarkdownMini({ escapeText: false, plugins: this.data.plugins ?? undefined });
+        this._render();
+      }
     },
   },
   methods: {

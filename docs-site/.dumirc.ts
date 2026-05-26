@@ -4,7 +4,15 @@ export default defineConfig({
   outputPath: 'dist',
   publicPath: '/',
   favicons: ['/brand/x-markdown-mark.png'],
-  links: [{ rel: 'stylesheet', href: '/site.css' }],
+  links: [
+    { rel: 'stylesheet', href: '/site.css' },
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+    },
+    { rel: 'stylesheet', href: '/katex.min.css' },
+    { rel: 'stylesheet', href: '/hljs-theme.min.css' },
+  ],
   metas: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
   scripts: [{ src: '/site.js', defer: true }],
   themeConfig: {
@@ -22,7 +30,7 @@ export default defineConfig({
         {
           title: '入门',
           children: [
-            { title: '快速开始', link: '/docs/quickstart' },
+            { title: '文档概览', link: '/docs/quickstart' },
           ],
         },
         {
@@ -51,7 +59,7 @@ export default defineConfig({
         },
       ],
     },
-    footer: 'MIT Licensed · Built for multi-mini-program markdown rendering.',
+    footer: 'MIT Licensed',
     prefersColor: { default: 'light', switch: false },
   },
   resolve: {

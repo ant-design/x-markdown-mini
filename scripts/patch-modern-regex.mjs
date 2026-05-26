@@ -34,3 +34,9 @@ function patch(file) {
 
 patch(join(distDir, 'index.js'));
 patch(join(distDir, 'index.mjs'));
+
+// Plugin bundles — KaTeX and hljs may contain named-group regexes
+for (const plugin of ['Latex', 'CodeHighlight']) {
+  patch(join(distDir, 'plugins', plugin, 'index.js'));
+  patch(join(distDir, 'miniprogram_dist', 'plugins', plugin, 'index.js'));
+}

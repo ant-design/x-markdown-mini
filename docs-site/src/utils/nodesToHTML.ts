@@ -10,6 +10,19 @@ export interface MiniNode {
   animate?: 'block' | 'text' | false;
 }
 
+/** Map MiniNode tag names to semantic CSS classes for the phone preview. */
+const TAG_CLASS: Record<string, string> = {
+  h1: 'md-h1',
+  h2: 'md-h2',
+  h3: 'md-h3',
+  pre: 'md-code-block',
+  blockquote: 'md-blockquote',
+  a: 'md-link',
+  ul: 'md-list',
+  ol: 'md-list',
+  table: 'md-table',
+};
+
 function escapeHtml(text: string): string {
   if (typeof document !== 'undefined') {
     const el = document.createElement('div');
@@ -42,15 +55,30 @@ export function nodesToHTML(nodes: MiniNode[]): string {
   if (!Array.isArray(nodes) || nodes.length === 0) return '';
 
   function one(node: MiniNode): string {
-    const { name, attrs, children } = node;
+    const { name, attrs, children, animate } = node;
     const tag = (name || 'div').toLowerCase();
 
+    // Text nodes: the library already HTML-escapes values when escapeText=true
+    // (the default), so we emit them as-is. When escapeText=false the values
+    // are raw and _do_ need escaping for safe HTML insertion.
     if (tag === 'text') {
       const value = attrs?.value != null ? String(attrs.value) : '';
-      return escapeHtml(value);
+      if (/<|>|"|'/.test(value)) return escapeHtml(value);
+      return value;
     }
 
-    const attrStr = attrsToStr(attrs);
+    // Build the class string: merge TAG_CLASS with any existing class attr
+    const extraCls: string[] = [];
+    if (TAG_CLASS[tag]) extraCls.push(TAG_CLASS[tag]);
+    if (animate === 'block' || animate === 'text') extraCls.push('md-animate-block');
+
+    let mergedAttrs = attrs;
+    if (extraCls.length > 0) {
+      const existingClass = attrs?.class ? String(attrs.class) + ' ' : '';
+      mergedAttrs = { ...attrs, class: existingClass + extraCls.join(' ') };
+    }
+
+    const attrStr = attrsToStr(mergedAttrs);
     const open = attrStr ? `<${tag} ${attrStr}>` : `<${tag}>`;
 
     if (VOID_TAGS.has(tag)) return open;

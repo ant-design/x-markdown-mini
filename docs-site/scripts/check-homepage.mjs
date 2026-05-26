@@ -12,7 +12,7 @@ const requiredMarkup = [
   'xmd-home-v3',
   'xmd-home-minimal',
   'xmd-home-wordmark',
-  'xmd-home-animated-title',
+  'xmd-home-title-static',
   'xmd-home-recording',
   'xmd-home-hero-gif',
   'xmd-gif-placeholder',
@@ -28,11 +28,13 @@ const requiredCss = [
   '.markdown .xmd-home-v3',
   '.markdown .xmd-home-minimal',
   '.markdown .xmd-home-wordmark',
-  '.markdown .xmd-home-animated-title',
+  '.markdown .xmd-home-title-static',
   '.markdown .xmd-home-recording',
   '.markdown .xmd-home-hero-gif',
   '.markdown .xmd-gif-placeholder',
-  '@keyframes xmdCharType',
+  '#f7f4ed',
+  '#1c1c1c',
+  '.xmd-doc-platform-switch',
   '.dumi-default-navbar > li > a',
 ];
 
@@ -41,6 +43,27 @@ const missing = [
   ...requiredCss.filter((item) => !css.includes(item)).map((item) => `public/site.css: ${item}`),
   ...['name: \'viewport\'', 'width=device-width'].filter((item) => !dumiConfig.includes(item)).map((item) => `.dumirc.ts: ${item}`),
 ];
+
+for (const animatedTitleContract of [
+  'xmd-home-animated-title',
+  'setupTitleTypewriter',
+  'processTitleTypewriter',
+  '@keyframes xmdCharType',
+]) {
+  if (index.includes(animatedTitleContract) || css.includes(animatedTitleContract) || read('public/site.js').includes(animatedTitleContract)) {
+    missing.push(`homepage animation should be removed: ${animatedTitleContract}`);
+  }
+}
+
+for (const platformContract of [
+  'xmd-doc-platform-switch',
+  'xmd-platform-change',
+  'xmd-doc-platform',
+]) {
+  if (!read('public/site.js').includes(platformContract)) {
+    missing.push(`public/site.js: ${platformContract}`);
+  }
+}
 
 for (const removedCopy of [
   '设计目标',

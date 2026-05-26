@@ -2,11 +2,11 @@
   --phone-w: 320px;
   --phone-h: 620px;
   --phone-radius: 38px;
-  --phone-bg: #f5f6f8;
-  --phone-frame-bg: #ffffff;
-  --phone-shadow: 0 30px 60px -25px rgba(15, 23, 42, 0.35), 0 8px 22px -10px rgba(15, 23, 42, 0.18);
-  --phone-border: rgba(15, 23, 42, 0.08);
-  --phone-text: #1f2937;
+  --phone-bg: #ffffff;
+  --phone-frame-bg: #fafafa;
+  --phone-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --phone-border: #e5e5e5;
+  --phone-text: #171717;
 
   width: var(--phone-w);
   align-self: flex-start;
@@ -15,7 +15,7 @@
 
 .xmd-phone-bezel {
   position: relative;
-  background: linear-gradient(180deg, #1f2937, #0f172a);
+  background: #171717;
   border-radius: calc(var(--phone-radius) + 4px);
   padding: 10px;
   box-shadow: var(--phone-shadow);
@@ -28,7 +28,7 @@
   transform: translateX(-50%);
   width: 110px;
   height: 22px;
-  background: #0b1120;
+  background: #0a0a0a;
   border-radius: 16px;
   z-index: 2;
 }
@@ -82,22 +82,31 @@
   justify-content: space-between;
   padding: 8px 14px;
   background: var(--phone-frame-bg);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  border-bottom: 1px solid #f0f0f0;
   font-size: 13px;
   color: var(--phone-text);
+  position: relative;
 }
 
 .xmd-nav-back,
 .xmd-nav-more {
   width: 24px;
+  flex-shrink: 0;
   text-align: center;
   font-size: 18px;
-  color: rgba(31, 41, 55, 0.65);
+  color: rgba(23, 23, 23, 0.5);
 }
 
 .xmd-nav-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-weight: 600;
   font-size: 14px;
+  white-space: nowrap;
 }
 
 .xmd-phone-screen {
@@ -128,14 +137,14 @@
     margin: 6px 0;
   }
   .md-inline-code {
-    background: #eef0f4;
+    background: #f5f5f5;
     padding: 1px 4px;
     border-radius: 4px;
     font-size: 12px;
     font-family: ui-monospace, Menlo, monospace;
   }
   .md-code-block {
-    background: #f6f8fa;
+    background: #f5f5f5;
     border-radius: 8px;
     padding: 8px 10px;
     font-family: ui-monospace, Menlo, monospace;
@@ -145,14 +154,16 @@
     margin: 8px 0;
   }
   .md-blockquote {
-    border-left: 3px solid #d9dde3;
+    border-left: 3px solid #d4d4d4;
     padding: 2px 10px;
-    color: #4e5969;
+    color: #525252;
     margin: 8px 0;
-    background: rgba(15, 23, 42, 0.02);
+    background: rgba(0, 0, 0, 0.02);
   }
   .md-link {
-    color: #1677ff;
+    color: #2563eb;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   .md-list {
     padding-left: 20px;
@@ -166,7 +177,7 @@
   }
   .md-table th,
   .md-table td {
-    border: 1px solid #e5e6eb;
+    border: 1px solid #e5e5e5;
     padding: 4px 8px;
     text-align: left;
   }
@@ -190,53 +201,53 @@
   width: 120px;
   height: 4px;
   border-radius: 4px;
-  background: rgba(15, 23, 42, 0.4);
+  background: rgba(0, 0, 0, 0.2);
   margin: 8px auto 8px;
 }
 
 .xmd-phone-section + .xmd-phone-section {
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px dashed rgba(15, 23, 42, 0.08);
+  border-top: 1px dashed rgba(23, 23, 23, 0.1);
 }
 
 .xmd-phone-section-title {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: rgba(31, 41, 55, 0.55);
+  color: rgba(23, 23, 23, 0.5);
   margin: 0 0 6px;
   font-weight: 600;
 }
 
 .xmd-phone--alipay .xmd-nav-title::before {
   content: '支';
-  display: inline-block;
-  margin-right: 6px;
-  background: #1677ff;
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #171717;
+  color: #ffffff;
   width: 18px;
   height: 18px;
-  line-height: 18px;
-  text-align: center;
   border-radius: 4px;
   font-size: 11px;
-  vertical-align: -3px;
+  font-weight: 600;
 }
 
 .xmd-phone--wechat .xmd-nav-title::before {
   content: '微';
-  display: inline-block;
-  margin-right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   background: #07c160;
   color: #fff;
   width: 18px;
   height: 18px;
-  line-height: 18px;
-  text-align: center;
   border-radius: 4px;
   font-size: 11px;
-  vertical-align: -3px;
+  font-weight: 600;
 }
 
 .xmd-preview-error {

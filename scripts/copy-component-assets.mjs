@@ -65,6 +65,32 @@ if (existsSync(wechatSrc)) {
 }
 console.log('[x-markdown-mini] component static assets copied to dist/es and dist/miniprogram_dist/es');
 
+// 1b. Plugin styles — copy .acss to dist/plugins/<Name>/ and .wxss to dist/miniprogram_dist/plugins/<Name>/
+const pluginsSrc = join(root, 'src', 'plugins');
+if (existsSync(pluginsSrc)) {
+  for (const plugin of readdirSync(pluginsSrc)) {
+    const pluginDir = join(pluginsSrc, plugin);
+    if (!statSync(pluginDir).isDirectory()) continue;
+    // Alipay: .acss
+    for (const f of readdirSync(pluginDir)) {
+      if (f.endsWith('.acss')) {
+        const destDir = join(distRoot, 'plugins', plugin);
+        mkdirSync(destDir, { recursive: true });
+        copyFileSync(join(pluginDir, f), join(destDir, f));
+      }
+    }
+    // WeChat: .wxss
+    for (const f of readdirSync(pluginDir)) {
+      if (f.endsWith('.wxss')) {
+        const destDir = join(distMpRoot, 'plugins', plugin);
+        mkdirSync(destDir, { recursive: true });
+        copyFileSync(join(pluginDir, f), join(destDir, f));
+      }
+    }
+  }
+  console.log('[x-markdown-mini] plugin styles copied to dist/plugins and dist/miniprogram_dist/plugins');
+}
+
 // 2. examples 同步：
 //    examples/alipay/dist/  ← dist/{index.js, index.mjs, index.d.ts, es/, shared/}
 //    examples/wechat/dist/  ← dist/miniprogram_dist/*

@@ -1,7 +1,15 @@
 import React from 'react';
 import { PhonePreview, type PreviewPlatform } from '../PhonePreview';
 import { DemoCode, type PlatformCode } from '../DemoCode';
+import { useDocPlatform } from '../useDocPlatform';
 import './index.less';
+
+const PLATFORM_LABEL: Record<PreviewPlatform, string> = {
+  alipay: '支付宝',
+  wechat: '微信',
+};
+
+const PLATFORMS: PreviewPlatform[] = ['alipay', 'wechat'];
 
 export interface DemoCardProps {
   markdown: string;
@@ -18,20 +26,22 @@ export const DemoCard: React.FC<DemoCardProps> = ({
   alipay,
   wechat,
 }) => {
-  const [platform, setPlatform] = React.useState<PreviewPlatform>(defaultPlatform);
+  const [platform, setPlatform] = useDocPlatform();
 
   return (
     <div className="xmd-demo-card">
       <div className="xmd-demo-card-preview">
-        <div className="xmd-demo-card-platforms" role="tablist">
-          {(['alipay', 'wechat'] as PreviewPlatform[]).map((p) => (
+        <div className="xmd-demo-platform-switch" role="tablist" aria-label="切换预览平台">
+          {PLATFORMS.map((p) => (
             <button
-              key={p}
               type="button"
-              className={`xmd-demo-card-platform ${p === platform ? 'is-active' : ''}`}
+              key={p}
+              className={`xmd-demo-platform-btn ${p === platform ? 'is-active' : ''}`}
               onClick={() => setPlatform(p)}
+              role="tab"
+              aria-selected={p === platform}
             >
-              {p === 'alipay' ? '支付宝' : '微信'}
+              {PLATFORM_LABEL[p]}
             </button>
           ))}
         </div>

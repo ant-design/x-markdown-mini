@@ -13,7 +13,17 @@
       "require": "./dist/index.js"
     },
     "./es/*": "./dist/es/*",
-    "./shared/*": "./dist/shared/*"
+    "./shared/*": "./dist/shared/*",
+    "./plugins/Latex": {
+      "types": "./dist/plugins/Latex/index.d.ts",
+      "import": "./dist/plugins/Latex/index.mjs",
+      "require": "./dist/plugins/Latex/index.js"
+    },
+    "./plugins/CodeHighlight": {
+      "types": "./dist/plugins/CodeHighlight/index.d.ts",
+      "import": "./dist/plugins/CodeHighlight/index.mjs",
+      "require": "./dist/plugins/CodeHighlight/index.js"
+    }
   },
   "sideEffects": false,
   "files": [
@@ -51,6 +61,8 @@
   "devDependencies": {
     "@vitest/coverage-v8": "^2.1.0",
     "es-check": "^7.2.1",
+    "highlight.js": "^11.11.0",
+    "katex": "^0.16.11",
     "markdown-it": "^14.1.0",
     "remark": "^15.0.1",
     "tinybench": "^3.0.0",

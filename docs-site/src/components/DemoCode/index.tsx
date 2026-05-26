@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useDocPlatform } from '../useDocPlatform';
 import './index.less';
 
 export type DemoPlatform = 'alipay' | 'wechat';
@@ -16,11 +17,6 @@ export interface DemoCodeProps {
 }
 
 type FileKey = 'template' | 'script' | 'style' | 'json';
-
-const PLATFORM_LABEL: Record<DemoPlatform, string> = {
-  alipay: '支付宝',
-  wechat: '微信',
-};
 
 const FILE_LABELS: Record<DemoPlatform, Record<FileKey, string>> = {
   alipay: { template: 'index.axml', script: 'index.js', style: 'index.acss', json: 'index.json' },
@@ -43,7 +39,7 @@ function fileKeysOf(code: PlatformCode): FileKey[] {
 }
 
 export const DemoCode: React.FC<DemoCodeProps> = ({ alipay, wechat }) => {
-  const [platform, setPlatform] = useState<DemoPlatform>('alipay');
+  const [platform] = useDocPlatform();
   const [file, setFile] = useState<FileKey>('template');
 
   const code = platform === 'alipay' ? alipay : wechat;
@@ -65,20 +61,6 @@ export const DemoCode: React.FC<DemoCodeProps> = ({ alipay, wechat }) => {
   return (
     <div className="xmd-demo-code">
       <div className="xmd-demo-code-head">
-        <div className="xmd-demo-code-platforms" role="tablist">
-          {(['alipay', 'wechat'] as DemoPlatform[]).map((p) => (
-            <button
-              key={p}
-              type="button"
-              className={`xmd-demo-code-platform ${p === platform ? 'is-active' : ''}`}
-              onClick={() => setPlatform(p)}
-              role="tab"
-              aria-selected={p === platform}
-            >
-              {PLATFORM_LABEL[p]}
-            </button>
-          ))}
-        </div>
         <div className="xmd-demo-code-files">
           {keys.map((k) => (
             <button

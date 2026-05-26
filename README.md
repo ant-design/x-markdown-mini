@@ -5,7 +5,7 @@
 - **轻**：内置 `marked` lexer，ESM 整库约 103KB / gzip 约 25KB
 - **流**：增量解析，已稳定块只 parse 一次；onPatch 推回全量统一节点
 - **双端**：当前支持微信 / 支付宝，统一组件路径 + 自动识别
-- **可扩展**：marked tokenizer / walkTokens / hooks + 小程序 `tokenRenderers`
+- **可扩展**：marked tokenizer / walkTokens / hooks + 小程序 `tokenRenderers`；内置 LaTeX 和代码高亮插件
 
 ## 安装
 
@@ -120,6 +120,58 @@ renderNodes({
 
 详见 [docs/streaming.md](./docs/streaming.md)。
 
+## 插件：LaTeX & 代码高亮
+
+插件按需引入，不影响主包体积（主库 ~105 KB gzip ~25 KB，Latex 插件 ~486 KB，CodeHighlight 插件 ~184 KB）。
+
+```ts
+import { XMarkdownMini } from '@ant-design/x-markdown-mini';
+import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
+import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
+
+const md = new XMarkdownMini({
+  plugins: [Latex(), CodeHighlight()],
+});
+```
+
+**样式引入**（在页面或组件样式文件中）：
+
+```css
+/* 支付宝 .acss */
+@import "@ant-design/x-markdown-mini/plugins/Latex/style.acss";
+@import "@ant-design/x-markdown-mini/plugins/CodeHighlight/style.acss";
+
+/* 微信 .wxss */
+@import "@ant-design/x-markdown-mini/plugins/CodeHighlight/style.wxss";
+@import "@ant-design/x-markdown-mini/plugins/Latex/style.wxss";
+```
+
+### Latex
+
+基于 [KaTeX](https://katex.org/) 渲染数学公式。支持行内 `$x^2$` 和块级 `$$...\n...$$` 语法。
+
+```ts
+Latex({
+  katexOptions: { throwOnError: false },  // 透传给 katex.renderToString()
+  onError(tex, err) { /* 自定义错误回调 */ },
+})
+```
+
+### CodeHighlight
+
+基于 [highlight.js](https://highlightjs.org/) 的代码语法高亮。默认支持 18 种常用语言，可自定义子集。
+
+```ts
+import javascript from 'highlight.js/lib/languages/javascript';
+
+CodeHighlight({
+  languages: { javascript },  // 只注册需要的语言
+  hljsOptions: { ignoreIllegals: true },
+})
+```
+
+详见 [docs/extensions.md](./docs/extensions.md)。
+
 ## 平台自动识别 + 能力矩阵
 
 | 平台      | `<pre>` | `<table>` | `<blockquote>` | `<ol start>` | https-only 图片 | `<video>` |
@@ -145,6 +197,7 @@ cd docs-site && npm install && npm run dev
 - [架构](./docs/architecture.md) — 流水线四步、目录结构、为何内置 marked
 - [流式](./docs/streaming.md) — 增量解析、打字机模式、动画 hooks
 - [平台](./docs/platforms.md) — 能力矩阵、降级规则、自定义平台
+- [扩展与插件](./docs/extensions.md) — marked 扩展、tokenRenderers、Latex、CodeHighlight
 
 ## 开发
 

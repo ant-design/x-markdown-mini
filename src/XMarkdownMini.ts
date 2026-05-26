@@ -9,6 +9,7 @@ import {
 import type {
   LexerOptions,
   MiniNode,
+  Plugin,
   RenderContext,
   TokenRenderer,
   XMarkdownMiniProps,
@@ -41,6 +42,11 @@ export interface XMarkdownMiniOptions {
    * pipeline. This is the small-program equivalent of marked's HTML renderer.
    */
   tokenRenderers?: TokenRenderer[];
+  /**
+   * Self-contained plugins that bundle extensions with token renderers.
+   * Flattened into `extensions` and `tokenRenderers` internally.
+   */
+  plugins?: Plugin[];
 }
 
 /**
@@ -60,8 +66,15 @@ export class XMarkdownMini {
     this.escapeText = opts.escapeText ?? true;
     this.fixup = resolveStreamingFixup(opts.streamingFixup ?? 'remend');
     this.lexerOptions = opts.lexerOptions ?? {};
-    this.tokenRenderers = opts.tokenRenderers ?? [];
-    this.marked = new Marked(...(opts.extensions ?? []));
+    const allExtensions = [
+      ...(opts.extensions ?? []),
+      ...(opts.plugins?.flatMap((p) => p.extensions ?? []) ?? []),
+    ];
+    this.tokenRenderers = [
+      ...(opts.tokenRenderers ?? []),
+      ...(opts.plugins?.flatMap((p) => p.tokenRenderers ?? []) ?? []),
+    ];
+    this.marked = new Marked(...allExtensions);
   }
 
   private buildMarkedOptions(perCall?: LexerOptions): MarkedOptions {

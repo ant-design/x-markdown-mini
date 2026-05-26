@@ -1,5 +1,5 @@
 import type { PlatformInput } from './platforms/types.js';
-import type { Token } from 'marked';
+import type { Token, MarkedExtension } from 'marked';
 
 export type { Platform, PlatformInput } from './platforms/types.js';
 
@@ -114,6 +114,14 @@ export interface TokenRenderer {
   token: string;
   /** Convert a marked token into one or more mini-program nodes. */
   render: (token: Token, ctx: RenderContext) => MiniNode | MiniNode[] | null | undefined;
+}
+
+/** A self-contained plugin that bundles marked extensions with mini-program node renderers. */
+export interface Plugin {
+  /** Marked extensions (tokenizers, walkTokens, hooks, etc.). */
+  extensions?: MarkedExtension[];
+  /** Mini-program node renderers for custom token types. */
+  tokenRenderers?: TokenRenderer[];
 }
 
 // --- 小程序渲染节点（平台 renderer 的统一中间输出）---
