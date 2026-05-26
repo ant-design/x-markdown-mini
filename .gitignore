@@ -9,6 +9,7 @@ examples/*/dist/
 # Docs site (dumi)
 docs-site/node_modules/
 docs-site/.dumi/
+.dumi/
 docs-site/dist/
 
 # Env

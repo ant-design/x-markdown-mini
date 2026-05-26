@@ -1,0 +1,43 @@
+# .understandignore — patterns for files/dirs to exclude from analysis
+# Syntax: same as .gitignore (globs, # comments, ! negation, trailing / for dirs)
+# Use ! prefix to force-include something excluded by defaults.
+
+# --- Build outputs ---
+dist/
+coverage/
+*.tsbuildinfo
+
+# --- Docs site (dumi) ---
+docs-site/
+docs/
+
+# --- Example mini-programs ---
+examples/
+
+# --- Benchmarks ---
+benchmark/
+
+# --- Scripts ---
+scripts/
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# --- Env / logs ---
+.env
+.env.local
+.env.*.local
+*.log
+
+# --- Test / coverage artifacts ---
+.nyc_output/
+test-results.json
+
+# --- Other ---
+*.snap
+*.local.*
