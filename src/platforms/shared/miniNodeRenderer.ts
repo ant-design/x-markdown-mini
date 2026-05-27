@@ -99,7 +99,12 @@ export function renderTokensToMiniNodes(
 ): MiniNode[] {
   const animate = ctx.animation === true;
   const enc = ctx.escapeText === false ? (s: string) => s : escapeHtml;
-  return blockTokens(tokens, adapter, animate, enc, ctx);
+  // Shallow-clone ctx so custom miniRenderers can recursively render inline
+  // children without leaking the closure callback into the caller's ctx.
+  const localCtx: RenderContext = { ...ctx };
+  localCtx.renderInlineTokens = (inner: Token[]) =>
+    inlineTokens(inner, adapter, enc, localCtx);
+  return blockTokens(tokens, adapter, animate, enc, localCtx);
 }
 
 function blockTokens(

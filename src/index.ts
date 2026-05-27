@@ -74,6 +74,8 @@ export type {
   Token,
   TokenRenderer,
   Tokens,
+  XMarkdownExtension,
   XMarkdownMiniProps,
   XMarkdownMiniTokenProps,
+  XMarkdownTokenizerExtension,
 } from './types.js';

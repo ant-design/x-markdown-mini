@@ -1,5 +1,5 @@
 import katex from 'katex';
-import type { MarkedExtension, MiniNode, Plugin, RenderContext, Token, Tokens } from '../../index.js';
+import type { MiniNode, Tokens, XMarkdownExtension } from '../../index.js';
 import { htmlToMiniNodes } from '../shared/htmlToMiniNodes.js';
 
 export interface LatexOptions {
@@ -86,41 +86,24 @@ function renderKatex(tex: string, displayMode: boolean, options: LatexOptions): 
   }
 }
 
-export default function Latex(options: LatexOptions = {}): Plugin {
-  const extension: MarkedExtension = {
+export default function Latex(options: LatexOptions = {}): XMarkdownExtension {
+  return {
     extensions: [
       {
         name: 'inlineKatex',
         level: 'inline',
         start: inlineStart,
         tokenizer: inlineKatexTokenizer,
+        miniRenderer: (token) =>
+          renderKatex((token as unknown as { text: string }).text, false, options),
       },
       {
         name: 'blockKatex',
         level: 'block',
         tokenizer: blockKatexTokenizer,
+        miniRenderer: (token) =>
+          renderKatex((token as unknown as { text: string }).text, true, options),
       },
     ],
-  };
-
-  const inlineRenderer = {
-    token: 'inlineKatex',
-    render: (token: Token, _ctx: RenderContext): MiniNode[] => {
-      const t = token as unknown as { text: string; displayMode: boolean };
-      return renderKatex(t.text, false, options);
-    },
-  };
-
-  const blockRenderer = {
-    token: 'blockKatex',
-    render: (token: Token, _ctx: RenderContext): MiniNode[] => {
-      const t = token as unknown as { text: string; displayMode: boolean };
-      return renderKatex(t.text, true, options);
-    },
-  };
-
-  return {
-    extensions: [extension],
-    tokenRenderers: [inlineRenderer, blockRenderer],
   };
 }

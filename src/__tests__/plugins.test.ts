@@ -207,7 +207,7 @@ describe('Latex plugin — tokenizer', () => {
   it('tokenizes inline math $...$', async () => {
     // Dynamic import to avoid test bundling issues
     const { default: Latex } = await import('../plugins/Latex/index.js');
-    const md = new XMarkdownMini({ plugins: [Latex()] });
+    const md = new XMarkdownMini({ extensions: [Latex()] });
     const tokens = md.parse('The formula $x^2$ is simple');
     const para = tokens.find((t) => t.type === 'paragraph') as any;
     const types = para.tokens.map((t: any) => t.type);
@@ -216,7 +216,7 @@ describe('Latex plugin — tokenizer', () => {
 
   it('tokenizes block math $$...$$', async () => {
     const { default: Latex } = await import('../plugins/Latex/index.js');
-    const md = new XMarkdownMini({ plugins: [Latex()] });
+    const md = new XMarkdownMini({ extensions: [Latex()] });
     // Block math requires newline after $$ (matching the old @alipay/markdown-x-math pattern)
     const tokens = md.parse('$$\nx^2 + y^2 = z^2\n$$');
     const types = tokens.map((t: any) => t.type);
@@ -225,7 +225,7 @@ describe('Latex plugin — tokenizer', () => {
 
   it('inline math renders to MiniNode with katex class', async () => {
     const { default: Latex } = await import('../plugins/Latex/index.js');
-    const md = new XMarkdownMini({ plugins: [Latex()] });
+    const md = new XMarkdownMini({ extensions: [Latex()] });
     const nodes = md.renderNodes({ content: '$x^2$', platform: 'alipay' });
     const json = JSON.stringify(nodes);
     expect(json).toContain('katex');
@@ -233,7 +233,7 @@ describe('Latex plugin — tokenizer', () => {
 
   it('block math renders to MiniNode with katex-display class', async () => {
     const { default: Latex } = await import('../plugins/Latex/index.js');
-    const md = new XMarkdownMini({ plugins: [Latex()] });
+    const md = new XMarkdownMini({ extensions: [Latex()] });
     const nodes = md.renderNodes({ content: '$$\nx^2\n$$', platform: 'wechat' });
     const json = JSON.stringify(nodes);
     expect(json).toContain('katex-display');
@@ -247,7 +247,7 @@ describe('Latex plugin — tokenizer', () => {
 describe('CodeHighlight plugin', () => {
   it('highlights JavaScript code', async () => {
     const { default: CodeHighlight } = await import('../plugins/CodeHighlight/index.js');
-    const md = new XMarkdownMini({ plugins: [CodeHighlight()] });
+    const md = new XMarkdownMini({ extensions: [CodeHighlight()] });
     const nodes = md.renderNodes({ content: '```js\nconst x = 1;\n```', platform: 'alipay' });
     const json = JSON.stringify(nodes);
     expect(json).toContain('hljs');
@@ -256,7 +256,7 @@ describe('CodeHighlight plugin', () => {
 
   it('falls back to default when no language specified', async () => {
     const { default: CodeHighlight } = await import('../plugins/CodeHighlight/index.js');
-    const md = new XMarkdownMini({ plugins: [CodeHighlight()] });
+    const md = new XMarkdownMini({ extensions: [CodeHighlight()] });
     const nodes = md.renderNodes({ content: '```\nplain text\n```', platform: 'alipay' });
     // No language → CodeHighlight returns null → built-in code handler runs
     const json = JSON.stringify(nodes);
@@ -267,7 +267,7 @@ describe('CodeHighlight plugin', () => {
   it('only highlights registered languages', async () => {
     const { default: CodeHighlight } = await import('../plugins/CodeHighlight/index.js');
     // Default common languages don't include ruby — verify fallback behavior
-    const md = new XMarkdownMini({ plugins: [CodeHighlight()] });
+    const md = new XMarkdownMini({ extensions: [CodeHighlight()] });
     const nodes = md.renderNodes({ content: '```ruby\ndef hello\nend\n```', platform: 'alipay' });
     const json = JSON.stringify(nodes);
     // ruby not in common set → CodeHighlight returns null → built-in code handler

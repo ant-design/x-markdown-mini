@@ -1,6 +1,6 @@
 import hljs from 'highlight.js/lib/core';
 import type { LanguageFn } from 'highlight.js';
-import type { MiniNode, Plugin, RenderContext, Token, Tokens } from '../../index.js';
+import type { MiniNode, Token, Tokens, XMarkdownExtension } from '../../index.js';
 import { htmlToMiniNodes } from '../shared/htmlToMiniNodes.js';
 
 // Static imports of common language definitions — bundled by tsup (noExternal).
@@ -86,7 +86,7 @@ function safeRegister(name: string, mod: LanguageFn): void {
   }
 }
 
-export default function CodeHighlight(options: CodeHighlightOptions = {}): Plugin {
+export default function CodeHighlight(options: CodeHighlightOptions = {}): XMarkdownExtension {
   const { languages, hljsOptions } = options;
   const ignoreIllegals = hljsOptions?.ignoreIllegals ?? true;
 
@@ -101,39 +101,43 @@ export default function CodeHighlight(options: CodeHighlightOptions = {}): Plugi
     }
   }
 
-  const codeRenderer = {
-    token: 'code',
-    render: (token: Token, _ctx: RenderContext): MiniNode[] | null => {
-      const t = token as Tokens.Code;
-      const lang = t.lang?.trim();
-      const text = t.text ?? '';
-
-      if (!lang) return null; // No language — fall back to default rendering
-
-      const resolved = ALIASES[lang] || lang;
-      if (!hljs.getLanguage(resolved)) return null; // Unknown language — fall back
-
-      try {
-        const result = hljs.highlight(text, {
-          language: resolved,
-          ignoreIllegals,
-        });
-
-        const nodes = htmlToMiniNodes(result.value, false);
-        return [
-          {
-            name: 'code',
-            attrs: { class: `hljs language-${resolved}` },
-            children: nodes,
-          },
-        ];
-      } catch {
-        return null; // Highlight failed — fall back to default rendering
-      }
-    },
-  };
-
   return {
-    tokenRenderers: [codeRenderer],
+    extensions: [
+      {
+        // No tokenizer — we only override the renderer for marked's built-in
+        // `code` block token. Returning null from miniRenderer causes
+        // renderCustomToken to produce [], and the platform `case 'code':`
+        // handler then falls through to its default pre/code block rendering.
+        name: 'code',
+        miniRenderer: (token: Token, _ctx): MiniNode[] | null => {
+          const t = token as Tokens.Code;
+          const lang = t.lang?.trim();
+          const text = t.text ?? '';
+
+          if (!lang) return null; // No language — fall back to default rendering
+
+          const resolved = ALIASES[lang] || lang;
+          if (!hljs.getLanguage(resolved)) return null; // Unknown language — fall back
+
+          try {
+            const result = hljs.highlight(text, {
+              language: resolved,
+              ignoreIllegals,
+            });
+
+            const nodes = htmlToMiniNodes(result.value, false);
+            return [
+              {
+                name: 'code',
+                attrs: { class: `hljs language-${resolved}` },
+                children: nodes,
+              },
+            ];
+          } catch {
+            return null; // Highlight failed — fall back to default rendering
+          }
+        },
+      },
+    ],
   };
 }

@@ -1,5 +1,5 @@
 import type { PlatformInput } from './platforms/types.js';
-import type { Token, MarkedExtension } from 'marked';
+import type { Token, Tokens, MarkedExtension } from 'marked';
 
 export type { Platform, PlatformInput } from './platforms/types.js';
 
@@ -112,6 +112,11 @@ export interface XMarkdownMiniTokenProps {
   onPatch?: (tokens: Token[]) => void;
 }
 
+/**
+ * @deprecated Prefer placing `miniRenderer` (or marked-style `renderer`) on the
+ * `XMarkdownTokenizerExtension` alongside its tokenizer. `TokenRenderer` is kept
+ * for backward compatibility with the split `tokenRenderers` array.
+ */
 export interface TokenRenderer {
   /** marked token.type handled by this renderer. */
   token: string;
@@ -119,7 +124,54 @@ export interface TokenRenderer {
   render: (token: Token, ctx: RenderContext) => MiniNode | MiniNode[] | null | undefined;
 }
 
-/** A self-contained plugin that bundles marked extensions with mini-program node renderers. */
+/**
+ * A tokenizer + renderer extension colocated on a single object — the
+ * preferred shape for new XMarkdownMini extensions. Structurally mirrors
+ * marked's `TokenizerAndRendererExtension` but adds `miniRenderer` so the
+ * renderer can return `MiniNode` directly instead of HTML.
+ */
+export interface XMarkdownTokenizerExtension {
+  /** Token.type produced by this tokenizer. */
+  name: string;
+  /** Tokenizer level: 'block' or 'inline'. */
+  level?: 'block' | 'inline';
+  /** Marked start hook: returns the index of the next potential match. */
+  start?: (src: string) => number | undefined;
+  /** Marked tokenizer hook. */
+  tokenizer?: (this: any, src: string, tokens: Token[]) => Tokens.Generic | undefined;
+  /** Optional child token names (forwarded to marked). */
+  childTokens?: string[];
+  /** Preferred: return a MiniNode tree directly for this token. */
+  miniRenderer?: (token: Token, ctx: RenderContext) => MiniNode | MiniNode[] | null | undefined;
+  /**
+   * marked-style HTML renderer. When present without `miniRenderer`, the HTML
+   * output is run through `htmlToMiniNodes` and the result is used.
+   */
+  renderer?: (this: any, token: Token) => string;
+}
+
+/**
+ * Preferred extension shape for `XMarkdownMiniOptions.extensions`. A subset of
+ * `MarkedExtension` whose tokenizer entries carry `miniRenderer` / `renderer`
+ * alongside the tokenizer. `MarkedExtension`s (e.g. community plugins that
+ * only emit HTML) are also accepted in the same array.
+ */
+export interface XMarkdownExtension {
+  /** Tokenizer entries with colocated mini-program renderers. */
+  extensions?: XMarkdownTokenizerExtension[];
+  /** Marked walkTokens hook (forwarded to marked). */
+  walkTokens?: MarkedExtension['walkTokens'];
+  /** Marked hooks (forwarded to marked). */
+  hooks?: MarkedExtension['hooks'];
+  /** Marked tokenizer overrides (forwarded to marked). */
+  tokenizer?: MarkedExtension['tokenizer'];
+}
+
+/**
+ * @deprecated Prefer returning an `XMarkdownExtension` directly. `Plugin` keeps
+ * the old split shape (separate `extensions` + `tokenRenderers` arrays) for
+ * backward compatibility with existing plugin authors.
+ */
 export interface Plugin {
   /** Marked extensions (tokenizers, walkTokens, hooks, etc.). */
   extensions?: MarkedExtension[];
@@ -141,8 +193,19 @@ export interface RenderContext {
    * - false：用于自渲染组件（<text>{{value}}</text> 不解码实体）
    */
   escapeText?: boolean;
-  /** Custom renderers for marked extension tokens. */
+  /** Custom renderers for marked extension tokens (legacy split shape). */
   tokenRenderers?: readonly TokenRenderer[];
+  /**
+   * Colocated tokenizer+renderer extensions registered on the instance.
+   * `renderCustomToken` consults this first; falls back to `tokenRenderers`.
+   */
+  extensions?: readonly XMarkdownExtension[];
+  /**
+   * Recursively render an inline token array to MiniNode[]. Provided by the
+   * platform transformer; used by custom extension miniRenderers that emit
+   * tokens with children (e.g. <custom-tag>inner</custom-tag>).
+   */
+  renderInlineTokens?: (tokens: Token[]) => MiniNode[];
 }
 
 export interface MiniNode {

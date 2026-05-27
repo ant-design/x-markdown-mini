@@ -234,7 +234,7 @@ describe('XMarkdownMini — streamingFixup option', () => {
   });
 
   it('default streamingFixup closes an open fenced code block so plugins can render while streaming', () => {
-    const md = new XMarkdownMini({ plugins: [CodeHighlight()] });
+    const md = new XMarkdownMini({ extensions: [CodeHighlight()] });
     const patches: MiniNode[][] = [];
 
     md.renderNodes({
@@ -250,7 +250,7 @@ describe('XMarkdownMini — streamingFixup option', () => {
 
   it('default streamingFixup closes an open block formula so Latex can render while streaming', () => {
     const md = new XMarkdownMini({
-      plugins: [Latex({ katexOptions: { throwOnError: false } })],
+      extensions: [Latex({ katexOptions: { throwOnError: false } })],
     });
     const patches: MiniNode[][] = [];
 

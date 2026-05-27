@@ -28,12 +28,15 @@ const KB = 1024;
 // - remend (~16 KB raw): streamingFixup auto-completion of unclosed markdown
 // - Marked instance per XMarkdownMini (~1 KB extra over static Lexer.lex) for
 //   per-instance extensions / walkTokens isolation
+// - htmlToMiniNodes (~5 KB raw / +1 KB gzip): now pulled into the main bundle
+//   to support the colocated `XMarkdownTokenizerExtension.renderer` HTML
+//   fallback path through customTokenRenderer.
 const BUDGETS = [
   // 主库（npm 消费方 + 支付宝默认包根）
-  { file: 'index.mjs', rawMax: 108 * KB, gzipMax: 26 * KB },
-  { file: 'index.js', rawMax: 110 * KB, gzipMax: 26 * KB },
+  { file: 'index.mjs', rawMax: 112 * KB, gzipMax: 28 * KB },
+  { file: 'index.js', rawMax: 114 * KB, gzipMax: 28 * KB },
   // 微信专用主库副本（通过 package.json#miniprogram 进入）
-  { file: 'miniprogram_dist/index.js', rawMax: 110 * KB, gzipMax: 26 * KB },
+  { file: 'miniprogram_dist/index.js', rawMax: 114 * KB, gzipMax: 28 * KB },
   // 共享 helper（alipay 包根 + wechat 包根 各一份）
   { file: 'shared/flattenInline.js', rawMax: 5 * KB },
   { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 5 * KB },
