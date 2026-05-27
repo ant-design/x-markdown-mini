@@ -122,11 +122,17 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
   const [escapeText, setEscapeText] = useState(true);
   const [latexOn, setLatexOn] = useState(true);
   const [codeHL, setCodeHL] = useState(true);
+  const [streamingFixup, setStreamingFixup] = useState(true);
+  const [streamAnimation, setStreamAnimation] = useState(true);
+  const [streamSemantic, setStreamSemantic] = useState(true);
+  const [streamMaxChunkSize, setStreamMaxChunkSize] = useState(80);
+  const [streamChunkDelay, setStreamChunkDelay] = useState(120);
+  const [streamCharDelay, setStreamCharDelay] = useState(0);
 
   // Streaming state
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamNodes, setStreamNodes] = useState<MiniNode[]>([]);
-  const streamRaf = useRef(0);
+  const streamRunId = useRef(0);
 
   // Sync from global doc platform
   useEffect(() => {
@@ -145,7 +151,7 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
   const lastOptsRef = useRef('');
 
   const getOrCreateInstance = useCallback((): XMarkdownMini => {
-    const optsKey = `${gfm}|${breaks}|${escapeText}|${latexOn}|${codeHL}`;
+    const optsKey = `${gfm}|${breaks}|${escapeText}|${latexOn}|${codeHL}|${streamingFixup}`;
     if (instanceRef.current && lastOptsRef.current === optsKey) return instanceRef.current;
 
     const plugins: XMarkdownMiniOptions['plugins'] = [];
@@ -158,18 +164,19 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
 
     instanceRef.current = new XMarkdownMini({
       escapeText,
+      streamingFixup: streamingFixup ? 'remend' : false,
       lexerOptions: { gfm, breaks },
       plugins,
     });
     lastOptsRef.current = optsKey;
     return instanceRef.current;
-  }, [gfm, breaks, escapeText, latexOn, codeHL]);
+  }, [gfm, breaks, escapeText, latexOn, codeHL, streamingFixup]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       instanceRef.current?.reset();
-      cancelAnimationFrame(streamRaf.current);
+      streamRunId.current += 1;
     };
   }, []);
 
@@ -200,66 +207,57 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
   // Streaming demo: simulate AI chunk delivery character by character
   const startStream = useCallback(() => {
     const instance = getOrCreateInstance();
+    const runId = streamRunId.current + 1;
+    streamRunId.current = runId;
     instance.reset();
     setIsStreaming(true);
     setStreamNodes([]);
     setMarkdown('');
 
-    const chars = STREAM_DEMO;
-    let pos = 0;
-    const speed = 18; // ms per character
+    try {
+      const nodes = instance.renderNodes({
+        content: STREAM_DEMO,
+        platform,
+        selectable,
+        streaming: {
+          hasNextChunk: false,
+          enableAnimation: streamAnimation,
+          semantic: streamSemantic,
+          maxChunkSize: streamMaxChunkSize,
+          chunkDelay: streamChunkDelay,
+          charDelay: streamCharDelay,
+        },
+        onRenderProgress: ({ markdown: rendered }) => {
+          if (streamRunId.current === runId) setMarkdown(rendered);
+        },
+        onPatch: (patched) => {
+          if (streamRunId.current === runId) setStreamNodes([...patched]);
+        },
+        onRenderComplete: () => {
+          if (streamRunId.current === runId) setIsStreaming(false);
+        },
+      });
 
-    const tick = () => {
-      if (pos >= chars.length) {
-        setIsStreaming(false);
-        return;
-      }
-      // Deliver 1-3 chars per tick for natural pacing
-      const step = pos < 30 ? 1 : (chars[pos] === '\n' ? 1 : (Math.random() < 0.3 ? 2 : 1));
-      pos = Math.min(pos + step, chars.length);
-      const partial = chars.slice(0, pos);
-      setMarkdown(partial);
-
-      const isLast = pos >= chars.length;
-
-      try {
-        const nodes = instance.renderNodes({
-          content: partial,
-          platform,
-          selectable,
-          streaming: { hasNextChunk: !isLast, enableAnimation: true },
-          onPatch: (patched) => {
-            setStreamNodes([...patched]);
-          },
-        });
-        // Non-streaming fallback (onPatch won't fire for sync path)
-        if (nodes.length > 0) setStreamNodes(nodes);
-      } catch {
-        // ignore errors during partial parse
-      }
-
-      if (isLast) {
-        setIsStreaming(false);
-        return;
-      }
-
-      streamRaf.current = (requestAnimationFrame(() => {
-        setTimeout(tick, speed);
-      }) as unknown) as number;
-    };
-
-    tick();
-  }, [platform, selectable, getOrCreateInstance]);
+      if (nodes.length > 0) setStreamNodes(nodes);
+    } catch {
+      setIsStreaming(false);
+    }
+  }, [
+    platform,
+    selectable,
+    streamAnimation,
+    streamSemantic,
+    streamMaxChunkSize,
+    streamChunkDelay,
+    streamCharDelay,
+    getOrCreateInstance,
+  ]);
 
   const stopStream = useCallback(() => {
-    cancelAnimationFrame(streamRaf.current);
+    streamRunId.current += 1;
     setIsStreaming(false);
-    // Replace markdown with the full template if stopped early
-    if (!STREAM_DEMO.startsWith(markdown)) {
-      setMarkdown(STREAM_DEMO);
-    }
     instanceRef.current?.reset();
-  }, [markdown]);
+  }, []);
 
   return (
     <div className="xmd-pg">
@@ -329,6 +327,54 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
                 <input type="checkbox" checked={latexOn} onChange={(e) => setLatexOn(e.target.checked)} />
                 <span>LaTeX</span>
                 <span className="xmd-pg-config-desc">KaTeX 公式</span>
+              </label>
+            </div>
+            <div className="xmd-pg-config-group">
+              <span className="xmd-pg-config-group-title">流式</span>
+              <label className="xmd-pg-config-item">
+                <input type="checkbox" checked={streamingFixup} onChange={(e) => setStreamingFixup(e.target.checked)} />
+                <span>Fixup</span>
+                <span className="xmd-pg-config-desc">补全未闭合语法</span>
+              </label>
+              <label className="xmd-pg-config-item">
+                <input type="checkbox" checked={streamAnimation} onChange={(e) => setStreamAnimation(e.target.checked)} />
+                <span>Animation</span>
+                <span className="xmd-pg-config-desc">块动画</span>
+              </label>
+              <label className="xmd-pg-config-item">
+                <input type="checkbox" checked={streamSemantic} onChange={(e) => setStreamSemantic(e.target.checked)} />
+                <span>Semantic</span>
+                <span className="xmd-pg-config-desc">语义分块</span>
+              </label>
+              <label className="xmd-pg-config-item xmd-pg-config-number">
+                <span>Max</span>
+                <input
+                  type="number"
+                  min={8}
+                  max={400}
+                  value={streamMaxChunkSize}
+                  onChange={(e) => setStreamMaxChunkSize(Number(e.target.value) || 80)}
+                />
+              </label>
+              <label className="xmd-pg-config-item xmd-pg-config-number">
+                <span>Chunk</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={2000}
+                  value={streamChunkDelay}
+                  onChange={(e) => setStreamChunkDelay(Number(e.target.value) || 0)}
+                />
+              </label>
+              <label className="xmd-pg-config-item xmd-pg-config-number">
+                <span>Char</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={200}
+                  value={streamCharDelay}
+                  onChange={(e) => setStreamCharDelay(Number(e.target.value) || 0)}
+                />
               </label>
             </div>
           </div>

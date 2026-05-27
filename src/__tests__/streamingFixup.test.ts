@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { StreamingProcessor } from '../streaming/StreamingProcessor.js';
 import { tokensToWechat } from '../platforms/wechat/tokensToWechat.js';
 import { XMarkdownMini } from '../index.js';
+import CodeHighlight from '../plugins/CodeHighlight/index.js';
+import Latex from '../plugins/Latex/index.js';
 import type { MiniNode } from '../types.js';
 
 /** Flatten a MiniNode tree to a flat list for easy assertions. */
@@ -229,5 +231,67 @@ describe('XMarkdownMini — streamingFixup option', () => {
       onPatch: () => {},
     });
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('default streamingFixup closes an open fenced code block so plugins can render while streaming', () => {
+    const md = new XMarkdownMini({ plugins: [CodeHighlight()] });
+    const patches: MiniNode[][] = [];
+
+    md.renderNodes({
+      content: '```typescript\nconst answer: number = 42;',
+      streaming: { hasNextChunk: true },
+      onPatch: (nodes) => patches.push(nodes),
+    });
+
+    const flat = flatten(patches[patches.length - 1]);
+    expect(flat.some((n) => n.name === 'pre')).toBe(true);
+    expect(flat.some((n) => String(n.attrs?.class ?? '').includes('hljs language-typescript'))).toBe(true);
+  });
+
+  it('default streamingFixup closes an open block formula so Latex can render while streaming', () => {
+    const md = new XMarkdownMini({
+      plugins: [Latex({ katexOptions: { throwOnError: false } })],
+    });
+    const patches: MiniNode[][] = [];
+
+    md.renderNodes({
+      content: '$$\n\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}',
+      streaming: { hasNextChunk: true },
+      onPatch: (nodes) => patches.push(nodes),
+    });
+
+    const flat = flatten(patches[patches.length - 1]);
+    expect(flat.some((n) => String(n.attrs?.class ?? '').includes('katex-display'))).toBe(true);
+  });
+
+  it('accepts top-level streaming delays even when semantic chunking is disabled', () => {
+    vi.useFakeTimers();
+    try {
+      const md = new XMarkdownMini();
+      const patches: MiniNode[][] = [];
+      let completed = false;
+
+      md.renderNodes({
+        content: 'abcdefghij',
+        streaming: {
+          hasNextChunk: false,
+          semantic: false,
+          maxChunkSize: 4,
+          chunkDelay: 10,
+        },
+        onPatch: (nodes) => patches.push(nodes),
+        onRenderComplete: () => {
+          completed = true;
+        },
+      });
+
+      expect(patches.length).toBe(0);
+      vi.runAllTimers();
+      expect(completed).toBe(true);
+      expect(textContent(patches[patches.length - 1])).toBe('abcdefghij');
+      expect(patches.length).toBeGreaterThanOrEqual(3);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

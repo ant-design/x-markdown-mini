@@ -170,7 +170,7 @@ export class StreamingProcessor<T = unknown> {
         } else {
           break;
         }
-      } else if (remaining.length > maxChunkSize && hasNextChunk) {
+      } else if (remaining.length > maxChunkSize) {
         chunk = remaining.slice(0, maxChunkSize);
         remaining = remaining.slice(maxChunkSize);
       } else if (!hasNextChunk) {
@@ -260,7 +260,7 @@ export class StreamingProcessor<T = unknown> {
         }
         const isBlank = line.trim() === '';
         if (!inFence && isBlank && prevBlank) {
-          lastSafe = i + 1;
+          lastSafe = i === text.length ? i : i + 1;
           lastSafeInFence = inFence;
           lastSafeFenceChar = fenceChar;
         }

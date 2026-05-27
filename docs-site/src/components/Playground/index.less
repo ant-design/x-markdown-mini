@@ -93,12 +93,20 @@
 
 .xmd-pg-config {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px 16px;
   padding: 10px 14px;
   background: #fafafa;
   border: 1px solid #e5e5e5;
   border-radius: 8px;
+
+  @media (max-width: 1120px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .xmd-pg-config-group {
@@ -142,12 +150,33 @@
   }
 }
 
+.xmd-pg-config-number {
+  justify-content: space-between;
+
+  input[type='number'] {
+    width: 72px;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #171717;
+    padding: 3px 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    outline: none;
+
+    &:focus {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    }
+  }
+}
+
 .xmd-pg-input {
   flex: 1;
   border: 1px solid #e5e5e5;
   border-radius: 8px;
-  background: #0a0a0a;
-  color: #e5e5e5;
+  background: #ffffff;
+  color: #171717;
   padding: 20px;
   font-family: ui-monospace, Menlo, monospace;
   font-size: 13px;
@@ -157,8 +186,12 @@
   outline: none;
 
   &:focus {
-    border-color: #d4d4d4;
+    border-color: #93c5fd;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  &::placeholder {
+    color: #a3a3a3;
   }
 }
 

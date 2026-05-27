@@ -33,7 +33,7 @@ export interface SemanticStreamingConfig {
 /**
  * 流式渲染配置
  */
-export interface StreamingConfig {
+export interface StreamingConfig extends SemanticStreamingConfig {
   /**
    * 是否还有后续输入。
    * - true: 还有后续输入，保留未完成片段
@@ -45,6 +45,9 @@ export interface StreamingConfig {
    * - true: 启用默认语义分块
    * - false: 关闭语义分块，按长度增量切块
    * - object: 启用语义分块并覆盖配置
+   *
+   * `delimiters` / `maxChunkSize` / `chunkDelay` / `charDelay` 也可直接放在
+   * StreamingConfig 顶层；当 semantic=false 时，顶层配置仍用于长度分块和延迟。
    */
   semantic?: boolean | SemanticStreamingConfig;
   /**

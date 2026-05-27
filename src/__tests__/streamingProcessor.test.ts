@@ -199,6 +199,19 @@ describe('StreamingProcessor — typewriter mode (fake timers)', () => {
     // h1 from committed segment and paragraph from tail
     expect(last[0].name).toBe('h1');
   });
+
+  it('does not drop the first character after committing a chunk that ends with blank lines', () => {
+    const { proc, collector } = make({ chunkDelay: 5, charDelay: 0 });
+    proc.handleContentUpdate('Alpha.\n\n## Heading\n\n```ts\nconst x = 1;\n```\n');
+    proc.runRenderLoop(false);
+    vi.runAllTimers();
+
+    const last = collector.patches[collector.patches.length - 1];
+    expect(textContent(last)).toContain('Heading');
+    expect(textContent(last)).toContain('const x = 1;');
+    expect(last.some((n) => n.name === 'h2')).toBe(true);
+    expect(last.some((n) => n.name === 'pre')).toBe(true);
+  });
 });
 
 describe('StreamingProcessor — advanceCommit + fence handling (sync mode)', () => {
@@ -289,3 +302,14 @@ describe('StreamingProcessor — config propagation', () => {
     expect(last[0].animate).toBe('block');
   });
 });
+
+function textContent(nodes: MiniNode[]): string {
+  const out: string[] = [];
+  const q = [...nodes];
+  while (q.length) {
+    const n = q.shift()!;
+    if (n.name === 'text') out.push(String(n.attrs?.value ?? ''));
+    if (n.children) q.push(...n.children);
+  }
+  return out.join('');
+}
