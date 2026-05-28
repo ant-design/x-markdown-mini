@@ -8,14 +8,6 @@ export type { Platform, PlatformInput } from './platforms/types.js';
 // in preparation for Stage 3's extensions support.
 export type { Token, Tokens, MarkedExtension } from 'marked';
 
-/** Marked 词法器选项。各 transformer 共用，不算"共享 helper"——仅类型契约。 */
-export interface LexerOptions {
-  /** GFM 表格、删除线、自动换行（默认 true） */
-  gfm?: boolean;
-  /** 软换行 \n 解析为 <br>（默认 false） */
-  breaks?: boolean;
-}
-
 /**
  * 语义流式渲染配置
  */
@@ -33,7 +25,7 @@ export interface SemanticStreamingConfig {
 /**
  * 流式渲染配置
  */
-export interface StreamingConfig extends SemanticStreamingConfig {
+export interface StreamingConfig {
   /**
    * 是否还有后续输入。
    * - true: 还有后续输入，保留未完成片段
@@ -43,11 +35,8 @@ export interface StreamingConfig extends SemanticStreamingConfig {
   /**
    * 语义分块开关 / 配置：
    * - true: 启用默认语义分块
-   * - false: 关闭语义分块，按长度增量切块
-   * - object: 启用语义分块并覆盖配置
-   *
-   * `delimiters` / `maxChunkSize` / `chunkDelay` / `charDelay` 也可直接放在
-   * StreamingConfig 顶层；当 semantic=false 时，顶层配置仍用于长度分块和延迟。
+   * - false: 关闭语义分块，直接一次性渲染
+   * - object: 启用语义分块并覆盖配置（delimiters / maxChunkSize / chunkDelay / charDelay）
    */
   semantic?: boolean | SemanticStreamingConfig;
   /**
@@ -76,8 +65,11 @@ export interface XMarkdownMiniProps {
   /** 文本是否可选择（推荐默认 true，各端适配尽量映射） */
   selectable?: boolean;
 
-  /** Markdown 解析选项（例如 gfm、breaks 等） */
-  options?: Record<string, unknown>;
+  /** GFM 表格、删除线、自动换行（默认 true）。Per-call 可覆盖构造时的默认值 */
+  gfm?: boolean;
+
+  /** 软换行 \n 解析为 <br>（默认 false）。Per-call 可覆盖构造时的默认值 */
+  breaks?: boolean;
 
   /** 渲染生命周期 */
   onRenderStart?: () => void;
@@ -100,8 +92,11 @@ export interface XMarkdownMiniTokenProps {
    */
   streaming?: false | true | StreamingConfig;
 
-  /** Markdown 解析选项（例如 gfm、breaks 等） */
-  options?: Record<string, unknown>;
+  /** GFM 表格、删除线、自动换行（默认 true）。Per-call 可覆盖构造时的默认值 */
+  gfm?: boolean;
+
+  /** 软换行 \n 解析为 <br>（默认 false）。Per-call 可覆盖构造时的默认值 */
+  breaks?: boolean;
 
   /** 生命周期 */
   onRenderStart?: () => void;
@@ -110,18 +105,6 @@ export interface XMarkdownMiniTokenProps {
 
   /** 流式时每轮 lex 完成回调，用于拿到 marked Token[] */
   onPatch?: (tokens: Token[]) => void;
-}
-
-/**
- * @deprecated Prefer placing `miniRenderer` (or marked-style `renderer`) on the
- * `XMarkdownTokenizerExtension` alongside its tokenizer. `TokenRenderer` is kept
- * for backward compatibility with the split `tokenRenderers` array.
- */
-export interface TokenRenderer {
-  /** marked token.type handled by this renderer. */
-  token: string;
-  /** Convert a marked token into one or more mini-program nodes. */
-  render: (token: Token, ctx: RenderContext) => MiniNode | MiniNode[] | null | undefined;
 }
 
 /**
@@ -167,18 +150,6 @@ export interface XMarkdownExtension {
   tokenizer?: MarkedExtension['tokenizer'];
 }
 
-/**
- * @deprecated Prefer returning an `XMarkdownExtension` directly. `Plugin` keeps
- * the old split shape (separate `extensions` + `tokenRenderers` arrays) for
- * backward compatibility with existing plugin authors.
- */
-export interface Plugin {
-  /** Marked extensions (tokenizers, walkTokens, hooks, etc.). */
-  extensions?: MarkedExtension[];
-  /** Mini-program node renderers for custom token types. */
-  tokenRenderers?: TokenRenderer[];
-}
-
 // --- 小程序渲染节点（平台 renderer 的统一中间输出）---
 
 /** 渲染上下文：transformer 共用的公共配置。 */
@@ -193,11 +164,8 @@ export interface RenderContext {
    * - false：用于自渲染组件（<text>{{value}}</text> 不解码实体）
    */
   escapeText?: boolean;
-  /** Custom renderers for marked extension tokens (legacy split shape). */
-  tokenRenderers?: readonly TokenRenderer[];
   /**
    * Colocated tokenizer+renderer extensions registered on the instance.
-   * `renderCustomToken` consults this first; falls back to `tokenRenderers`.
    */
   extensions?: readonly XMarkdownExtension[];
   /**

@@ -1,8 +1,22 @@
 import { XMarkdownMini } from '../../../index.js';
-import type { MiniNode, Plugin, StreamingConfig } from '../../../index.js';
+import type {
+  MarkedExtension,
+  MiniNode,
+  StreamingConfig,
+  XMarkdownExtension,
+} from '../../../index.js';
 import { flattenInlineNodes } from '../../shared/flattenInline.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
+
+type ExtensionsProp = (XMarkdownExtension | MarkedExtension)[];
+
+function buildInstance(extensions: ExtensionsProp | null): XMarkdownMini {
+  return new XMarkdownMini({
+    escapeText: false,
+    extensions: extensions ?? undefined,
+  });
+}
 
 Component({
   options: {
@@ -13,9 +27,10 @@ Component({
     content: { type: String, value: '' },
     streaming: { type: null, value: false },
     selectable: { type: Boolean, value: true },
-    options: { type: null, value: null },
+    gfm: { type: null, value: null },
+    breaks: { type: null, value: null },
     className: { type: String, value: '' },
-    plugins: { type: null, value: null },
+    extensions: { type: null, value: null },
   },
   data: {
     nodes: [] as MiniNode[],
@@ -23,7 +38,7 @@ Component({
   md: null as XMarkdownMini | null,
   lifetimes: {
     attached(this: any) {
-      this.md = new XMarkdownMini({ escapeText: false, plugins: this.data.plugins ?? undefined });
+      this.md = buildInstance(this.data.extensions ?? null);
       this._render();
     },
     detached(this: any) {
@@ -35,10 +50,10 @@ Component({
     'content, streaming, selectable'(this: any) {
       if (this.md) this._render();
     },
-    'plugins'(this: any) {
+    'extensions'(this: any) {
       if (this.md) {
         this.md.reset();
-        this.md = new XMarkdownMini({ escapeText: false, plugins: this.data.plugins ?? undefined });
+        this.md = buildInstance(this.data.extensions ?? null);
         this._render();
       }
     },
@@ -51,7 +66,8 @@ Component({
         platform: 'wechat',
         streaming: data.streaming as false | true | StreamingConfig,
         selectable: data.selectable,
-        options: data.options ?? undefined,
+        gfm: data.gfm ?? undefined,
+        breaks: data.breaks ?? undefined,
         onRenderStart: () => this.triggerEvent('renderstart'),
         onRenderProgress: (payload: { markdown: string }) =>
           this.triggerEvent('renderprogress', payload),

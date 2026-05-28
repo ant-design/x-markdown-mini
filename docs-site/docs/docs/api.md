@@ -35,7 +35,8 @@ render({
 | `platform`         | `PlatformInput`                   | `'auto'`   | `'auto' \| 'wechat' \| 'alipay'` |
 | `streaming`        | `boolean \| StreamingConfig`      | `false`    | 开启或自定义流式行为                                                                          |
 | `selectable`       | `boolean`                         | `true`     | 文本是否可选择（适配各端尽量映射）                                                            |
-| `options`          | `LexerOptions`                    | —          | 解析选项，如 `{ gfm, breaks }`                                                                |
+| `gfm`              | `boolean`                          | —          | 覆盖实例默认 GFM 设置（表格、删除线、自动链接）                                              |
+| `breaks`           | `boolean`                          | —          | 覆盖实例默认换行设置（`\n` → `<br>`）                                                         |
 | `onRenderStart`    | `() => void`                      | —          | 开始回调                                                                                      |
 | `onRenderProgress` | `(p: { markdown }) => void`       | —          | 每轮已输出 markdown                                                                           |
 | `onRenderComplete` | `() => void`                      | —          | 结束回调                                                                                      |
@@ -60,7 +61,7 @@ render({
 
 ## 低层 API
 
-- `new XMarkdownMini(options)` — 创建隔离实例，支持 `extensions`、`tokenRenderers`、`streamingFixup`
+- `new XMarkdownMini({ escapeText?, streamingFixup?, gfm?, breaks?, extensions?, components? })` — 创建隔离实例。`extensions` 接收 `XMarkdownExtension[]` 或 `MarkedExtension[]`
 - `md.parse(markdown): Token[]` — 直接拿 marked token
 - `tokensToWechatNodes(tokens, ctx): MiniNode[]` — Token[] 转微信节点
 - `tokensToAlipayNodes(tokens, ctx): MiniNode[]` — Token[] 转支付宝节点

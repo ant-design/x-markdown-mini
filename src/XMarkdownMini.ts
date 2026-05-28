@@ -7,11 +7,8 @@ import {
   type StreamingFixup,
 } from './streaming/config.js';
 import type {
-  LexerOptions,
   MiniNode,
-  Plugin,
   RenderContext,
-  TokenRenderer,
   XMarkdownExtension,
   XMarkdownMiniProps,
   XMarkdownMiniTokenProps,
@@ -30,31 +27,20 @@ export interface XMarkdownMiniOptions {
    * Only affects streaming paths; one-shot parse/render calls are untouched.
    */
   streamingFixup?: StreamingFixup;
-  /**
-   * Marked lexer options passed to parse() and internal streaming flows.
-   */
-  lexerOptions?: LexerOptions;
+  /** GFM 表格、删除线、自动换行（默认 true） */
+  gfm?: boolean;
+  /** 软换行 \n 解析为 <br>（默认 false） */
+  breaks?: boolean;
   /**
    * Per-instance extensions. Accepts either the colocated
    * `XMarkdownExtension` shape (tokenizer + `miniRenderer` / `renderer` on the
    * same object — preferred) or a plain `MarkedExtension` (for community
    * marked plugins that only emit HTML). All entries are forwarded to
    * `new Marked(...)`; the new fields (`miniRenderer`) are ignored by marked.
+   * Extensions are baked into the underlying `Marked` instance at construction
+   * and cannot vary per render call.
    */
   extensions?: (XMarkdownExtension | MarkedExtension)[];
-  /**
-   * @deprecated Prefer colocating renderers on `XMarkdownExtension.extensions[].miniRenderer`.
-   * Kept for backward compatibility. Renderer hooks for custom marked
-   * extension tokens in the mini-program node pipeline. This is the
-   * small-program equivalent of marked's HTML renderer.
-   */
-  tokenRenderers?: TokenRenderer[];
-  /**
-   * @deprecated Prefer returning an `XMarkdownExtension` and passing it via
-   * `extensions`. Self-contained plugins that bundle extensions with token
-   * renderers — flattened into `extensions` and `tokenRenderers` internally.
-   */
-  plugins?: Plugin[];
   /**
    * Whitelist of literal custom-component tags allowed in Markdown source.
    * For each entry, an internal inline tokenizer is synthesized that matches
@@ -180,15 +166,16 @@ export class XMarkdownMini {
   private nodeStreamProcessor: StreamingProcessor<MiniNode> | null = null;
   private readonly escapeText: boolean;
   private readonly fixup: ((text: string) => string) | undefined;
-  private readonly lexerOptions: LexerOptions;
+  private readonly gfm: boolean | undefined;
+  private readonly breaks: boolean | undefined;
   private readonly marked: Marked;
-  private readonly tokenRenderers: readonly TokenRenderer[];
   private readonly extensions: readonly XMarkdownExtension[];
 
   constructor(opts: XMarkdownMiniOptions = {}) {
     this.escapeText = opts.escapeText ?? true;
     this.fixup = resolveStreamingFixup(opts.streamingFixup ?? 'remend');
-    this.lexerOptions = opts.lexerOptions ?? {};
+    this.gfm = opts.gfm;
+    this.breaks = opts.breaks;
 
     // Extensions can be either XMarkdownExtension (colocated miniRenderer)
     // or plain MarkedExtension. Both shapes share the same `extensions: [...]`
@@ -205,16 +192,8 @@ export class XMarkdownMini {
       opts.components && opts.components.length > 0
         ? synthesizeComponentsExtension(opts.components)
         : undefined;
-    // Legacy `plugins` array: Plugin.extensions is MarkedExtension[]. But for
-    // back-compat with plugin authors who already migrated to return
-    // XMarkdownExtension (e.g. Latex), accept their objects through the same
-    // path — they still satisfy MarkedExtension structurally (marked ignores
-    // unknown fields on tokenizer entries).
-    const pluginMarkedExtensions: MarkedExtension[] =
-      opts.plugins?.flatMap((p) => p.extensions ?? []) ?? [];
     const allMarkedExtensions: MarkedExtension[] = [
       ...(directExtensions as MarkedExtension[]),
-      ...pluginMarkedExtensions,
       ...(componentsExtension ? [componentsExtension as MarkedExtension] : []),
     ];
 
@@ -224,29 +203,26 @@ export class XMarkdownMini {
     // tokenizer entry for `miniRenderer` / `renderer` (functions); plain
     // MarkedExtension entries simply lack `miniRenderer`, and their
     // `renderer` shape is an object (not a function) so the typeof check
-    // correctly skips them. Include plugins[] entries too so plugin authors
-    // who migrate to XMarkdownExtension still work via the deprecated path.
+    // correctly skips them.
     this.extensions = [
       ...(directExtensions as XMarkdownExtension[]),
-      ...((opts.plugins?.flatMap((p) => p.extensions ?? []) ?? []) as XMarkdownExtension[]),
       ...(componentsExtension ? [componentsExtension] : []),
     ];
 
-    this.tokenRenderers = [
-      ...(opts.tokenRenderers ?? []),
-      ...(opts.plugins?.flatMap((p) => p.tokenRenderers ?? []) ?? []),
-    ];
     this.marked = new Marked(...allMarkedExtensions);
   }
 
-  private buildMarkedOptions(perCall?: LexerOptions): MarkedOptions {
-    const merged: LexerOptions = { ...this.lexerOptions, ...(perCall ?? {}) };
+  private buildMarkedOptions(perCall?: { gfm?: boolean; breaks?: boolean }): MarkedOptions {
+    // Per-call values override instance defaults; instance defaults override
+    // nothing (undefined means "use marked's built-in default").
+    const gfm = perCall?.gfm ?? this.gfm;
+    const breaks = perCall?.breaks ?? this.breaks;
     // Marked#lexer replaces defaults when an options object is passed, so merge
     // instance defaults explicitly to preserve extensions/walkTokens/hooks.
     return {
       ...this.marked.defaults,
-      gfm: merged.gfm !== false,
-      breaks: !!merged.breaks,
+      ...(gfm !== undefined ? { gfm: gfm !== false } : {}),
+      ...(breaks !== undefined ? { breaks: !!breaks } : {}),
     };
   }
 
@@ -280,9 +256,9 @@ export class XMarkdownMini {
    * Token streaming entry. AI streaming fixup runs on markdown text before lex.
    */
   renderTokens(props: XMarkdownMiniTokenProps): Token[] {
-    const { content, options } = props;
+    const { content, gfm, breaks } = props;
     const stream = normalizeStreamingConfig(props.streaming);
-    const markedOpts = this.buildMarkedOptions(options as LexerOptions | undefined);
+    const markedOpts = this.buildMarkedOptions({ gfm, breaks });
 
     if (!stream) {
       this.tokenStreamProcessor = null;
@@ -319,11 +295,11 @@ export class XMarkdownMini {
    * Component/node entry. Tokens are rendered by the selected platform renderer.
    */
   renderNodes(props: XMarkdownMiniProps): MiniNode[] {
-    const { content, platform = 'auto', selectable = true, options } = props;
+    const { content, platform = 'auto', selectable = true, gfm, breaks } = props;
     const target = resolvePlatform(platform);
     const renderer = getPlatformRenderer(target);
     const stream = normalizeStreamingConfig(props.streaming);
-    const markedOpts = this.buildMarkedOptions(options as LexerOptions | undefined);
+    const markedOpts = this.buildMarkedOptions({ gfm, breaks });
 
     if (!stream) {
       this.nodeStreamProcessor = null;
@@ -332,7 +308,6 @@ export class XMarkdownMini {
         animation: false,
         selectable,
         escapeText: this.escapeText,
-        tokenRenderers: this.tokenRenderers,
         extensions: this.extensions,
       };
       const tokens = this.lex(content, markedOpts);
@@ -347,7 +322,6 @@ export class XMarkdownMini {
         animation: stream.enableAnimation,
         selectable,
         escapeText: this.escapeText,
-        tokenRenderers: this.tokenRenderers,
         extensions: this.extensions,
       };
       const transform = (md: string): MiniNode[] =>

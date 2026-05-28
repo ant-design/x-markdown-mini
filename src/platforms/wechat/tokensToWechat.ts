@@ -1,12 +1,12 @@
 import { Lexer, type MarkedOptions, type Token } from 'marked';
-import type { LexerOptions, MiniNode, RenderContext } from '../../types.js';
+import type { MiniNode, RenderContext } from '../../types.js';
 import type { PlatformCapabilities } from '../types.js';
 import {
   renderTokensToMiniNodes,
   type MiniNodePlatformAdapter,
 } from '../shared/miniNodeRenderer.js';
 
-function buildMarkedOptions(opts: LexerOptions): MarkedOptions {
+function buildMarkedOptions(opts: { gfm?: boolean; breaks?: boolean }): MarkedOptions {
   return { gfm: opts.gfm !== false, breaks: !!opts.breaks };
 }
 
@@ -31,7 +31,7 @@ const wechatAdapter: MiniNodePlatformAdapter = {
 };
 
 export interface TokensToWechatOptions extends RenderContext {
-  lexerOptions?: LexerOptions;
+  options?: { gfm?: boolean; breaks?: boolean };
 }
 
 /**
@@ -40,10 +40,10 @@ export interface TokensToWechatOptions extends RenderContext {
  */
 export function tokensToWechat(
   content: string,
-  options: TokensToWechatOptions = {},
+  opts: TokensToWechatOptions = {},
 ): MiniNode[] {
-  const { lexerOptions, ...ctx } = options;
-  const tokens = Lexer.lex(content, buildMarkedOptions(lexerOptions ?? {}));
+  const { options, ...ctx } = opts;
+  const tokens = Lexer.lex(content, buildMarkedOptions(options ?? {}));
   return tokensToWechatNodes(tokens, ctx);
 }
 

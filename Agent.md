@@ -143,45 +143,53 @@ renderNodes({
 
 ### marked extensions
 
-`XMarkdownMini` 支持按实例传入 `MarkedExtension[]`。扩展安装在当前实例，不污染全局 marked 单例。
+`XMarkdownMini` 支持按实例传入 `XMarkdownExtension[]` 或 `MarkedExtension[]`，统一通过构造器的 `extensions` 字段注入。扩展安装在当前实例，不污染全局 marked 单例。
 
 ```ts
 import { XMarkdownMini } from '@ant-design/x-markdown-mini';
 
 const md = new XMarkdownMini({
-  extensions: [customMarkedExtension],
+  extensions: [customExtension],
 });
 ```
 
-### tokenRenderers
+### colocated miniRenderer
 
-自定义 tokenizer 产出的 token 如果要进入小程序节点渲染链路，需要提供 `tokenRenderers`：
+自定义 tokenizer 产出的 token 要进入小程序节点渲染链路，推荐在同一个 `XMarkdownExtension` 上 colocate `miniRenderer`：
 
 ```ts
 const md = new XMarkdownMini({
-  extensions: [mentionExtension],
-  tokenRenderers: [
+  extensions: [
     {
-      token: 'mention',
-      render: (token) => ({
-        name: 'span',
-        attrs: { class: 'md-mention' },
-        children: [{ name: 'text', attrs: { value: token.raw } }],
-      }),
+      extensions: [
+        {
+          name: 'mention',
+          level: 'inline',
+          start: (src) => src.indexOf('@'),
+          tokenizer: (src) => /* ... */,
+          miniRenderer: (token) => ({
+            name: 'span',
+            attrs: { class: 'md-mention' },
+            children: [{ name: 'text', attrs: { value: token.raw } }],
+          }),
+        },
+      ],
     },
   ],
 });
 ```
 
+> 自定义渲染请走 `XMarkdownExtension` 的 `miniRenderer`。
+
 ### LaTeX 与代码高亮
 
 当前仓库没有把 KaTeX、MathJax、Shiki、Prism、highlight.js 等重型依赖打进核心包。正确策略是：
 
-- LaTeX：通过 marked extension 识别 `$...$` / `$$...$$`，再用 `tokenRenderers` 输出小程序可渲染节点。
+- LaTeX：通过 marked extension 识别 `$...$` / `$$...$$`，再用 `miniRenderer` 输出小程序可渲染节点。
 - 代码高亮：按需加载高亮器，只在业务确实展示代码块时加载语言 grammar 或高亮结果。
 - 核心包保持 headless、轻量、无重型渲染依赖。
 
-这意味着“支持 LaTeX / 代码高亮”的准确表达是：核心提供扩展机制，业务可按需接入，而不是默认把这些能力全部内置进包体。
+这意味着"支持 LaTeX / 代码高亮"的准确表达是：核心提供扩展机制，业务可按需接入，而不是默认把这些能力全部内置进包体。
 
 ## 高性能
 
@@ -268,7 +276,7 @@ npm run dev
 
 1. 小程序运行稳定性优先于 Web 端优雅抽象。
 2. 性能和包体积优先于“默认内置所有高级功能”。
-3. 新能力优先通过 extension / tokenRenderer / 按需加载接入。
+3. 新能力优先通过 `XMarkdownExtension`（colocated `miniRenderer`）/ 按需加载接入。
 4. 平台差异优先落在平台 renderer，不要把业务侧暴露给平台细节。
 5. 流式路径必须验证未闭合 Markdown、稳定块缓存、tail fixup 和最终 flush。
 6. 包体积、ES2018 兼容、benchmark baseline 是硬门槛，不要凭感觉改。
@@ -278,5 +286,5 @@ npm run dev
 - 已确认内置平台：支付宝、微信。
 - 已确认入口：JS API 与小程序组件。
 - 已确认流式能力：稳定块缓存、tail fixup、语义分块、`onPatch`。
-- 已确认扩展机制：marked extensions 与 `tokenRenderers`。
-- LaTeX 和代码高亮应描述为“可通过扩展机制按需接入”，不要写成当前核心已内置。
+- 已确认扩展机制：构造器 `extensions` 字段，元素可为 `XMarkdownExtension`（colocated `miniRenderer`，推荐）或 `MarkedExtension`（原生）。`tokenRenderers` 已移除。
+- 内置 `Latex()` / `CodeHighlight()` 通过 `@ant-design/x-markdown-mini/plugins/*` 子路径按需引入；它们返回 `XMarkdownExtension`，直接放入 `extensions`。

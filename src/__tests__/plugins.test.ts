@@ -1,110 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { XMarkdownMini } from '../index.js';
-import type { Plugin, TokenRenderer } from '../index.js';
+import type { XMarkdownExtension } from '../index.js';
 import { htmlToMiniNodes } from '../plugins/shared/htmlToMiniNodes.js';
-
-// ---------------------------------------------------------------------------
-// Plugin type + flattening
-// ---------------------------------------------------------------------------
-
-describe('Plugin interface', () => {
-  it('flattens plugins into extensions and tokenRenderers', () => {
-    const customExt = {
-      extensions: [
-        {
-          name: 'test',
-          level: 'inline' as const,
-          start(src: string) { return src.indexOf('!'); },
-          tokenizer(src: string) {
-            const m = /^!([a-z]+)/.exec(src);
-            if (!m) return undefined;
-            return { type: 'test', raw: m[0], value: m[1] } as any;
-          },
-        },
-      ],
-    };
-
-    const customRenderer: TokenRenderer = {
-      token: 'test',
-      render(token) {
-        return { name: 'span', attrs: { class: 'test' }, children: [{ name: 'text', attrs: { value: (token as any).value } }] };
-      },
-    };
-
-    const plugin: Plugin = { extensions: [customExt], tokenRenderers: [customRenderer] };
-
-    const md = new XMarkdownMini({ plugins: [plugin] });
-    const tokens = md.parse('hello !world');
-    const para = tokens.find((t) => t.type === 'paragraph') as any;
-    expect(para.tokens.some((t: any) => t.type === 'test')).toBe(true);
-
-    const nodes = md.renderNodes({ content: 'hello !world', platform: 'alipay' });
-    const json = JSON.stringify(nodes);
-    expect(json).toContain('test');
-    expect(json).toContain('world');
-  });
-
-  it('plugins compose with standalone extensions and tokenRenderers', () => {
-    const extA = {
-      extensions: [{
-        name: 'extA', level: 'inline' as const,
-        start(src: string) { return src.indexOf('@'); },
-        tokenizer(src: string) {
-          const m = /^@(\w+)/.exec(src);
-          if (!m) return undefined;
-          return { type: 'extA', raw: m[0], user: m[1] } as any;
-        },
-      }],
-    };
-
-    const md = new XMarkdownMini({
-      extensions: [extA],
-      tokenRenderers: [{ token: 'extA', render: (t) => ({ name: 'span', children: [{ name: 'text', attrs: { value: `@${(t as any).user}` } }] }) }],
-      plugins: [{
-        extensions: [{
-          extensions: [{
-            name: 'extB', level: 'inline' as const,
-            start(src: string) { return src.indexOf('+'); },
-            tokenizer(src: string) {
-              const m = /^\+(\w+)/.exec(src);
-              if (!m) return undefined;
-              return { type: 'extB', raw: m[0], tag: m[1] } as any;
-            },
-          }],
-        }],
-        tokenRenderers: [{ token: 'extB', render: (t) => ({ name: 'span', children: [{ name: 'text', attrs: { value: `+${(t as any).tag}` } }] }) }],
-      }],
-    });
-
-    // Verify standalone extension (extA from extensions[]) works
-    const tokensA = md.parse('@alice');
-    const paraA = tokensA.find((t) => t.type === 'paragraph') as any;
-    expect(paraA.tokens.map((t: any) => t.type)).toContain('extA');
-
-    // Verify plugin extension (extB from plugins[]) works
-    const tokensB = md.parse('+beta');
-    const paraB = tokensB.find((t) => t.type === 'paragraph') as any;
-    expect(paraB.tokens.map((t: any) => t.type)).toContain('extB');
-
-    // Verify both render simultaneously
-    const nodes = md.renderNodes({ content: '@alice +beta', platform: 'wechat' });
-    const json = JSON.stringify(nodes);
-    expect(json).toContain('@alice');
-    expect(json).toContain('+beta');
-  });
-
-  it('empty plugins array has no effect', () => {
-    const md = new XMarkdownMini({ plugins: [] });
-    const tokens = md.parse('hello **world**');
-    expect(tokens.length).toBeGreaterThan(0);
-  });
-
-  it('no plugins: legacy behavior preserved', () => {
-    const md = new XMarkdownMini();
-    const nodes = md.renderNodes({ content: '# Hello', platform: 'alipay' });
-    expect(nodes[0]?.name).toBe('h1');
-  });
-});
 
 // ---------------------------------------------------------------------------
 // htmlToMiniNodes
@@ -177,22 +74,24 @@ describe('htmlToMiniNodes', () => {
 });
 
 // ---------------------------------------------------------------------------
-// CodeHighlight plugin — tokenRenderer override
+// CodeHighlight — extension miniRenderer override path
 // ---------------------------------------------------------------------------
 
-describe('CodeHighlight plugin', () => {
-  // We import dynamically to avoid bundling hljs in the test context
-  // if it's not available, but since it's a devDep it should be.
-
-  it('override: tokenRenderers for "code" takes priority over built-in', () => {
-    const customRenderer: TokenRenderer = {
-      token: 'code',
-      render(token) {
-        return [{ name: 'pre', attrs: { class: 'custom-code' }, children: [{ name: 'text', attrs: { value: (token as any).text ?? '' } }] }];
-      },
+describe('CodeHighlight — extension miniRenderer override', () => {
+  it('extension miniRenderer for "code" takes priority over built-in', () => {
+    const codeExtension: XMarkdownExtension = {
+      extensions: [
+        {
+          name: 'code',
+          level: 'block',
+          miniRenderer(token) {
+            return [{ name: 'pre', attrs: { class: 'custom-code' }, children: [{ name: 'text', attrs: { value: (token as any).text ?? '' } }] }];
+          },
+        },
+      ],
     };
 
-    const md = new XMarkdownMini({ tokenRenderers: [customRenderer] });
+    const md = new XMarkdownMini({ extensions: [codeExtension] });
     const nodes = md.renderNodes({ content: '```js\nconsole.log("hi")\n```', platform: 'alipay' });
     const json = JSON.stringify(nodes);
     expect(json).toContain('custom-code');
@@ -200,10 +99,10 @@ describe('CodeHighlight plugin', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Latex plugin — tokenizer
+// Latex — tokenizer
 // ---------------------------------------------------------------------------
 
-describe('Latex plugin — tokenizer', () => {
+describe('Latex — tokenizer', () => {
   it('tokenizes inline math $...$', async () => {
     // Dynamic import to avoid test bundling issues
     const { default: Latex } = await import('../plugins/Latex/index.js');
@@ -241,10 +140,10 @@ describe('Latex plugin — tokenizer', () => {
 });
 
 // ---------------------------------------------------------------------------
-// CodeHighlight plugin
+// CodeHighlight
 // ---------------------------------------------------------------------------
 
-describe('CodeHighlight plugin', () => {
+describe('CodeHighlight', () => {
   it('highlights JavaScript code', async () => {
     const { default: CodeHighlight } = await import('../plugins/CodeHighlight/index.js');
     const md = new XMarkdownMini({ extensions: [CodeHighlight()] });

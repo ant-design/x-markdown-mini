@@ -108,7 +108,7 @@ import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
 import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
 
 const md = new XMarkdownMini({
-  plugins: [Latex(), CodeHighlight()],
+  extensions: [Latex(), CodeHighlight()],
 });
 
 // 行内公式 $x^2$ 和块级公式 $$...\n...$$ 均可渲染

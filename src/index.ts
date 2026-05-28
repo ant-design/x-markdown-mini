@@ -56,7 +56,6 @@ export type {
   PlatformInput,
   PlatformRenderer,
 } from './platforms/index.js';
-export type { LexerOptions } from './types.js';
 export { StreamingProcessor } from './streaming/index.js';
 export {
   flattenInlineTokens,
@@ -67,12 +66,10 @@ export {
 export type {
   MarkedExtension,
   MiniNode,
-  Plugin,
   RenderContext,
   SemanticStreamingConfig,
   StreamingConfig,
   Token,
-  TokenRenderer,
   Tokens,
   XMarkdownExtension,
   XMarkdownMiniProps,

@@ -283,7 +283,7 @@ describe('render (streaming)', () => {
     renderNodes({
       content: 'Line1\nLine2',
       platform: 'wechat',
-      options: { breaks: true },
+      breaks: true,
       streaming: { hasNextChunk: false },
       onPatch: (nodes) => patches.push(nodes),
     });

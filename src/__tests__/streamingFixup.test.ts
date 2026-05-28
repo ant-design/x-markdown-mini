@@ -264,7 +264,7 @@ describe('XMarkdownMini — streamingFixup option', () => {
     expect(flat.some((n) => String(n.attrs?.class ?? '').includes('katex-display'))).toBe(true);
   });
 
-  it('accepts top-level streaming delays even when semantic chunking is disabled', () => {
+  it('semantic streaming config accepts chunkDelay for typewriter mode', () => {
     vi.useFakeTimers();
     try {
       const md = new XMarkdownMini();
@@ -272,12 +272,12 @@ describe('XMarkdownMini — streamingFixup option', () => {
       let completed = false;
 
       md.renderNodes({
-        content: 'abcdefghij',
+        content: '一句一。二句二。三句三。',
         streaming: {
           hasNextChunk: false,
-          semantic: false,
-          maxChunkSize: 4,
-          chunkDelay: 10,
+          semantic: {
+            chunkDelay: 10,
+          },
         },
         onPatch: (nodes) => patches.push(nodes),
         onRenderComplete: () => {
@@ -285,11 +285,11 @@ describe('XMarkdownMini — streamingFixup option', () => {
         },
       });
 
+      // With chunkDelay > 0, nothing emitted synchronously (typewriter mode)
       expect(patches.length).toBe(0);
       vi.runAllTimers();
       expect(completed).toBe(true);
-      expect(textContent(patches[patches.length - 1])).toBe('abcdefghij');
-      expect(patches.length).toBeGreaterThanOrEqual(3);
+      expect(patches.length).toBeGreaterThanOrEqual(2);
     } finally {
       vi.useRealTimers();
     }

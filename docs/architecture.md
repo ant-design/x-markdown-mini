@@ -55,16 +55,29 @@ interface PlatformRenderer {
 
 ### 4. 自定义 token renderer
 
-marked 的 HTML `renderer` 不直接参与小程序节点渲染。小程序路径通过 `tokenRenderers` 处理自定义 tokenizer 产出的 token：
+marked 的 HTML `renderer` 不直接参与小程序节点渲染。推荐用 `XMarkdownExtension`，把 tokenizer 和 `miniRenderer` 写在同一个对象上：
 
 ```ts
 new XMarkdownMini({
-  extensions: [mentionExt],
-  tokenRenderers: [
-    { token: 'mention', render: (token) => ({ name: 'span', children: [...] }) },
-  ],
+  options: {
+    extensions: [
+      {
+        extensions: [
+          {
+            name: 'mention',
+            level: 'inline',
+            start: (src) => src.indexOf('@'),
+            tokenizer: (src) => /* ... */,
+            miniRenderer: (token) => ({ name: 'span', children: [/* ... */] }),
+          },
+        ],
+      },
+    ],
+  },
 });
 ```
+
+`tokenRenderers` 已移除。请使用 `XMarkdownExtension` 的 `miniRenderer` 代替（见 `docs/extensions.md`）。
 
 ## 一次性 vs 流式
 

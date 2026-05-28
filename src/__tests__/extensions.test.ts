@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { XMarkdownMini, tokensToWechat, tokensToWechatNodes } from '../index.js';
-import type { MarkedExtension, Token, Tokens } from '../index.js';
+import type { MarkedExtension, Token, Tokens, XMarkdownExtension } from '../index.js';
 
 /**
  * Custom inline extension: turns @username into a `mention` token.
@@ -108,13 +108,26 @@ describe('XMarkdownMini — extensions', () => {
     expect(patches.length).toBeGreaterThan(0);
   });
 
-  it('renders custom extension tokens through tokenRenderers', () => {
-    const md = new XMarkdownMini({
-      extensions: [mentionExtension],
-      tokenRenderers: [
+  it('renders custom extension tokens through colocated miniRenderer', () => {
+    const mentionWithRenderer: XMarkdownExtension = {
+      extensions: [
         {
-          token: 'mention',
-          render(token) {
+          name: 'mention',
+          level: 'inline',
+          start(src: string): number | undefined {
+            const m = src.match(/@/);
+            return m?.index;
+          },
+          tokenizer(src: string): Tokens.Generic | undefined {
+            const m = /^@([a-zA-Z0-9_-]+)/.exec(src);
+            if (!m) return undefined;
+            return {
+              type: 'mention',
+              raw: m[0],
+              username: m[1],
+            } as unknown as Tokens.Generic;
+          },
+          miniRenderer(token) {
             const username = (token as Tokens.Generic).username as string;
             return {
               name: 'span',
@@ -124,6 +137,10 @@ describe('XMarkdownMini — extensions', () => {
           },
         },
       ],
+    };
+
+    const md = new XMarkdownMini({
+      extensions: [mentionWithRenderer],
     });
 
     const nodes = md.renderNodes({ content: 'hi @alice', platform: 'wechat' });

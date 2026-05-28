@@ -1,16 +1,24 @@
 import { XMarkdownMini } from '../../../index.js';
-import type { MiniNode, Plugin, StreamingConfig } from '../../../index.js';
+import type {
+  MarkedExtension,
+  MiniNode,
+  StreamingConfig,
+  XMarkdownExtension,
+} from '../../../index.js';
 import { flattenInlineNodes } from '../../shared/flattenInline.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
+
+type ExtensionsProp = (XMarkdownExtension | MarkedExtension)[];
 
 interface MarkdownProps {
   content: string;
   streaming: false | true | StreamingConfig;
   selectable: boolean;
-  options: Record<string, unknown> | null;
+  gfm?: boolean;
+  breaks?: boolean;
   className: string;
-  plugins: Plugin[] | null;
+  extensions: ExtensionsProp | null;
   onTap?: (e?: unknown) => void;
   onAppear?: (e?: unknown) => void;
   onRenderStart?: () => void;
@@ -22,10 +30,16 @@ const defaultProps: MarkdownProps = {
   content: '',
   streaming: false,
   selectable: true,
-  options: null,
   className: '',
-  plugins: null,
+  extensions: null,
 };
+
+function buildInstance(props: MarkdownProps): XMarkdownMini {
+  return new XMarkdownMini({
+    escapeText: false,
+    extensions: props.extensions ?? undefined,
+  });
+}
 
 Component({
   props: defaultProps,
@@ -35,22 +49,22 @@ Component({
   md: null as XMarkdownMini | null,
 
   didMount(this: any) {
-    this.md = new XMarkdownMini({ escapeText: false, plugins: this.props.plugins ?? undefined });
+    this.md = buildInstance(this.props);
     this._render(this.props);
   },
 
   didUpdate(this: any, prevProps: MarkdownProps) {
     const p = this.props as MarkdownProps;
-    // Re-create XMarkdownMini when plugins change (extensions/tokenRenderers are instance-scoped)
-    if (prevProps.plugins !== p.plugins) {
+    // Re-create XMarkdownMini when extensions change (the marked instance bakes them in at construction).
+    if (prevProps.extensions !== p.extensions) {
       this.md?.reset();
-      this.md = new XMarkdownMini({ escapeText: false, plugins: p.plugins ?? undefined });
+      this.md = buildInstance(p);
     }
     if (
       prevProps.content !== p.content ||
       prevProps.streaming !== p.streaming ||
       prevProps.selectable !== p.selectable ||
-      prevProps.plugins !== p.plugins
+      prevProps.extensions !== p.extensions
     ) {
       this._render(p);
     }
@@ -68,7 +82,8 @@ Component({
         platform: 'alipay',
         streaming: props.streaming,
         selectable: props.selectable,
-        options: props.options ?? undefined,
+        gfm: props.gfm,
+        breaks: props.breaks,
         onRenderStart: () => props.onRenderStart?.(),
         onRenderProgress: (payload: { markdown: string }) =>
           props.onRenderProgress?.(payload),

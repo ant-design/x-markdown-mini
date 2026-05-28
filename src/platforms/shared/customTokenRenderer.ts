@@ -39,21 +39,9 @@ export function renderCustomToken(
           if (typeof html !== 'string' || html.length === 0) return [];
           return htmlToMiniNodes(html, ctx.escapeText !== false);
         }
-        // Tokenizer entry matched but no renderer — fall through to legacy
-        // tokenRenderers below in case the user registered one separately.
+        // Tokenizer entry matched but no renderer — no match found.
         break;
       }
-    }
-  }
-
-  // 2) Legacy split shape: ctx.tokenRenderers[]
-  const renderers = ctx.tokenRenderers;
-  if (renderers && renderers.length > 0) {
-    for (const renderer of renderers) {
-      if (renderer.token !== token.type) continue;
-      const rendered = renderer.render(token, ctx);
-      if (!rendered) return [];
-      return Array.isArray(rendered) ? rendered : [rendered];
     }
   }
 

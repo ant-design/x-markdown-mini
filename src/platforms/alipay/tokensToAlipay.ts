@@ -1,12 +1,12 @@
 import { Lexer, type MarkedOptions, type Token } from 'marked';
-import type { LexerOptions, MiniNode, RenderContext } from '../../types.js';
+import type { MiniNode, RenderContext } from '../../types.js';
 import type { PlatformCapabilities } from '../types.js';
 import {
   renderTokensToMiniNodes,
   type MiniNodePlatformAdapter,
 } from '../shared/miniNodeRenderer.js';
 
-function buildMarkedOptions(opts: LexerOptions): MarkedOptions {
+function buildMarkedOptions(opts: { gfm?: boolean; breaks?: boolean }): MarkedOptions {
   return { gfm: opts.gfm !== false, breaks: !!opts.breaks };
 }
 
@@ -27,7 +27,7 @@ const alipayAdapter: MiniNodePlatformAdapter = {
 };
 
 export interface TokensToAlipayOptions extends RenderContext {
-  lexerOptions?: LexerOptions;
+  options?: { gfm?: boolean; breaks?: boolean };
 }
 
 /**
@@ -36,10 +36,10 @@ export interface TokensToAlipayOptions extends RenderContext {
  */
 export function tokensToAlipay(
   content: string,
-  options: TokensToAlipayOptions = {},
+  opts: TokensToAlipayOptions = {},
 ): MiniNode[] {
-  const { lexerOptions, ...ctx } = options;
-  const tokens = Lexer.lex(content, buildMarkedOptions(lexerOptions ?? {}));
+  const { options, ...ctx } = opts;
+  const tokens = Lexer.lex(content, buildMarkedOptions(options ?? {}));
   return tokensToAlipayNodes(tokens, ctx);
 }
 

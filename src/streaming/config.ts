@@ -39,19 +39,10 @@ export function normalizeStreamingConfig(
   }
 
   const semantic = streaming.semantic ?? true;
-  const baseSemanticConfig: SemanticStreamingConfig = {
-    delimiters: streaming.delimiters,
-    maxChunkSize: streaming.maxChunkSize,
-    chunkDelay: streaming.chunkDelay,
-    charDelay: streaming.charDelay,
-  };
   return {
     hasNextChunk: streaming.hasNextChunk,
     semanticEnabled: semantic !== false,
-    semanticConfig: {
-      ...baseSemanticConfig,
-      ...(typeof semantic === 'object' ? semantic : {}),
-    },
+    semanticConfig: typeof semantic === 'object' ? semantic : {},
     enableAnimation: streaming.enableAnimation ?? true,
   };
 }

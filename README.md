@@ -5,7 +5,7 @@
 - **轻**：内置 `marked` lexer，ESM 整库约 103KB / gzip 约 25KB
 - **流**：增量解析，已稳定块只 parse 一次；onPatch 推回全量统一节点
 - **双端**：当前支持微信 / 支付宝，统一组件路径 + 自动识别
-- **可扩展**：marked tokenizer / walkTokens / hooks + 小程序 `tokenRenderers`；内置 LaTeX 和代码高亮插件
+- **可扩展**：marked tokenizer / walkTokens / hooks + colocated `miniRenderer`；内置 LaTeX 和代码高亮扩展
 
 ## 安装
 
@@ -130,7 +130,7 @@ import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
 import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
 
 const md = new XMarkdownMini({
-  plugins: [Latex(), CodeHighlight()],
+  extensions: [Latex(), CodeHighlight()],
 });
 ```
 
@@ -197,7 +197,7 @@ cd docs-site && npm install && npm run dev
 - [架构](./docs/architecture.md) — 流水线四步、目录结构、为何内置 marked
 - [流式](./docs/streaming.md) — 增量解析、打字机模式、动画 hooks
 - [平台](./docs/platforms.md) — 能力矩阵、降级规则、自定义平台
-- [扩展与插件](./docs/extensions.md) — marked 扩展、tokenRenderers、Latex、CodeHighlight
+- [扩展](./docs/extensions.md) — marked 扩展、`miniRenderer`、Latex、CodeHighlight
 
 ## 开发
 

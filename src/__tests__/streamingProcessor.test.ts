@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StreamingProcessor } from '../streaming/index.js';
 import { tokensToWechat } from '../platforms/wechat/tokensToWechat.js';
-import type { LexerOptions, MiniNode } from '../types.js';
+import type { MiniNode } from '../types.js';
 
 interface Collector {
   patches: MiniNode[][];
@@ -16,7 +16,8 @@ interface MakeOpts {
   chunkDelay?: number;
   charDelay?: number;
   /** Transformer context (folded into a tokensToWechat closure for tests). */
-  lexerOptions?: LexerOptions;
+  gfm?: boolean;
+  breaks?: boolean;
   escapeText?: boolean;
   animation?: boolean;
 }
@@ -25,7 +26,7 @@ function make(opts: MakeOpts = {}): { proc: StreamingProcessor; collector: Colle
   const collector: Collector = { patches: [], updates: [], completed: false };
   const transform = (md: string): MiniNode[] =>
     tokensToWechat(md, {
-      lexerOptions: opts.lexerOptions,
+      options: { gfm: opts.gfm, breaks: opts.breaks },
       escapeText: opts.escapeText,
       animation: opts.animation,
     });
@@ -248,11 +249,11 @@ describe('StreamingProcessor — advanceCommit + fence handling (sync mode)', ()
 });
 
 describe('StreamingProcessor — config propagation', () => {
-  it('passes lexerOptions to internal parse calls (breaks=true → <br>)', () => {
+  it('passes options to internal parse calls (breaks=true → <br>)', () => {
     const { proc, collector } = make({
       chunkDelay: 0,
       charDelay: 0,
-      lexerOptions: { breaks: true },
+      breaks: true,
     });
     proc.handleContentUpdate('line one\nline two');
     proc.runRenderLoop(false);

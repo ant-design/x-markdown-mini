@@ -23,8 +23,8 @@ describe('XMarkdownMini.parse', () => {
     expect(code?.text).toBe('const x = 1;');
   });
 
-  it('respects lexerOptions.breaks=true at construction time', () => {
-    const md = new XMarkdownMini({ lexerOptions: { breaks: true } });
+  it('respects breaks=true at construction time', () => {
+    const md = new XMarkdownMini({ breaks: true });
     const tokens = md.parse('line one\nline two');
     // With breaks enabled, the inline child tokens should contain a 'br'.
     const para = tokens.find((t) => t.type === 'paragraph') as Tokens.Paragraph | undefined;
@@ -33,8 +33,8 @@ describe('XMarkdownMini.parse', () => {
     expect(hasBr).toBe(true);
   });
 
-  it('respects lexerOptions.gfm=false (disables tables)', () => {
-    const md = new XMarkdownMini({ lexerOptions: { gfm: false } });
+  it('respects gfm=false (disables tables)', () => {
+    const md = new XMarkdownMini({ gfm: false });
     const tokens = md.parse('| a | b |\n|---|---|\n| 1 | 2 |');
     // Without gfm, the table is parsed as plain paragraphs / text, not a table token.
     expect(tokens.some((t) => t.type === 'table')).toBe(false);

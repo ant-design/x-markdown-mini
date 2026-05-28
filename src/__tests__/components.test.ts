@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { XMarkdownMini } from '../index.js';
-import type { MiniNode, TokenRenderer, XMarkdownExtension } from '../index.js';
+import type { MiniNode, XMarkdownExtension } from '../index.js';
 
 // Find the first MiniNode whose `name` matches `tagName` in a depth-first walk.
 function findNode(nodes: MiniNode[], tagName: string): MiniNode | undefined {
@@ -142,27 +142,18 @@ describe('components: string[] sugar', () => {
     expect(icon!.children).toBeUndefined();
   });
 
-  it('legacy TokenRenderer coexists with synth (synth wins via extensions)', () => {
-    // Sanity: legacy split shape still works even when components sugar is on.
-    // The synth extension wins (extensions are consulted first by
-    // renderCustomToken); this test just verifies legacy registration
-    // doesn't crash with the sugar.
-    const renderer: TokenRenderer = {
-      token: 'customTag:ant-icon',
-      render: () => ({ name: 'span', attrs: { class: 'legacy' } }),
-    };
+  it('synth extension renders component without needing tokenRenderers', () => {
+    // Verify that components sugar works purely through the synth extension
+    // without any legacy tokenRenderers fallback.
     const md = new XMarkdownMini({
       components: ['ant-icon'],
-      tokenRenderers: [renderer],
     });
     const nodes = md.renderNodes({
       // Inline context — see comment in the empty-component test above.
       content: 'hi <ant-icon />',
       platform: 'alipay',
     });
-    // The synth extension wins, so the output is an `ant-icon` named node.
+    // The synth extension renders the ant-icon node.
     expect(findNode(nodes, 'ant-icon')).toBeDefined();
-    // And the legacy override does NOT fire.
-    expect(JSON.stringify(nodes)).not.toContain('legacy');
   });
 });

@@ -1,14 +1,16 @@
 # marked 扩展
 
-`XMarkdownMini` 接受 [marked](https://marked.js.org) 的扩展数组，等价于 `marked.use(...)`。每个 `XMarkdownMini` 实例持有自己的 `Marked` 实例，**不污染全局**，多实例之间扩展互不可见。
+`XMarkdownMini` 通过构造器的 `extensions` 字段接收 [marked](https://marked.js.org) 扩展数组，等价于 `marked.use(...)`。每个 `XMarkdownMini` 实例持有自己的 `Marked` 实例，**不污染全局**，多实例之间扩展互不可见。
+
+> **扩展是实例级的**：扩展会在构造时焊进 `new Marked(...)`，无法 per-call 修改。`renderNodes(props)` / `render(props)` 只接 per-call 的 `gfm?` / `breaks?` 覆盖，不接扩展。
 
 ## 一句话上手
 
 ```ts
 import { XMarkdownMini } from '@ant-design/x-markdown-mini';
-import type { MarkedExtension, Tokens } from '@ant-design/x-markdown-mini';
+import type { XMarkdownExtension, Tokens } from '@ant-design/x-markdown-mini';
 
-const mentionExt: MarkedExtension = {
+const mentionExt: XMarkdownExtension = {
   extensions: [
     {
       name: 'mention',
@@ -19,6 +21,14 @@ const mentionExt: MarkedExtension = {
         if (!m) return undefined;
         return { type: 'mention', raw: m[0], username: m[1] };
       },
+      // 直接返回 MiniNode 进入小程序渲染链路
+      miniRenderer(token) {
+        return {
+          name: 'span',
+          attrs: { class: 'md-mention' },
+          children: [{ name: 'text', attrs: { value: `@${token.username}` } }],
+        };
+      },
     },
   ],
 };
@@ -28,18 +38,23 @@ const tokens = md.parse('hi @alice');
 // tokens 里第一段 paragraph.tokens 含 { type: 'mention', username: 'alice' }
 ```
 
-## 支持的扩展类型
+## 两种扩展形态
 
-`extensions: MarkedExtension[]` 接收的每一项可以包含：
+`extensions: (XMarkdownExtension | MarkedExtension)[]` 同时接受：
+
+- `XMarkdownExtension`（推荐）：tokenizer 和 `miniRenderer` 写在同一个对象上，直接返回 `MiniNode`。
+- `MarkedExtension`（marked 原生）：仅做 tokenizer / walkTokens / hooks，社区插件兼容路径。
+
+每一项内部 `extensions[]` 元素可以含：
 
 | 字段 | 用途 |
 | --- | --- |
-| `extensions` | 自定义 block / inline tokenizer + 可选 renderer，产出新 token 类型 |
-| `tokenizer` | 覆盖内置 tokenizer 方法（不新增 token 类型，改变现有 token 解析行为） |
-| `renderer` | marked HTML renderer；不会直接参与小程序节点渲染 |
-| `walkTokens` | 后置遍历钩子，常用于给 token 加属性 |
-| `hooks` | preprocess / postprocess 文本/HTML 钩子 |
-| `gfm`, `breaks`, `pedantic` 等 | 等同于 lexer 选项 |
+| `name` / `level` / `start` / `tokenizer` | 标准 marked tokenizer 接口 |
+| `miniRenderer` | 直接返回 `MiniNode \| MiniNode[]`（推荐） |
+| `renderer` | marked 风格的 HTML 字符串 renderer，框架会自动 `htmlToMiniNodes` 转换 |
+| `childTokens` | 提示 marked 子 token 字段名 |
+
+外层对象还可以带 `walkTokens` / `hooks` / `tokenizer`（marked 全局钩子）。
 
 ## walkTokens 钩子
 
@@ -61,30 +76,6 @@ md.parse(content);  // walkTokens 被自动调用一次每个 token
 
 > `XMarkdownMini.parse()` 内部会复刻 marked `parse()` 路径的 walkTokens 调用——`lexer()` 默认不跑，但 `parse()` 跑。
 
-## 在 streaming / render 路径
-
-extensions 也会自动应用到 `XMarkdownMini.renderNodes()` 走的 streaming 链路（因为内部用同一个 `Marked` 实例 lex）。自定义 token 要渲染到小程序节点，需要提供 `tokenRenderers`：
-
-```ts
-const md = new XMarkdownMini({
-  extensions: [mentionExt],
-  tokenRenderers: [
-    {
-      token: 'mention',
-      render(token) {
-        return {
-          name: 'span',
-          attrs: { class: 'md-mention' },
-          children: [{ name: 'text', attrs: { value: `@${token.username}` } }],
-        };
-      },
-    },
-  ],
-});
-```
-
-未被内置 transformer 或 `tokenRenderers` 识别的 token 仍会被跳过。
-
 ## 多实例隔离
 
 ```ts
@@ -97,20 +88,9 @@ b.parse('@x');  // 纯文本（b 不感知 mention）
 
 每个 `XMarkdownMini` 实例构造时 `new Marked(...extensions)`，扩展只装在自己的 defaults 上，不会泄漏到全局 `marked` 单例。
 
-## 插件系统
+## 内置扩展
 
-插件 = `extensions` + `tokenRenderers` 的自包含封装。用 `plugins` 数组传入，自动展开到对应的 `extensions` 和 `tokenRenderers`。
-
-```ts
-import type { Plugin } from '@ant-design/x-markdown-mini';
-
-interface Plugin {
-  extensions?: MarkedExtension[];
-  tokenRenderers?: TokenRenderer[];
-}
-```
-
-### 使用方式
+LaTeX 公式和代码高亮以独立子路径包发布。`Latex()` / `CodeHighlight()` 返回的就是 `XMarkdownExtension`，直接塞进 `extensions` 即可。
 
 ```ts
 import { XMarkdownMini } from '@ant-design/x-markdown-mini';
@@ -118,7 +98,7 @@ import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
 import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
 
 const md = new XMarkdownMini({
-  plugins: [Latex(), CodeHighlight()],
+  extensions: [Latex(), CodeHighlight()],
 });
 
 const nodes = md.renderNodes({
@@ -127,33 +107,19 @@ const nodes = md.renderNodes({
 });
 ```
 
-`plugins` 可以和 `extensions` / `tokenRenderers` 同时使用，两者会合并：
-
-```ts
-const md = new XMarkdownMini({
-  extensions: [myExt],
-  tokenRenderers: [{ token: 'mention', render }],
-  plugins: [Latex(), CodeHighlight()],
-});
-// 等价于 extensions: [myExt, ...Latex()extensions, ...CodeHighlight().extensions]
-//      tokenRenderers: [{ token: 'mention', render }, ...Latex().tokenRenderers, ...]
-```
-
-### 内置插件
-
-#### Latex
+### Latex
 
 数学公式渲染，基于 [KaTeX](https://katex.org/)。
 
 ```ts
 import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
 
-const md = new XMarkdownMini({ plugins: [Latex()] });
+const md = new XMarkdownMini({ extensions: [Latex()] });
 ```
 
 支持行内公式 `$x^2$` 和块级公式 `$$...\n...$$`。
 
-**样式引入**：插件需要单独引入样式文件。
+**样式引入**：
 
 - 支付宝小程序：`@import "@ant-design/x-markdown-mini/plugins/Latex/style.acss";`
 - 微信小程序：`@import "@ant-design/x-markdown-mini/plugins/Latex/style.wxss";`
@@ -173,14 +139,14 @@ Latex({
 })
 ```
 
-#### CodeHighlight
+### CodeHighlight
 
 代码语法高亮，基于 [highlight.js](https://highlightjs.org/)。
 
 ```ts
 import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
 
-const md = new XMarkdownMini({ plugins: [CodeHighlight()] });
+const md = new XMarkdownMini({ extensions: [CodeHighlight()] });
 ```
 
 默认注册 18 种常用语言（javascript、typescript、python、java、css、xml、json、sql、bash、shell、c、cpp、go、rust、yaml、markdown、diff、plaintext）。只对标注了语言的围栏代码块生效，无语言标注时回退到默认渲染。
@@ -209,13 +175,13 @@ CodeHighlight({
 })
 ```
 
-### 小程序组件使用
+## 小程序组件使用
 
-支付宝和微信组件均支持 `plugins` 属性：
+支付宝和微信组件均支持 `extensions` 属性：
 
 ```xml
 <!-- 支付宝 axml -->
-<markdown content="{{content}}" plugins="{{plugins}}" />
+<markdown content="{{content}}" extensions="{{extensions}}" />
 ```
 
 ```ts
@@ -224,13 +190,13 @@ import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
 import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
 
 Component({
-  data: { plugins: [Latex(), CodeHighlight()] },
+  data: { extensions: [Latex(), CodeHighlight()] },
 });
 ```
 
 ```xml
 <!-- 微信 wxml -->
-<markdown content="{{content}}" plugins="{{plugins}}" />
+<markdown content="{{content}}" extensions="{{extensions}}" />
 ```
 
 ```js
@@ -240,9 +206,9 @@ const CodeHighlight = require('@ant-design/x-markdown-mini/plugins/CodeHighlight
 
 Component({
   properties: {
-    plugins: { type: Array, value: [] },
+    extensions: { type: Array, value: [] },
   },
-  data: { plugins: [Latex(), CodeHighlight()] },
+  data: { extensions: [Latex(), CodeHighlight()] },
 });
 ```
 
@@ -250,4 +216,4 @@ Component({
 
 extensions 本身打包到用户代码里（不影响 `x-markdown-mini` 的 dist size）。本库已捆绑 marked + remend，自定义扩展不引入额外的 marked 副本。
 
-内置插件按需引入：主库（~105 KB）不含 KaTeX 和 highlight.js。`plugins/Latex`（~486 KB，含 KaTeX）和 `plugins/CodeHighlight`（~184 KB，含 highlight.js/lib/common）各自独立打包，仅在 import 时才增大产物体积。
+内置扩展按需引入：主库（~105 KB）不含 KaTeX 和 highlight.js。`plugins/Latex`（~486 KB，含 KaTeX）和 `plugins/CodeHighlight`（~184 KB，含 highlight.js/lib/common）各自独立打包，仅在 import 时才增大产物体积。

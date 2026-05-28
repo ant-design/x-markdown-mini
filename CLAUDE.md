@@ -34,9 +34,10 @@ For concurrent streams, **construct `new XMarkdownMini(opts)` per view** — the
 `XMarkdownMiniOptions`:
 - `escapeText` (default `true`) — HTML-entity escape text node values. Native `<rich-text>` decodes entities, so leave it true. The bundled self-rendering components pass `false` because `<text>{{value}}</text>` does not decode entities.
 - `streamingFixup` (default `'remend'`) — tail auto-completion of unfinished markdown during streaming (`**bo` → `**bo**`, etc.). `false` disables it; a function replaces it. Only the streaming paths use it; one-shot parse/render never call fixup.
-- `lexerOptions` — `{ gfm?, breaks? }` forwarded to marked.
-- `extensions` — `MarkedExtension[]`, equivalent to `marked.use(...)` but scoped to this instance only (uses `new Marked(...)`, never mutates the global marked singleton).
-- `tokenRenderers` — `[{ token, render }]` maps custom marked tokens (from `extensions`) to `MiniNode[]`. Required for any non-builtin token type to appear in `renderNodes()` output. See `docs/extensions.md`.
+- `gfm` (default `true`) — GFM tables, strikethrough, autolinks. Per-call `renderNodes(props)` / `render(props)` accept a `gfm?` override.
+- `breaks` (default `false`) — soft line breaks become `<br>`. Per-call `renderNodes(props)` / `render(props)` accept a `breaks?` override.
+- `extensions: (XMarkdownExtension | MarkedExtension)[]` — forwarded to `new Marked(...)`, instance-scoped (never mutates the global marked singleton). Extensions are baked in at construction and cannot vary per call.
+- `components: string[]` — whitelist of literal custom-component tags that get an auto-synthesized inline tokenizer (`<ant-button>X</ant-button>` → MiniNode named `ant-button`). User-registered extensions with the same name win over the synth.
 
 ## Architecture: direct-to-platform transformer
 
@@ -59,12 +60,12 @@ See `docs/experiments/2026-05-pipeline-architecture.md` for the empirical A/B/C 
 
 ## Marked extensions + custom token renderers
 
-`XMarkdownMini` exposes `extensions` and `tokenRenderers` for end-user extensibility (LaTeX, code highlight, mentions, etc.):
+`XMarkdownMini` exposes `extensions` for end-user extensibility (LaTeX, code highlight, mentions, etc.):
 
-- `extensions: MarkedExtension[]` is fed to `new Marked(...extensions)`, fully isolated from the global marked singleton. Includes the usual marked surface (`extensions`/`tokenizer`/`renderer`/`walkTokens`/`hooks`). `walkTokens` is re-invoked inside `parse()` because marked's `lexer()` skips it.
-- `tokenRenderers: [{ token, render(token, ctx) }]` is the mini-program equivalent of marked's HTML renderer — it converts custom `Token` types into `MiniNode[]`. Without a matching renderer, unknown tokens are silently dropped. The handlers run inside both per-platform transformers via `customTokenRenderer` in `src/platforms/shared/`.
+- `extensions: (XMarkdownExtension | MarkedExtension)[]` is fed to `new Marked(...extensions)`, fully isolated from the global marked singleton. Includes the usual marked surface (`extensions`/`tokenizer`/`renderer`/`walkTokens`/`hooks`). `walkTokens` is re-invoked inside `parse()` because marked's `lexer()` skips it.
+- `XMarkdownExtension` is the preferred shape — each tokenizer entry can colocate `miniRenderer(token, ctx) => MiniNode | MiniNode[]` (no HTML round-trip). A marked-style `renderer(token) => string` is also accepted and run through `htmlToMiniNodes`. Without any matching renderer, unknown tokens are silently dropped. Resolution lives in `src/platforms/shared/customTokenRenderer.ts` (extensions first).
 
-This is the supported way to add LaTeX, code-block highlighting (lazy-loaded), or app-specific syntax without forking transformers. See `docs/extensions.md`.
+This is the supported way to add LaTeX, code-block highlighting (lazy-loaded), or app-specific syntax without forking transformers.
 
 ## Build outputs (tsup config has 4 entries)
 
