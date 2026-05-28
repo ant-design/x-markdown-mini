@@ -4,84 +4,113 @@ import { join } from 'node:path';
 const root = new URL('..', import.meta.url);
 const read = (path) => readFileSync(join(root.pathname, path), 'utf8');
 
-const index = read('docs/index.md');
+const indexCn = read('docs/index.md');
+const indexEn = read('docs/index.en-US.md');
 const css = read('public/site.css');
+const js = read('public/site.js');
 const dumiConfig = read('.dumirc.ts');
 
-const requiredMarkup = [
-  'xmd-home-v3',
-  'xmd-home-minimal',
-  'xmd-home-wordmark',
-  'xmd-home-title-static',
-  'xmd-home-recording',
-  'xmd-home-hero-gif',
-  'xmd-gif-placeholder',
-  '多端',
-  '流式友好',
-  '可扩展',
-  '高性能',
-  'Markdown 渲染器',
-  '预留录屏展示位',
+const sharedHeroMarkup = [
+  'xmd-hero',
+  'xmd-hero-wordmark',
+  'xmd-hero-i',
+  'xmd-hero-star',
+  'xmd-hero-desc',
+  'x-markdown-min',
+];
+
+const requiredCnCopy = [
+  '多端、流式友好、高性能的小程序原生 Markdown 渲染器',
+];
+
+const requiredEnCopy = [
+  'Multi-platform, streaming-friendly, high-performance native Markdown renderer for mini programs',
 ];
 
 const requiredCss = [
-  '.markdown .xmd-home-v3',
-  '.markdown .xmd-home-minimal',
-  '.markdown .xmd-home-wordmark',
-  '.markdown .xmd-home-title-static',
-  '.markdown .xmd-home-recording',
-  '.markdown .xmd-home-hero-gif',
-  '.markdown .xmd-gif-placeholder',
-  '#f7f4ed',
-  '#1c1c1c',
-  '.xmd-doc-platform-switch',
+  '.markdown .xmd-hero',
+  '.markdown .xmd-hero-wordmark',
+  '.markdown .xmd-hero-desc',
+  'body.xmd-homepage',
+  'body.xmd-over-hero',
+  '.xmd-mini',
+  '.xmd-site-footer',
+  '.xmd-nav-cluster',
+  '.xmd-header-support',
+  'var(--xmd-accent)',
   '.dumi-default-navbar > li > a',
+  '.dumi-default-sidebar dd > a.active',
 ];
 
-const missing = [
-  ...requiredMarkup.filter((item) => !index.includes(item)).map((item) => `docs/index.md: ${item}`),
-  ...requiredCss.filter((item) => !css.includes(item)).map((item) => `public/site.css: ${item}`),
-  ...['name: \'viewport\'', 'width=device-width'].filter((item) => !dumiConfig.includes(item)).map((item) => `.dumirc.ts: ${item}`),
+const requiredJs = [
+  'xmd-mini',
+  'xmd-hero',
+  'xmd-homepage',
+  'xmd-over-hero',
+  'xmd-site-footer',
+  'xmd-nav-cluster',
+  'xmd-header-support',
+  'requestAnimationFrame',
 ];
 
-for (const animatedTitleContract of [
+const requiredDumirc = [
+  "name: 'viewport'",
+  'width=device-width',
+  "id: 'zh-CN'",
+  "id: 'en-US'",
+  "suffix: '-en'",
+  "prefersColor: { default: 'light', switch: true }",
+];
+
+const forbiddenInIndex = [
+  'xmd-home-recording',
+  'xmd-home-hero-gif',
+  'xmd-gif-placeholder',
   'xmd-home-animated-title',
   'setupTitleTypewriter',
   'processTitleTypewriter',
-  '@keyframes xmdCharType',
-]) {
-  if (index.includes(animatedTitleContract) || css.includes(animatedTitleContract) || read('public/site.js').includes(animatedTitleContract)) {
-    missing.push(`homepage animation should be removed: ${animatedTitleContract}`);
-  }
+  'xmd-home-section',
+  'xmd-hero-cta',
+];
+
+const forbiddenDumirc = [
+  "{ title: '首页', link: '/' }",
+  "{ title: 'Home', link: '/' }",
+  "prefersColor: { default: 'light', switch: false }",
+];
+
+const missing = [];
+
+for (const item of sharedHeroMarkup) {
+  if (!indexCn.includes(item)) missing.push(`docs/index.md: ${item}`);
+  if (!indexEn.includes(item)) missing.push(`docs/index.en-US.md: ${item}`);
+}
+for (const item of requiredCnCopy) {
+  if (!indexCn.includes(item)) missing.push(`docs/index.md: ${item}`);
+}
+for (const item of requiredEnCopy) {
+  if (!indexEn.includes(item)) missing.push(`docs/index.en-US.md: ${item}`);
+}
+for (const item of requiredCss) {
+  if (!css.includes(item)) missing.push(`public/site.css: ${item}`);
+}
+for (const item of requiredJs) {
+  if (!js.includes(item)) missing.push(`public/site.js: ${item}`);
+}
+for (const item of requiredDumirc) {
+  if (!dumiConfig.includes(item)) missing.push(`.dumirc.ts: ${item}`);
+}
+for (const item of forbiddenDumirc) {
+  if (dumiConfig.includes(item)) missing.push(`.dumirc.ts: remove ${item}`);
+}
+for (const item of forbiddenInIndex) {
+  if (indexCn.includes(item)) missing.push(`docs/index.md: remove obsolete v3 token "${item}"`);
+  if (indexEn.includes(item)) missing.push(`docs/index.en-US.md: remove obsolete v3 token "${item}"`);
 }
 
-for (const platformContract of [
-  'xmd-doc-platform-switch',
-  'xmd-platform-change',
-  'xmd-doc-platform',
-]) {
-  if (!read('public/site.js').includes(platformContract)) {
+for (const platformContract of ['xmd-doc-platform']) {
+  if (!js.includes(platformContract)) {
     missing.push(`public/site.js: ${platformContract}`);
-  }
-}
-
-for (const removedCopy of [
-  '设计目标',
-  '适合这些小程序场景',
-  '小程序 Markdown 渲染器',
-  'Introduction',
-  'Features',
-  'Get started in seconds',
-  'Showcase',
-]) {
-  if (index.includes(removedCopy)) {
-    missing.push(`docs/index.md: remove capability heading copy ${removedCopy}`);
-  }
-}
-
-for (const duplicateTag of ['微信 / 支付宝', '流式增量渲染', 'Headless API', '组件即插即用']) {
-  if (index.includes(`<span>${duplicateTag}</span>`)) {
-    missing.push(`docs/index.md: remove duplicated hero tag ${duplicateTag}`);
   }
 }
 

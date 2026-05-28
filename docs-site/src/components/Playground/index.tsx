@@ -2,8 +2,9 @@ import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import {
   XMarkdownMini,
   getPlatformRenderer,
+  type MarkedExtension,
   type MiniNode,
-  type XMarkdownMiniOptions,
+  type XMarkdownExtension,
 } from '@ant-design/x-markdown-mini';
 import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
 import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
@@ -34,7 +35,7 @@ interface MarkdownRenderer {
 }
 
 const xmd = new XMarkdownMini({
-  plugins: [Latex(), CodeHighlight()],
+  options: { extensions: [Latex(), CodeHighlight()] },
 });
 \`\`\`
 
@@ -154,19 +155,18 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
     const optsKey = `${gfm}|${breaks}|${escapeText}|${latexOn}|${codeHL}|${streamingFixup}`;
     if (instanceRef.current && lastOptsRef.current === optsKey) return instanceRef.current;
 
-    const plugins: XMarkdownMiniOptions['plugins'] = [];
+    const extensions: (XMarkdownExtension | MarkedExtension)[] = [];
     if (latexOn) {
-      plugins.push(Latex({ katexOptions: { throwOnError: false } }));
+      extensions.push(Latex({ katexOptions: { throwOnError: false } }));
     }
     if (codeHL) {
-      plugins.push(CodeHighlight());
+      extensions.push(CodeHighlight());
     }
 
     instanceRef.current = new XMarkdownMini({
       escapeText,
       streamingFixup: streamingFixup ? 'remend' : false,
-      lexerOptions: { gfm, breaks },
-      plugins,
+      options: { gfm, breaks, extensions },
     });
     lastOptsRef.current = optsKey;
     return instanceRef.current;

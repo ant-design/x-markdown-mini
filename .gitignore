@@ -8,8 +8,12 @@ examples/*/dist/
 
 # Docs site (dumi)
 docs-site/node_modules/
-docs-site/.dumi/
 .dumi/
+docs-site/.dumi/
+!docs-site/.dumi/
+docs-site/.dumi/*
+!docs-site/.dumi/loading.tsx
+!docs-site/.dumi/tsconfig.json
 docs-site/dist/
 
 # Env
@@ -42,3 +46,9 @@ benchmark/results.json
 
 # Optional
 *.local.*
+
+# Tool files
+.codegraph/
+.understand-anything/
+.mcp.json
+.claude/

@@ -17,30 +17,74 @@
 }
 
 html {
-  background: var(--xmd-bg);
+  background: var(--xmd-bg) !important;
+  background-color: var(--xmd-bg) !important;
   color-scheme: light;
 }
 
 body {
+  position: relative;
   color: var(--xmd-text);
-  background: var(--xmd-bg);
+  /* dumi's umi.css ships AFTER site.css, so !important is required to defeat
+     its default `body { background-color: #f7f9fb }`. The real visual bg
+     comes from body::before below (the lifted xmd-hero-bg). */
+  background: var(--xmd-bg) !important;
+  background-color: var(--xmd-bg) !important;
   font-family:
     "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI",
     "PingFang SC", "Hiragino Sans GB", sans-serif;
   letter-spacing: 0;
 }
 
-/* ----- header ----- */
-
-.dumi-default-header {
-  border-bottom: 1px solid #f0f0f0;
-  box-shadow: none;
+/* Page-wide background — lifts the original .xmd-hero-bg gradient + grid to a
+   fixed pseudo-element so the header, main, hero, and footer all sit on the
+   exact same paint. Two stacked fixed layers (::before is the gradient,
+   ::after is the grid with the same radial mask as the hero). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 50% at 50% 0%, rgba(0, 0, 0, 0.04), transparent 70%),
+    linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
 }
 
-.dumi-default-header:not([data-static]) {
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, #000 30%, transparent 70%);
+          mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, #000 30%, transparent 70%);
+}
+
+/* Belt-and-suspenders: force every dumi layout container to be transparent
+   so the body::before paint is what the user actually sees. */
+.dumi-default-doc-layout,
+.dumi-default-doc-layout > main,
+.dumi-default-content {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* ----- header (Vercel-like elegant) ----- */
+
+.dumi-default-header,
+.dumi-default-header:not([data-static]),
+.dumi-default-header:not([data-static])[data-mobile-active] {
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .dumi-default-header-content {
@@ -48,15 +92,16 @@ body {
   align-items: center !important;
   width: 100% !important;
   max-width: 100% !important;
-  height: 56px !important;
-  padding: 0 28px !important;
+  height: 80px !important;
+  padding: 0 24px !important;
   box-sizing: border-box !important;
+  position: relative !important;
 }
 
 .dumi-default-header-left {
   flex: 0 0 auto !important;
   width: auto !important;
-  margin-inline-end: 10px !important;
+  margin-inline-end: 12px !important;
   min-width: 0 !important;
 }
 
@@ -66,22 +111,21 @@ body {
   min-width: max-content !important;
   color: #0a0a0a;
   font-family:
-    "Avenir Next", Avenir, "Inter", "SF Pro Display", "PingFang SC",
-    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-  font-size: 14px;
-  font-weight: 760;
-  letter-spacing: 0.005em;
+    "Inter", "SF Pro Display", "PingFang SC", ui-sans-serif, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   line-height: 1;
   white-space: nowrap;
   overflow: visible !important;
   text-rendering: geometricPrecision;
-  transition: color 0.15s, opacity 0.15s;
+  transition: opacity 0.15s;
 }
 
 .dumi-default-logo:hover {
-  color: #2563eb;
-  opacity: 0.94;
+  color: #0a0a0a;
+  opacity: 0.7;
 }
 
 .dumi-default-logo img {
@@ -92,151 +136,34 @@ body {
   image-rendering: -webkit-optimize-contrast;
 }
 
-/* turn the right-aside into a transparent flex parent so we can reorder */
+/* right side: relative container so cluster and support can anchor to it */
 .dumi-default-header-right {
   flex: 1 1 auto !important;
   display: flex !important;
   align-items: center !important;
+  justify-content: flex-end !important;
   gap: 8px !important;
   min-width: 0 !important;
-  overflow: hidden !important;
+  position: relative !important;
+  overflow: visible !important;
 }
 
-.dumi-default-header-right-aside {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  margin-inline-start: auto !important;
-  min-width: 0 !important;
-}
-
-/* search and social actions sit at the far right of the header */
+/* the original dumi search bar is replaced by an icon button inside the cluster */
 .dumi-default-search-bar {
-  flex: 0 0 240px !important;
-  width: 240px !important;
-  min-width: 0 !important;
-  margin-inline-start: 0 !important;
-  margin-inline-end: 0 !important;
-  border: 1px solid #e5e5e5 !important;
-  border-radius: 8px !important;
-  background: #fafafa !important;
-  box-shadow: none !important;
-  height: 34px !important;
-  font-size: 12px;
-  box-sizing: border-box;
-  overflow: hidden !important;
-  transition:
-    border-color 0.15s,
-    background-color 0.15s,
-    box-shadow 0.15s;
+  display: none !important;
 }
 
-.dumi-default-search-bar:hover,
-.dumi-default-search-bar:focus-within {
-  background: #ffffff;
-  border-color: rgba(37, 99, 235, 0.34) !important;
-  box-shadow:
-    0 0 0 3px rgba(37, 99, 235, 0.08) !important;
+/* hide the default dumi navbar; site.js rebuilds nav inside the capsule */
+.dumi-default-header-right > .dumi-default-navbar {
+  display: none !important;
 }
 
-.dumi-default-search-bar-input {
-  height: 32px !important;
-  min-width: 0 !important;
-  background: transparent;
-  border: 0 !important;
-  outline: 0 !important;
-  box-shadow: none !important;
-  appearance: none;
+/* nav links inside the capsule */
+.dumi-default-navbar > li > a {
+  /* contract reference — actual styling is on the cluster below */
 }
 
-.dumi-default-search-bar-input:focus {
-  outline: 0 !important;
-  box-shadow: none !important;
-}
-
-.dumi-default-search-shortcut {
-  flex: 0 0 auto !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  height: 20px !important;
-  min-width: 22px !important;
-  padding: 0 6px !important;
-  border: 1px solid #e5e5e5 !important;
-  border-radius: 5px !important;
-  outline: 0 !important;
-  background: rgba(255, 255, 255, 0.76) !important;
-  color: #737373 !important;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04) !important;
-  box-sizing: border-box !important;
-  filter: none !important;
-  font-size: 11px !important;
-  line-height: 1 !important;
-}
-
-/* nav hugs the brand; right-side tools are pushed away by the aside */
-.dumi-default-navbar {
-  flex: 0 1 auto !important;
-  margin-inline-start: 0 !important;
-  min-width: 0 !important;
-  overflow: hidden !important;
-  white-space: nowrap !important;
-}
-
-.dumi-default-navbar > li {
-  display: inline-flex !important;
-  align-items: center !important;
-  height: 56px !important;
-  margin: 0 !important;
-  font-family:
-    "Avenir Next", Avenir, "Inter", "SF Pro Text", "PingFang SC",
-    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  color: #5f6876;
-  flex: 0 0 auto;
-  line-height: 1.35 !important;
-  overflow: visible !important;
-}
-
-.dumi-default-navbar > li:not(:last-child) {
-  margin-inline-end: 4px !important;
-}
-
-.dumi-default-navbar > li > a,
-.dumi-default-navbar > li > span {
-  display: inline-flex !important;
-  align-items: center !important;
-  height: 28px !important;
-  padding: 0 7px !important;
-  font-family:
-    "Avenir Next", Avenir, "Inter", "SF Pro Text", "PingFang SC",
-    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  line-height: 1.35 !important;
-  overflow: visible !important;
-  border-radius: 7px;
-  transition: background-color 0.15s, color 0.15s;
-}
-
-.dumi-default-navbar > li > a:hover,
-.dumi-default-navbar > li > span:hover {
-  color: #171717;
-  background: #f5f5f5;
-}
-
-.dumi-default-navbar > li > a.active,
-.dumi-default-navbar > li > span.active,
-.dumi-default-navbar > li > .dumi-default-navbar-dropdown > li > a.active {
-  color: #171717;
-  font-weight: 500;
-  background: rgba(37, 99, 235, 0.07);
-}
-
-/* social icons / lang switch / etc come at the very end */
+/* dumi action buttons — base look (used inside .xmd-header-support) */
 .dumi-default-lang-switch,
 .dumi-default-rtl-switch,
 .dumi-default-color-switch,
@@ -245,61 +172,46 @@ a.dumi-default-icon,
   flex: 0 0 auto !important;
 }
 
+/* hide the RTL and color switches — only lang + github stay */
+.dumi-default-header .dumi-default-rtl-switch,
+.dumi-default-header .dumi-default-color-switch {
+  display: none !important;
+}
+
 .dumi-default-icon {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 34px !important;
-  height: 34px !important;
+  width: 36px !important;
+  height: 36px !important;
   border: 1px solid transparent !important;
   border-radius: 8px !important;
-  color: #0a0a0a !important;
+  color: #525252 !important;
   background: transparent !important;
   box-shadow: none !important;
   text-decoration: none !important;
-  text-decoration-line: none !important;
-  text-decoration-color: transparent !important;
-  transition: none !important;
+  transition: background-color 0.15s, color 0.15s;
 }
 
 a.dumi-default-icon:hover,
-a.dumi-default-icon:focus,
-a.dumi-default-icon:active,
-.dumi-default-icon:hover,
-.dumi-default-icon:focus,
-.dumi-default-icon:active {
+.dumi-default-icon:hover {
   border-color: transparent !important;
   color: #0a0a0a !important;
-  background: transparent !important;
+  background: #f4f4f5 !important;
   box-shadow: none !important;
   opacity: 1 !important;
-  text-decoration: none !important;
-  text-decoration-line: none !important;
-  text-decoration-color: transparent !important;
   transform: none !important;
 }
 
 .dumi-default-icon::after,
-.dumi-default-icon::before,
-.dumi-default-icon:hover::after,
-.dumi-default-icon:hover::before,
-.dumi-default-icon:focus::after,
-.dumi-default-icon:focus::before,
-.dumi-default-icon:active::after,
-.dumi-default-icon:active::before {
+.dumi-default-icon::before {
   display: none !important;
   content: none !important;
 }
 
 .dumi-default-icon > svg {
-  width: 17px;
-  height: 17px;
-  fill: currentColor !important;
-}
-
-.dumi-default-icon:hover > svg,
-.dumi-default-icon:focus > svg,
-.dumi-default-icon:active > svg {
+  width: 18px;
+  height: 18px;
   fill: currentColor !important;
 }
 
@@ -372,40 +284,91 @@ a.dumi-default-icon:active,
 }
 
 .xmd-search-results {
-  max-height: calc(min(540px, 100vh - 128px) - 56px);
-  overflow-y: auto;
-  padding: 8px;
+  padding: 0;
   box-sizing: border-box;
 }
 
+/* Modal owns its own scroll viewport; the popover owns the scroll on its
+   container, so the inner .xmd-search-results must not scroll there. */
+.xmd-search-modal .xmd-search-results {
+  max-height: calc(min(540px, 100vh - 128px) - 56px);
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.xmd-search-group + .xmd-search-group {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.xmd-search-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 4px;
+}
+
+.xmd-search-group-title {
+  color: #525252;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.xmd-search-group-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  color: #737373;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  background: #f4f4f5;
+  border-radius: 999px;
+}
+
+.xmd-search-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
 .xmd-search-result {
-  display: block;
-  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
   color: #171717;
   text-decoration: none;
-  border-radius: 7px;
+  border-radius: 8px;
+  transition: background 0.12s ease, box-shadow 0.18s ease;
 }
 
 .xmd-search-result:hover {
-  background: #f5f5f5;
+  background: #f6f6f7;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.xmd-search-result span,
-.xmd-search-result small {
-  display: block;
+.xmd-search-result-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #171717;
 }
 
-.xmd-search-result span {
-  font-size: 14px;
-  font-weight: 650;
-  line-height: 1.35;
-}
-
-.xmd-search-result small {
-  margin-top: 4px;
-  color: #737373;
+.xmd-search-result-desc {
   font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.4;
+  color: #737373;
+  /* Truncate at 1 line so long descriptions don't break the card height */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .xmd-search-empty {
@@ -418,18 +381,25 @@ a.dumi-default-icon:active,
 /* ----- doc layout ----- */
 
 .dumi-default-doc-layout {
-  background: transparent;
+  background: transparent !important;
+  background-color: transparent !important;
   font-family: inherit;
+}
+
+.dumi-default-doc-layout-mobile-bar {
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
 }
 
 .dumi-default-doc-layout > main {
   max-width: 1200px;
-  padding: 40px 32px 0;
-  gap: 32px;
+  padding: 52px 32px 0;
+  gap: 44px;
 }
 
 .dumi-default-content:not([data-no-sidebar]) {
-  padding: 36px 48px 0;
+  padding: 42px 56px 0;
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -453,57 +423,63 @@ a.dumi-default-icon:active,
 /* ----- sidebar ----- */
 
 .dumi-default-sidebar {
-  width: 220px;
-  padding: 16px 0 24px;
+  width: 228px;
+  padding: 18px 0 32px;
 }
 
 .dumi-default-sidebar dl {
-  margin-bottom: 22px;
+  margin: 0 0 34px;
 }
 
 .dumi-default-sidebar dl + dl {
-  margin-top: 8px;
-  padding-top: 16px;
+  margin-top: 6px;
+  padding-top: 26px;
   border-top: 1px solid #f0f0f0;
 }
 
 .dumi-default-sidebar dt {
-  margin: 0 0 6px;
+  margin: 0 0 22px;
   padding: 0 12px;
-  color: #737373;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  color: #9a9a9a;
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.25;
+  text-transform: none;
 }
 
 .dumi-default-sidebar dd {
-  padding: 2px 0;
+  padding: 0;
 }
 
 .dumi-default-sidebar dd > a {
-  display: block;
+  display: flex;
+  align-items: center;
   margin: 0;
+  min-height: 44px;
   padding: 7px 12px;
-  color: #525252;
-  font-size: 14px;
-  line-height: 1.4;
-  border-radius: 6px;
+  color: #202020;
+  font-size: 18px;
+  font-weight: 520;
+  line-height: 1.45;
+  border-radius: 8px;
   border: 0;
   transition: background-color 0.15s, color 0.15s;
 }
 
+.dumi-default-sidebar dd + dd {
+  margin-top: 18px;
+}
+
 .dumi-default-sidebar dd > a:hover {
   color: #171717;
-  background: #f5f5f5;
+  background: #f7f7f7;
 }
 
 .dumi-default-sidebar dd > a.active {
   color: #2563eb;
   font-weight: 600;
-  background: rgba(37, 99, 235, 0.06);
-  border-inline-start: 2px solid #2563eb;
-  padding-inline-start: 10px;
+  background: rgba(37, 99, 235, 0.09);
 }
 
 /* ----- TOC (right side) ----- */
@@ -637,7 +613,7 @@ a.dumi-default-icon:active,
   color: #171717;
   text-decoration: none;
   background: #ffffff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #f0f0f0;
   border-radius: 8px;
   box-sizing: border-box;
 }
@@ -648,7 +624,7 @@ a.dumi-default-icon:active,
 
 .markdown .xmd-doc-brief a:hover {
   border-color: rgba(37, 99, 235, 0.24);
-  box-shadow: 0 12px 28px #f0f0f0;
+  box-shadow: 0 10px 24px rgba(23, 23, 23, 0.06);
   transform: translateY(-1px);
 }
 
@@ -2446,3 +2422,1343 @@ body[data-xmd-debug="true"] .xmd-home > * {
   }
 }
 
+/* ===== home v4 — elegant light hero (Vercel-like) ===== */
+
+.markdown .xmd-hero {
+  position: relative;
+  width: 100vw;
+  left: 50%;
+  transform: translateX(-50%);
+  min-height: calc(100vh - 64px);
+  margin-top: -42px;
+  margin-bottom: -40px;
+  padding: 96px 0 64px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* The global page bg (body::before + ::after) now owns the gradient + grid.
+   This local element is kept as a structural slot but paints nothing so the
+   hero shares the exact same paint as the header and main. */
+.markdown .xmd-hero-bg,
+.markdown .xmd-hero-bg::after {
+  background: transparent;
+  content: none;
+}
+
+.markdown .xmd-hero-inner {
+  width: 100%;
+  max-width: 1100px;
+  padding: 0 48px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.markdown .xmd-hero-wordmark,
+.markdown .xmd-hero-slogan,
+.markdown .xmd-hero-headline {
+  margin: 0;
+  color: #0a0a0a;
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.markdown .xmd-hero-subtitle {
+  max-width: 720px;
+  margin: 20px 0 0;
+  color: #525252;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-wrap: balance;
+}
+
+.markdown .xmd-hero-slogan {
+  margin-top: 4px;
+}
+
+.markdown .xmd-hero-i {
+  position: relative;
+  display: inline-block;
+}
+
+.markdown .xmd-hero-star {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  transform: translateX(-50%);
+  color: var(--xmd-accent);
+  fill: currentColor;
+}
+
+.markdown .xmd-hero-desc {
+  max-width: 640px;
+  margin: 24px 0 0;
+  color: #525252;
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.55;
+  text-wrap: balance;
+}
+
+/* Row that holds the install pill + the docs CTA. Stacks vertically on
+   small screens; keeps the install pill and the docs button at the same
+   height for a clean line-up. */
+.markdown .xmd-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+/* Docs CTA button — shadcn outline variant: same white-with-thin-border
+   rectangle as the install pill, hover lightens to the accent surface.
+   The arrow icon nudges forward on hover for affordance. */
+.markdown .xmd-hero-doc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  background: #ffffff;
+  color: #0a0a0a;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  box-sizing: border-box;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.markdown .xmd-hero-doc-btn:hover {
+  background: #f4f4f5;
+  border-color: #d4d4d4;
+}
+
+.markdown .xmd-hero-doc-btn:focus-visible {
+  outline: 0;
+  border-color: #0a0a0a;
+  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.08);
+}
+
+.markdown .xmd-hero-doc-btn svg {
+  color: #525252;
+  transition: transform 0.18s ease;
+}
+
+.markdown .xmd-hero-doc-btn:hover svg {
+  transform: translateX(2px);
+}
+
+/* Install command — input-group style rectangle (inspired by shadcn/ui
+   `input-group`): [ $ ][ npm i x-markdown-mini ][ copy ]
+   The outer container carries `data-xmd-copy`, so site.js's onClick handler
+   matches it from anywhere inside (button click bubbles up to the outer).
+   `flash()` toggles data-copied="true" for ~1.4s, which swaps the copy
+   icon to a green check. */
+.markdown .xmd-hero-install {
+  display: inline-flex;
+  align-items: stretch;
+  height: 40px;
+  margin-top: 0;
+  padding: 0;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 14px;
+  line-height: 1;
+  color: #0a0a0a;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.markdown .xmd-hero-install:hover {
+  border-color: #c4c4c4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.markdown .xmd-hero-install:focus-within {
+  border-color: #0a0a0a;
+  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.08);
+}
+
+.markdown .xmd-hero-install-addon {
+  display: inline-flex;
+  align-items: center;
+  color: #a3a3a3;
+  font: inherit;
+  user-select: none;
+}
+
+.markdown .xmd-hero-install-addon-start {
+  padding: 0 8px 0 14px;
+}
+
+.markdown .xmd-hero-install-addon-end {
+  padding: 0 4px 0 0;
+}
+
+.markdown .xmd-hero-install-cmd {
+  display: inline-flex;
+  align-items: center;
+  flex: 1 1 auto;
+  padding: 0 8px;
+  color: #0a0a0a;
+  font: inherit;
+  background: transparent;
+  border-radius: 0;
+  white-space: nowrap;
+  user-select: all;
+}
+
+.markdown .xmd-hero-install-copy {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #737373;
+  cursor: pointer;
+  appearance: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.markdown .xmd-hero-install-copy:hover {
+  background: #f4f4f5;
+  color: #0a0a0a;
+}
+
+.markdown .xmd-hero-install-copy:focus-visible {
+  outline: 2px solid rgba(10, 10, 10, 0.4);
+  outline-offset: 2px;
+}
+
+.markdown .xmd-hero-install-copy svg {
+  position: absolute;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.markdown .xmd-hero-install-check {
+  opacity: 0;
+  transform: scale(0.6);
+  color: #16a34a;
+}
+
+.markdown .xmd-hero-install[data-copied='true'] .xmd-hero-install-copy-icon {
+  opacity: 0;
+  transform: scale(0.6);
+}
+
+.markdown .xmd-hero-install[data-copied='true'] .xmd-hero-install-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.markdown .xmd-hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
+  justify-content: center;
+}
+
+.markdown .xmd-hero-cta a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 24px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  box-sizing: border-box;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.markdown .xmd-hero-cta-primary {
+  background: #0a0a0a;
+  color: #ffffff;
+  border: 1px solid #0a0a0a;
+}
+
+.markdown .xmd-hero-cta-primary:hover {
+  background: #1a1a1a;
+  transform: translateY(-1px);
+}
+
+.markdown .xmd-hero-cta-secondary {
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  color: #0a0a0a;
+}
+
+.markdown .xmd-hero-cta-secondary:hover {
+  background: #fafafa;
+  border-color: #d4d4d4;
+  transform: translateY(-1px);
+}
+
+/* ----- glass header over the dark hero ----- */
+/* The header keeps a single elegant Vercel-like look across all pages.
+   The classes below are intentionally minimal: they remain so older
+   contract checks (body.xmd-homepage, body.xmd-over-hero) still resolve,
+   but they no longer override layout. */
+
+.dumi-default-header {
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+body.xmd-homepage .dumi-default-header,
+body.xmd-over-hero .dumi-default-header {
+  /* same look on all pages */
+}
+
+/* ----- scroll-shrink mini pill state ----- */
+/* .xmd-mini is set by site.js when the user scrolls past the hero. Kept as a
+   no-op style hook so the contract still resolves; we no longer shrink the
+   header into a pill — it stays consistent across scroll. */
+
+.dumi-default-header.xmd-mini {
+  /* reserved hook */
+}
+
+/* ----- responsive hero ----- */
+
+@media (max-width: 1024px) {
+  .markdown .xmd-hero-inner {
+    padding: 0 32px;
+  }
+  .markdown .xmd-hero-wordmark,
+  .markdown .xmd-hero-slogan,
+  .markdown .xmd-hero-headline {
+    font-size: 48px;
+  }
+  .markdown .xmd-hero-subtitle {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 767px) {
+  .markdown .xmd-hero {
+    min-height: 520px;
+    margin-top: -20px;
+  }
+  .markdown .xmd-hero-inner {
+    align-items: center;
+    text-align: center;
+    padding: 0 24px;
+  }
+  .markdown .xmd-hero-wordmark,
+  .markdown .xmd-hero-slogan,
+  .markdown .xmd-hero-headline {
+    font-size: 34px;
+    line-height: 1.2;
+  }
+  .markdown .xmd-hero-subtitle {
+    font-size: 15px;
+    margin-top: 16px;
+  }
+  .markdown .xmd-hero-star {
+    width: 18px;
+    height: 18px;
+    top: -4px;
+  }
+  .markdown .xmd-hero-desc {
+    font-size: 16px;
+    margin: 20px 0 0;
+    max-width: 100%;
+  }
+  .markdown .xmd-hero-cta {
+    width: 100%;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .markdown .xmd-hero-cta a {
+    width: 100%;
+    height: 50px;
+    padding: 0 24px;
+    font-size: 16px;
+  }
+}
+
+/* ----- x-style content sections ----- */
+
+.markdown .xmd-home-x {
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  background:
+    radial-gradient(80% 40% at 100% 12%, rgba(37, 99, 235, 0.16), transparent 60%),
+    linear-gradient(180deg, #11161b 0%, #0c0f13 54%, #15191e 100%);
+}
+
+.markdown .xmd-home-section {
+  max-width: 1208px;
+  margin: 0 auto;
+  padding: 92px 48px;
+  box-sizing: border-box;
+}
+
+.markdown .xmd-section-head {
+  max-width: 760px;
+  margin-bottom: 42px;
+}
+
+.markdown .xmd-section-head h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 44px;
+  font-weight: 760;
+  line-height: 1.18;
+}
+
+.markdown .xmd-section-head p {
+  margin: 16px 0 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.markdown .xmd-rich-panel,
+.markdown .xmd-scenes-preview,
+.markdown .xmd-framework-grid a,
+.markdown .xmd-component-grid article,
+.markdown .xmd-solution-grid article {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
+    rgba(255, 255, 255, 0.04);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+}
+
+.markdown .xmd-rich-panel {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 40px;
+  align-items: center;
+  min-height: 360px;
+  padding: 42px;
+  border-radius: 24px;
+}
+
+.markdown .xmd-rich-word {
+  font-size: 108px;
+  font-weight: 800;
+  line-height: 1;
+  color: transparent;
+  background: linear-gradient(120deg, #ffffff 8%, #7db2ff 56%, #9ef3ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: 0 0 50px rgba(37, 99, 235, 0.35);
+}
+
+.markdown .xmd-rich-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.markdown .xmd-rich-grid article {
+  min-height: 120px;
+  padding: 22px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.markdown .xmd-rich-grid strong {
+  display: block;
+  color: #fff;
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.markdown .xmd-rich-grid span {
+  display: block;
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.markdown .xmd-solution-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.markdown .xmd-solution-grid article {
+  min-height: 320px;
+  padding: 28px;
+  border-radius: 20px;
+}
+
+.markdown .xmd-solution-grid span {
+  color: #7db2ff;
+  font-size: 24px;
+  font-weight: 760;
+}
+
+.markdown .xmd-solution-grid h3,
+.markdown .xmd-component-grid h3 {
+  margin: 16px 0 0;
+  color: #fff;
+  font-size: 25px;
+  line-height: 1.3;
+}
+
+.markdown .xmd-solution-grid p,
+.markdown .xmd-component-grid p {
+  margin: 14px 0 0;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.markdown .xmd-solution-grid a {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.markdown .xmd-scenes-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 28px;
+}
+
+.markdown .xmd-scenes-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.markdown .xmd-scenes-tabs article {
+  min-height: 86px;
+  padding: 16px;
+  border-radius: 20px;
+  box-sizing: border-box;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.markdown .xmd-scenes-tabs article.is-active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.markdown .xmd-scenes-tabs h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+.markdown .xmd-scenes-tabs p {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.markdown .xmd-scenes-preview {
+  min-height: 560px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(60% 70% at 70% 12%, rgba(125, 178, 255, 0.2), transparent 62%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.04));
+}
+
+.markdown .xmd-phone-card {
+  width: min(430px, calc(100% - 56px));
+  padding: 22px;
+  border-radius: 30px;
+  background: rgba(10, 13, 18, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+}
+
+.markdown .xmd-phone-top {
+  width: 82px;
+  height: 6px;
+  margin: 0 auto 24px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.markdown .xmd-chat-line {
+  max-width: 86%;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.markdown .xmd-chat-line.is-user {
+  margin-left: auto;
+  color: #102048;
+  background: linear-gradient(90deg, #d8e8ff, #fff);
+}
+
+.markdown .xmd-chat-line.is-bot {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.markdown .xmd-chat-line.small {
+  font-size: 14px;
+}
+
+.markdown .xmd-chat-code {
+  margin-top: 14px;
+  padding: 14px 16px;
+  color: #c8ddff;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 14px;
+  border-radius: 14px;
+  background: rgba(37, 99, 235, 0.16);
+  border: 1px solid rgba(125, 178, 255, 0.2);
+}
+
+.markdown .xmd-component-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.markdown .xmd-component-grid article {
+  min-height: 176px;
+  padding: 26px;
+  border-radius: 20px;
+}
+
+.markdown .xmd-framework-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.markdown .xmd-framework-grid a {
+  min-height: 140px;
+  padding: 24px;
+  border-radius: 20px;
+  text-decoration: none;
+}
+
+.markdown .xmd-framework-grid strong {
+  display: block;
+  color: #fff;
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+.markdown .xmd-framework-grid span {
+  display: block;
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 1024px) {
+  .markdown .xmd-home-section {
+    padding: 76px 32px;
+  }
+  .markdown .xmd-rich-panel,
+  .markdown .xmd-scenes-layout {
+    grid-template-columns: 1fr;
+  }
+  .markdown .xmd-solution-grid,
+  .markdown .xmd-component-grid,
+  .markdown .xmd-framework-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .markdown .xmd-home-section {
+    padding: 56px 24px;
+  }
+  .markdown .xmd-section-head h2 {
+    font-size: 30px;
+  }
+  .markdown .xmd-section-head p {
+    font-size: 15px;
+  }
+  .markdown .xmd-rich-panel {
+    padding: 24px;
+  }
+  .markdown .xmd-rich-word {
+    font-size: 62px;
+  }
+  .markdown .xmd-rich-grid,
+  .markdown .xmd-solution-grid,
+  .markdown .xmd-component-grid,
+  .markdown .xmd-framework-grid {
+    grid-template-columns: 1fr;
+  }
+  .markdown .xmd-scenes-preview {
+    min-height: 430px;
+  }
+}
+
+/* ----- x-style information footer (RcFooter light, mirrors x.ant.design) ----- */
+
+.xmd-site-footer.rc-footer {
+  position: relative;
+  width: 100%;
+  color: rgba(0, 0, 0, 0.65);
+  /* Approximates x's tokenized footer bg (FastColor of #f0f3fa on white). */
+  background: #f0f3fa;
+  font-size: 14px;
+  line-height: 1.5715;
+  box-shadow: inset 0 106px 36px -116px rgba(0, 0, 0, 0.14);
+}
+
+.xmd-site-footer.rc-footer *,
+.xmd-site-footer.rc-footer *::before,
+.xmd-site-footer.rc-footer *::after {
+  box-sizing: border-box;
+}
+
+.xmd-site-footer .rc-footer-container {
+  max-width: 1208px;
+  margin: 0 auto;
+  padding: 64px 48px 80px;
+}
+
+.xmd-site-footer .rc-footer-columns {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.xmd-site-footer .rc-footer-column {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.xmd-site-footer .rc-footer-column h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 24px;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.xmd-site-footer .rc-footer-column-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+}
+
+.xmd-site-footer .rc-footer-column-icon img {
+  width: 22px;
+  height: 22px;
+}
+
+.xmd-site-footer .rc-footer-item {
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.xmd-site-footer .rc-footer-item a {
+  display: inline;
+  color: rgba(0, 0, 0, 0.65);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.xmd-site-footer .rc-footer-item a:hover {
+  color: #0a0a0a;
+}
+
+.xmd-site-footer .rc-footer-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-end: 8px;
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+  font-size: 16px;
+}
+
+.xmd-site-footer .rc-footer-item-icon .anticon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.xmd-site-footer .rc-footer-item-icon .anticon > svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.xmd-site-footer .rc-footer-item-icon img {
+  width: 16px;
+  height: 16px;
+}
+
+.xmd-site-footer .rc-footer-item-separator {
+  display: inline-block;
+  margin: 0 6px;
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.xmd-site-footer .rc-footer-item-description {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+}
+
+.xmd-site-footer .rc-footer-bottom {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 106px 36px -116px rgba(0, 0, 0, 0.14);
+}
+
+.xmd-site-footer .rc-footer-bottom-container {
+  max-width: 1208px;
+  margin: 0 auto;
+  padding: 16px 48px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.xmd-site-footer .rc-footer-bottom-container > div:first-child {
+  margin-bottom: 4px;
+}
+
+.xmd-site-footer-heart {
+  color: #ef4444;
+}
+
+@media (max-width: 1024px) {
+  .xmd-site-footer .rc-footer-container {
+    padding: 48px 32px 60px;
+  }
+  .xmd-site-footer .rc-footer-columns {
+    flex-wrap: wrap;
+    gap: 32px 24px;
+  }
+  .xmd-site-footer .rc-footer-column {
+    flex: 0 0 calc(50% - 12px);
+  }
+  .xmd-site-footer .rc-footer-bottom-container {
+    padding: 16px 32px;
+  }
+}
+
+@media (max-width: 767px) {
+  .xmd-site-footer .rc-footer-container {
+    padding: 36px 24px 48px;
+  }
+  .xmd-site-footer .rc-footer-column {
+    flex: 0 0 100%;
+  }
+  .xmd-site-footer .rc-footer-bottom-container {
+    padding: 16px 24px;
+  }
+}
+
+/* ===== floating capsule nav + floating actions pill ===== */
+
+/* the whole header floats — no bar, no background. Each piece (logo on the
+   left, capsule in the center, actions pill on the right) is independently
+   anchored above the page. */
+.dumi-default-header-content {
+  position: relative !important;
+  height: 80px !important;
+  padding: 0 24px !important;
+  background: transparent !important;
+}
+
+.dumi-default-header-left {
+  position: relative;
+  z-index: 3;
+}
+
+.dumi-default-header-right {
+  position: static !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  height: 100%;
+  z-index: 2;
+  background: transparent !important;
+}
+
+.dumi-default-header-right-aside {
+  display: none !important;
+}
+
+/* the capsule nav, absolute-centered over the entire header */
+.xmd-nav-cluster {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 48px;
+  padding: 0 6px;
+  border: 1px solid #eaeaea;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+/* search icon button — the first item in the capsule, opens the modal */
+.xmd-search-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #525252;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s, color 0.15s, opacity 0.25s, width 0.3s;
+}
+
+/* Inline expanded search inside the capsule.
+   Mirrors x's .dumi/theme/slots/Header/SearchBar.tsx pattern:
+   the trigger button and the input wrapper are flex siblings inside
+   .xmd-search-shell. On open, the trigger button hides (display: none)
+   and the wrapper grows from width:0 to a fixed expanded width with an
+   opacity fade. Nav links to the right stay visible the whole time;
+   the capsule simply gets wider. */
+.xmd-search-shell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.xmd-search-inline {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background: #f4f4f5;
+  border-radius: 999px;
+  box-sizing: border-box;
+  transition: width 0.3s ease, opacity 0.3s ease, padding 0.3s ease, background 0.2s;
+}
+
+.xmd-search-inline-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #737373;
+  margin-inline-end: 6px;
+}
+
+.xmd-search-inline-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.xmd-search-inline input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  color: #171717;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.xmd-search-inline input::placeholder {
+  color: #a3a3a3;
+}
+
+.xmd-search-inline input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.xmd-search-inline kbd {
+  flex: 0 0 auto;
+  margin-inline-start: 6px;
+  padding: 2px 6px;
+  color: #737373;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.xmd-search-inline kbd:hover {
+  color: #0a0a0a;
+  background: #fafafa;
+}
+
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-trigger {
+  display: none;
+}
+
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-inline {
+  width: 220px;
+  padding: 0 10px;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-inline:focus-within {
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #d4d4d4;
+}
+
+/* Popover anchored under the expanded input. Hidden until the input is
+   open; drops in once the width animation has had a moment to settle. */
+.xmd-search-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  width: min(420px, calc(100vw - 32px));
+  max-height: 440px;
+  overflow-y: auto;
+  padding: 6px;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-popover {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition-delay: 0.18s;
+}
+
+.xmd-search-popover .xmd-search-empty {
+  padding: 22px 14px;
+  font-size: 13px;
+  color: #737373;
+  text-align: center;
+}
+
+.xmd-search-trigger:hover {
+  background: #f4f4f5;
+  color: #0a0a0a;
+}
+
+.xmd-search-trigger:focus-visible {
+  outline: 2px solid rgba(10, 10, 10, 0.4);
+  outline-offset: 2px;
+}
+
+.xmd-search-trigger > svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* nav links inside the capsule */
+.xmd-nav-cluster .xmd-nav-link {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: rgba(0,0,0,0.65);
+  font-size: 16px;
+  text-decoration: none;
+  letter-spacing: -0.005em;
+  transition: background-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.xmd-nav-cluster .xmd-nav-link:hover {
+  color: #0a0a0a;
+  font-weight: 500;
+}
+
+.xmd-nav-cluster .xmd-nav-link.active {
+  color: #0a0a0a;
+  font-weight: 500;
+}
+
+/* right-side actions: version select + lang switch + GitHub icon. No pill bg;
+   items sit directly on the page. */
+.xmd-header-support {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.xmd-header-support .dumi-default-lang-switch,
+.xmd-header-support .dumi-default-icon {
+  display: none !important;
+}
+
+.xmd-header-support .dumi-default-rtl-switch,
+.xmd-header-support .dumi-default-color-switch {
+  display: none !important;
+}
+
+/* generic pill button shared by lang/version/github inside the right pill */
+.xmd-header-support .xmd-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #525252;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.xmd-header-support .xmd-pill-btn:hover {
+  background: #f4f4f5;
+  color: #0a0a0a;
+}
+
+.xmd-header-support .xmd-pill-btn > svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+/* version select — minimal native select inside the pill */
+.xmd-version-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.xmd-version-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  height: 32px;
+  padding: 0 24px 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #525252;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: 0;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.xmd-version-select:hover {
+  background: #f4f4f5;
+  color: #0a0a0a;
+}
+
+.xmd-version-select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -5px;
+  border-right: 1.5px solid #737373;
+  border-bottom: 1.5px solid #737373;
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+/* x-style language switch: two overlapping mini squares "中" / "En" */
+.xmd-lang-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #0a0a0a;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.xmd-lang-switch:hover {
+  background: #f4f4f5;
+}
+
+.xmd-lang-switch .xmd-lang-inner {
+  position: relative;
+  width: 18px;
+  height: 18px;
+}
+
+.xmd-lang-switch .xmd-lang-label {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 12px;
+  line-height: 1;
+  border: 1px solid #0a0a0a;
+  color: #0a0a0a;
+  border-radius: 2px;
+  box-sizing: border-box;
+  letter-spacing: 0;
+}
+
+.xmd-lang-switch .xmd-lang-primary {
+  inset-inline-start: 0;
+  top: 0;
+  z-index: 1;
+  background: #0a0a0a;
+  color: #ffffff;
+  transform: scale(0.85);
+  transform-origin: 0 0;
+}
+
+.xmd-lang-switch .xmd-lang-secondary {
+  inset-inline-end: 0;
+  bottom: 0;
+  z-index: 0;
+  background: transparent;
+  color: #0a0a0a;
+  transform: scale(0.65);
+  transform-origin: 100% 100%;
+}
+
+/* divider inside the right pill */
+.xmd-header-support .xmd-support-sep {
+  width: 1px;
+  height: 18px;
+  background: #eaeaea;
+  margin: 0 4px;
+}
+
+/* responsive */
+@media (max-width: 1024px) {
+  .dumi-default-header-content {
+    padding: 0 20px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .dumi-default-header-content {
+    height: 56px !important;
+    padding: 0 16px !important;
+  }
+  .xmd-nav-cluster {
+    display: none !important;
+  }
+  .xmd-version-select-wrap {
+    display: none;
+  }
+}
