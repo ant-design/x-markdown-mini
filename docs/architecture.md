@@ -37,7 +37,7 @@ interface MiniNode {
 }
 ```
 
-组件渲染路径会把 inline 树拍平为小程序 `<text>` 友好的节点。动画通过 `animate: 'block'` 标记，由 NodesRenderer 组件映射为 `md-animate-block`。
+组件渲染路径会把 inline 树拍平为小程序 `<text>` 友好的节点。动画通过 `animate: 'block'` 标记，由 MiniNodeRenderer 组件映射为 `md-animate-block`。
 
 ### 3. 公共 MiniNode renderer 与平台 adapter（`src/platforms/`）
 

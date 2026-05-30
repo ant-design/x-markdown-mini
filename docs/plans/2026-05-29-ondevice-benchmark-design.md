@@ -32,7 +32,7 @@ Same-caliber competitors — markdown → mini-program node tree:
 
 | Renderer | Lineage / notes | WeChat | Alipay |
 |---|---|---|---|
-| **x-markdown-mini** (this repo, components/NodesRenderer path) | streaming-aware: stable-block commit + tail `remend` fixup, component-isolated `setData` | ✅ | ✅ |
+| **x-markdown-mini** (this repo, components/MiniNodeRenderer path) | streaming-aware: stable-block commit + tail `remend` fixup, component-isolated `setData` | ✅ | ✅ |
 | **towxml** 3.0 | most active rival; markdown/HTML→WXML node tree, one-shot `setData`, highlight-on by default | ✅ | — |
 | **wemark** | unmaintained; author recommends native instead. Historical reference | ✅ | — |
 | **markdown-x-mini** (tnpm) | Ant-internal Alipay component (words-reversed sibling/predecessor of this repo). Install via tnpm | — | ✅ |

@@ -19,7 +19,7 @@ pnpm add @ant-design/x-markdown-mini
 
 ### A. 直接用现成的小程序组件（推荐）
 
-包内附带了开箱即用的 **Markdown** / **NodesRenderer** 小程序组件。**支付宝、微信使用同一条路径**——
+包内附带了开箱即用的 **Markdown** / **MiniNodeRenderer** 小程序组件。**支付宝、微信使用同一条路径**——
 微信开发者工具读取 `package.json#miniprogram` 字段，自动解析到 wechat 子树；支付宝则走默认包根。
 
 ```jsonc
@@ -70,9 +70,13 @@ const nodes = renderNodes({
 ```
 
 ```xml
-<!-- 也可以直接交给小程序原生节点容器 -->
-<rich-text nodes="{{nodes}}" />
+<!-- 交给内置的 MiniNodeRenderer 组件渲染（原生 text/view/image/scroll-view） -->
+<mini-node-renderer nodes="{{nodes}}" />
 ```
+
+> 注意：我们**自己渲染**这棵 `MiniNode` 树，而不是喂给原生 `<rich-text>`。
+> `<rich-text>` 是「HTML 富文本」渲染器，会重新套用标签/属性白名单、屏蔽事件、且无法做逐节点动画——
+> 既然节点树已是我们自己构建的结构化数据，直接用 `MiniNodeRenderer` 渲染更合适。
 
 ### C. 仅解析 Markdown，自己适配
 

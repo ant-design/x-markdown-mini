@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>x-markdown-mini · 小程序渲染器性能对比</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.6 -apple-system, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; color: #1f2329; background: #f5f6f8; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px 64px; }
+  header h1 { font-size: 26px; margin: 0 0 6px; }
+  header p { color: #6b7280; margin: 0 0 4px; }
+  .hero { background: linear-gradient(135deg,#1677ff,#3b82f6); color:#fff; border-radius:16px; padding:24px 28px; margin:24px 0; box-shadow:0 8px 24px rgba(22,119,255,.25); }
+  .hero .big { font-size:40px; font-weight:800; line-height:1.1; }
+  .hero .big small { font-size:16px; font-weight:500; opacity:.85; }
+  .hero .sub { opacity:.9; margin-top:6px; }
+  .legend { display:flex; flex-wrap:wrap; gap:16px; margin:16px 0 24px; }
+  .lg { display:flex; align-items:center; gap:6px; font-size:13px; color:#4b5563; }
+  .lg i { width:12px; height:12px; border-radius:3px; display:inline-block; }
+  .lg small { color:#9ca3af; margin-left:4px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:28px; }
+  .card { background:#fff; border:1px solid #eceef1; border-radius:12px; padding:16px; }
+  .card.hl { border-color:#1677ff; box-shadow:0 2px 10px rgba(22,119,255,.12); }
+  .card .cn { font-size:13px; color:#6b7280; }
+  .card .cv { font-size:26px; font-weight:700; margin:4px 0; }
+  .card .cv span { font-size:12px; font-weight:500; color:#9ca3af; margin-left:4px; }
+  .card .cr { font-size:12px; color:#6b7280; }
+  .sample { background:#fff; border:1px solid #eceef1; border-radius:12px; padding:16px 18px; margin-bottom:14px; }
+  .sample h3 { margin:0 0 12px; font-size:15px; }
+  .sample h3 small { font-weight:400; color:#9ca3af; font-size:12px; margin-left:8px; }
+  .row { display:grid; grid-template-columns:150px 1fr 130px 120px; align-items:center; gap:10px; padding:5px 0; }
+  .rl { font-size:13px; color:#374151; }
+  .rb { background:#f1f3f5; border-radius:6px; height:18px; overflow:hidden; }
+  .bar { height:100%; border-radius:6px; transition:width .3s; }
+  .rv { font-size:12px; text-align:right; color:#374151; }
+  .rv small { color:#9ca3af; }
+  .rr { font-size:12px; color:#6b7280; text-align:right; }
+  .rr.me { color:#1677ff; font-weight:600; }
+  footer { color:#9ca3af; font-size:12px; margin-top:24px; line-height:1.7; }
+  .note { background:#fffbe6; border:1px solid #ffe58f; border-radius:10px; padding:12px 16px; font-size:13px; color:#7c6f00; margin:18px 0; line-height:1.7; }
+  .caveat { background:#fff7e6; border-left:3px solid #ffa940; padding:6px 10px; font-size:12px; color:#ad6800; border-radius:4px; margin:0 0 10px; }
+  @media (max-width:640px){ .row{grid-template-columns:96px 1fr; } .rv,.rr{grid-column:2; text-align:left; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>小程序 Markdown 渲染器性能对比</h1>
+    <p>x-markdown-mini vs towxml（+ marked / markdown-it 解析参照）</p>
+    <p>Node v20.19.5 · 2026-05-30T11:34:14.146Z · 每项 400ms / warmup 50</p>
+  </header>
+
+  <div class="hero">
+    <div class="big">1.40× <small>更快 vs towxml（中位数）</small></div>
+    <div class="sub">
+      同口径（markdown → 可渲染节点树）逐样本吞吐比的中位数，跨 8 个语料；
+      geomean 2.18× · 真实长文场景 10.18× · 5/8 样本占优。
+    </div>
+  </div>
+
+  <div class="note">
+    <b>结论要点（实事求是）</b>：x-markdown-mini 在<b>真实长文、表格、标题、链接</b>等场景明显更快，
+    尤其 <b>AI 长文（10.2×）</b>——这正是流式聊天主场景；而在<b>深度嵌套的小语料</b>
+    （嵌套引用 / 嵌套列表）上 towxml 更快（其底层 markdown-it 解析更快，x-mini 用 marked）。
+    代码块那条是 towxml 默认高亮所致，非完全同口径。中位数 1.40× 比 geomean 更能代表整体。
+  </div>
+
+  <div class="legend"><span class="lg"><i style="background:#1677ff"></i>x-markdown-mini<small>markdown → 微信节点树（完整）</small></span><span class="lg"><i style="background:#fa8c16"></i>towxml<small>markdown → wxml 节点树（完整）</small></span><span class="lg"><i style="background:undefined"></i>mp-html<small>markdown → html → 节点树（完整）</small></span><span class="lg"><i style="background:#bfbfbf"></i>marked (仅 lex)<small>仅解析成 token，不建树</small></span><span class="lg"><i style="background:#d9d9d9"></i>markdown-it (仅 parse)<small>仅解析成 token，不建树</small></span></div>
+
+  <h2 style="font-size:16px;margin:0 0 12px;">综合（几何平均 ops/sec）</h2>
+  <div class="cards">
+      <div class="card hl">
+        <div class="cn">x-markdown-mini</div>
+        <div class="cv" style="color:#1677ff">28.6k<span>ops/s</span></div>
+        <div class="cr">1.00× vs x-mini</div>
+      </div>
+      <div class="card ">
+        <div class="cn">towxml</div>
+        <div class="cv" style="color:#fa8c16">13.1k<span>ops/s</span></div>
+        <div class="cr">0.46× vs x-mini</div>
+      </div>
+      <div class="card ">
+        <div class="cn">mp-html</div>
+        <div class="cv" style="color:undefined">14.8k<span>ops/s</span></div>
+        <div class="cr">0.52× vs x-mini</div>
+      </div>
+      <div class="card ">
+        <div class="cn">marked (仅 lex)</div>
+        <div class="cv" style="color:#bfbfbf">38.4k<span>ops/s</span></div>
+        <div class="cr">1.34× vs x-mini</div>
+      </div>
+      <div class="card ">
+        <div class="cn">markdown-it (仅 parse)</div>
+        <div class="cv" style="color:#d9d9d9">77.4k<span>ops/s</span></div>
+        <div class="cr">2.70× vs x-mini</div>
+      </div></div>
+
+  <div class="note">
+    口径：<b>x-markdown-mini</b> 与 <b>towxml</b> 均产出「markdown → 可渲染节点树」（小程序 setData 形态），是真正同口径的对比；
+    <b>marked</b>/<b>markdown-it</b> 仅解析成 token、不建节点树，列为解析下界参照——x-markdown-mini 做得更多。
+  </div>
+
+  <h2 style="font-size:16px;margin:24px 0 12px;">分语料明细（横条越长越快）</h2>
+  
+      <section class="sample">
+        <h3>标题 Headings <small>block-heading.md · 0.1 KB</small></h3>
+        
+        
+          <div class="row">
+            <div class="rl">x-markdown-mini</div>
+            <div class="rb"><div class="bar" style="width:58.8%;background:#1677ff"></div></div>
+            <div class="rv">114.3k <small>ops/s · ±0.6%</small></div>
+            <div class="rr me">基准</div>
+          </div>
+          <div class="row">
+            <div class="rl">towxml</div>
+            <div class="rb"><div class="bar" style="width:40.5%;background:#fa8c16"></div></div>
+            <div class="rv">78.7k <small>ops/s · ±0.5%</small></div>
+            <div class="rr ">x-mini 快 1.45×</div>
+          </div>
+          <div class="row">
+            <div class="rl">mp-html</div>
+            <div class="rb"><div class="bar" style="width:30.5%;background:undefined"></div></div>
+            <div class="rv">59.3k <small>ops/s · ±0.5%</small></div>
+            <div class="rr ">x-mini 快 1.93×</div>
+          </div>
+          <div class="row">
+            <div class="rl">marked (仅 lex)</div>
+            <div class="rb"><div class="bar" style="width:76.4%;background:#bfbfbf"></div></div>
+            <div class="rv">148.6k <small>ops/s · ±0.4%</small></div>
+            <div class="rr ">x-mini 0.77×</div>
+          </div>
+          <div class="row">
+            <div class="rl">markdown-it (仅 parse)</div>
+            <div class="rb"><div class="bar" style="width:100.0%;background:#d9d9d9"></div></div>
+            <div class="rv">194.4k <small>ops/s · ±0.4%</small></div>
+            <div class="rr ">x-mini 0.59×</div>
+          </div>
+      </section>
+      <section class="sample">
+        <h3>嵌套列表 Nested list <small>block-list-nested.md · 0.4 KB</small></h3>
+        
+        
+          <div class="row">
+            <div class="rl">x-markdown-mini</div>
+            <div class="rb"><div class="bar" style="width:19.0%;background:#1677ff"></div></div>
+            <div class="rv">9.2k <small>ops/s · ±1.0%</small></div>
+            <div class="rr me">基准</div>
+          </div>
+          <div class="row">
+            <div class="rl">towxml</div>
+            <div class="rb"><div class="bar" style="width:29.8%;background:#fa8c16"></div></div>
+            <div class="rv">14.4k <small>ops/s · ±0.6%</small></div>
+            <div class="rr ">x-mini 0.64×</div>
+          </div>
+          <div class="row">
+            <div class="rl">mp-html</div>
+            <div class="rb"><div class="bar" style="width:12.1%;background:undefined"></div></div>
+            <div class="rv">5.9k <small>ops/s · ±0.5%</small></div>
+            <div class="rr ">x-mini 快 1.56×</div>
+          </div>
+          <div class="row">
+            <div class="rl">marked (仅 lex)</div>
+            <div class="rb"><div class="bar" style="width:20.3%;background:#bfbfbf"></div></div>
+            <div class="rv">9.8k <small>ops/s · ±0.5%</small></div>
+            <div class="rr ">x-mini 0.94×</div>
+          </div>
+          <div class="row">
+            <div class="rl">markdown-it (仅 parse)</div>
+            <div class="rb"><div class="bar" style="width:100.0%;background:#d9d9d9"></div></div>
+            <div class="rv">48.4k <small>ops/s · ±0.5%</small></div>
+            <div class="rr ">x-mini 0.19×</div>
+          </div>
+      </section>
+      <section class="sample">
+        <h3>表格 Tables <small>block-tables.md · 0.5 KB</small></h3>
+        
+        
+          <div class="row">
+            <div class="rl">x-markdown-mini</div>
+            <div class="rb"><div class="bar" style="width:47.7%;background:#1677ff"></div></div>
+            <div class="rv">29.2k <small>ops/s · ±0.6%</small></div>
+            <div class="rr me">基准</div>
+          </div>
+          <div class="row">
+            <div class="rl">towxml</div>
+            <div class="rb"><div class="bar" style="width:21.0%;background:#fa8c16"></div></div>
+            <div class="rv">12.9k <small>ops/s · ±0.5%</small></div>
+            <div class="rr ">x-mini 快 2.27×</div>
+          </div>
+          <div class="row">
+            <div class="rl">mp-html</div>
+            <div class="rb"><div class="bar" style="width:14.2%;background:undefined"></div></div>
+            <div class="rv">8.7k <small>ops/s · ±0.5%</small></div>
+            <div class="rr ">x-mini 快 3.34×</div>
+          </div>
+          <div class="row">
+            <div class="rl">marked (仅 lex)</div>
+            <div class="rb"><div class="bar" style="width:58.4%;background:#bfbfbf"></div></div>
+            <div class="rv">35.8k <small>ops/s · ±0.5%</small></div>
+            <div class="rr ">x-mini 0.82×</div>
+          </div>
+          <div class="row">
+            <div class="rl">markdown-it (仅 parse)</div>
+            <div class="rb"><div class="bar" style="width:100.0%;background:#d9d9d9"></div></div>
+            <div class="rv">61.2k <small>ops/s · ±0.7%</small></div>
+            <div class="rr ">x-mini 0.48×</div>
+          </div>
+      </section>
+      <section class="sample">
+        <h3>代码块 Code fences <small>block-fences.md · 0.1 KB</small></h3>
+        <div class="caveat">⚠ 非完全同口径：towxml 默认对代码做语法高亮（highlight.js），x-markdown-mini 默认不高亮（高亮为可选插件）</div>
+        
+          <div class="row">
+            <div class="rl">x-markdown-mini</div>
+            <div class="rb"><div class="bar" style="width:37.0%;background:#1677ff"></div></div>
+            <div class="rv">691.2k <small>ops/s · ±0.6%</small></div>
+            <div class="rr me">基准</div>
+          </div>
+          <div class="row">
+            <div class="rl">towxml</div>
+            <div class="rb"><div class="bar" style="width:0.5%;background:#fa8c16"></div></div>
+            <div class="rv">10.0k <small>ops/s · ±2.9%</small></div>
+            <div class="rr ">x-mini 快 69.37×</div>
+          </div>
+          <div class="row">
+            <div class="rl">mp-html</div>
+            <div class="rb"><div class="bar" style="width:13.5%;background:undefined"></div></div>
+            <div class="rv">252.5k <small>ops/s · ±0.7%</small></div>
+            <div class="rr ">x-mini 快 2.74×</div>
+          </div>
+          <div class="row">
+            <div class="rl">marked (仅 lex)</div>
+            <div class="rb"><div class="bar" style="width:100.0%;background:#bfbfbf"></div></div>
+            <div class="rv">1.87M <small>ops/s · ±0.8%</small></div>
+            <div class="rr ">x-mini 0.37×</div>
+          </div>
+          <div class="row">
+            <div class="rl">markdown-it (仅 parse)</div>
+            <div class="rb"><div class="bar" style="width:44.4%;background:#d9d9d9"></div></div>
+            <div class="rv">829.2k <small>ops/s · ±3.7%</small></div>
+            <div class="rr ">x-mini 0.83×</div>
+          </div>
+      </section>
+      <section class="sample">
+        <h3>嵌套引用 Blockquote <small>block-bq-nested.md · 0.3 KB</small></h3>
+        
+        
+          <div class="row">
+            <div class="rl">x-markdown-mini</div>
+            <div class="rb"><div class="bar" style="width:9.5%;background:#1677ff"></div></div>
+            <div class="rv">9.4k <small>ops/s · ±0.9%</small></div>
+            <div class="rr me">基准</div>
+          </div>
+          <div class="row">
+            <div class="rl">towxml</div>
+            <div class="rb"><div class="bar" style="width:33.1%;background:#fa8c16"></div></div>
+            <div class="rv">33.0k <small>ops/s · ±0.6%</small></div>
+            <div class="rr ">x-mini 0.29×</div>
+          </div>
+          <div class="row">
+            <div class="rl">mp-html</div>
+            <div class="rb"><div class="bar" style="width:7.3%;background:undefined"></div></div>
+            <div class="rv">7.3k <small>ops/s · ±0.6%</small></div>
+            <div class="rr ">x-mini 快 1.29×</div>
+          </div>
+          <div class="row">
+            <div class="rl">marked (仅 lex)</div>
+            <div class="rb"><div class="bar" style="width:10.1%;background:#bfbfbf"></div></div>
+            <div class="rv">10.1k <small>ops/s · ±0.6%</small></div>
+            <div class="rr ">x-mini 0.93×</div>
+          </div>
+          <div class="row">
+            <div class="rl">markdown-it (仅 parse)</div>
+            <div class="rb"><div class="bar" style="width:100.0%;background:#d9d9d9"></div></div>
+            <div class="rv">99.7k <small>ops/s · ±0.6%</small></div>
+            <div class="rr ">x-mini 0.09×</div>
+          </div>
+      </section>
+      <section class="sample">
+        <h3>嵌套强调 Emphasis <small>inline-em-nested.md · 0.2 KB</small></h3>
+        
+        
+          <div class="row">
+            <div class="rl">x-markdown-mini</div>
+            <div class="rb"><div class="bar" style="width:37.3%;background:#1677ff"></div></div>
+            <div class="rv">35.9k <small>ops/s · ±0.8%</small></div>
+            <div class="rr me">基准</div>
+          </div>
+          <div class="row">
+            <div class="rl">towxml</div>
+            <div class="rb"><div class="bar" style="width:42.1%;background:#fa8c16"></div></div>
+            <div class="rv">40.5k <small>ops/s · ±0.6%</small></div>
+            <div class="rr ">x-mini 0.89×</div>
+          </div>
+          <div class="row">
+            <div class="rl">mp-html</div>
+            <div class="rb"><div class="bar" style="width:21.0%;background:undefined"></div></div>
+            <div class="rv">20.3k <small>ops/s · ±0.6%</small></div>
+            <div class="rr ">x-mini 快 1.77×</div>
+          </div>
+          <div class="row">
+            <div class="rl">marked (仅 lex)</div>
+            <div class="rb"><div class="bar" style="width:43.1%;background:#bfbfbf"></div></div>
+            <div class="rv">41.5k <small>ops/s · ±0.5%</small></div>
+            <div class="rr ">x-mini 0.87×</div>
+          </div>
+          <div class="row">
+            <div class="rl">markdown-it (仅 parse)</div>
+            <div class="rb"><div class="bar" style="width:100.0%;background:#d9d9d9"></div></div>
+            <div class="rv">96.3k <small>ops/s · ±0.6%</small></div>
+            <div class="rr ">x-mini 0.37×</div>
+          </div>
+      </section>
+      <section class="sample">
+        <h3>链接 Links <small>inline-links-flat.md · 0.7 KB</small></h3>
+        
+        
+          <div class="row">
+            <div class="rl">x-markdown-mini</div>
+            <div class="rb"><div class="bar" style="width:69.5%;background:#1677ff"></div></div>
+            <div class="rv">20.9k <small>ops/s · ±0.8%</small></div>
+            <div class="rr me">基准</div>
+          </div>
+          <div class="row">
+            <div class="rl">towxml</div>
+            <div class="rb"><div class="bar" style="width:51.8%;background:#fa8c16"></div></div>
+            <div class="rv">15.6k <small>ops/s · ±0.6%</small></div>
+            <div class="rr ">x-mini 快 1.34×</div>
+          </div>
+          <div class="row">
+            <div class="rl">mp-html</div>
+            <div class="rb"><div class="bar" style="width:41.7%;background:undefined"></div></div>
+            <div class="rv">12.6k <small>ops/s · ±0.6%</small></div>
+            <div class="rr ">x-mini 快 1.67×</div>
+          </div>
+          <div class="row">
+            <div class="rl">marked (仅 lex)</div>
+            <div class="rb"><div class="bar" style="width:83.2%;background:#bfbfbf"></div></div>
+            <div class="rv">25.1k <small>ops/s · ±0.6%</small></div>
+            <div class="rr ">x-mini 0.84×</div>
+          </div>
+          <div class="row">
+            <div class="rl">markdown-it (仅 parse)</div>
+            <div class="rb"><div class="bar" style="width:100.0%;background:#d9d9d9"></div></div>
+            <div class="rv">30.1k <small>ops/s · ±0.9%</small></div>
+            <div class="rr ">x-mini 0.70×</div>
+          </div>
+      </section>
+      <section class="sample">
+        <h3>真实长文 AI chat <small>ai-chat-long.md · 7.7 KB</small></h3>
+        
+        
+          <div class="row">
+            <div class="rl">x-markdown-mini</div>
+            <div class="rb"><div class="bar" style="width:32.1%;background:#1677ff"></div></div>
+            <div class="rv">3.0k <small>ops/s · ±0.8%</small></div>
+            <div class="rr me">基准</div>
+          </div>
+          <div class="row">
+            <div class="rl">towxml</div>
+            <div class="rb"><div class="bar" style="width:3.2%;background:#fa8c16"></div></div>
+            <div class="rv">293 <small>ops/s · ±1.4%</small></div>
+            <div class="rr ">x-mini 快 10.18×</div>
+          </div>
+          <div class="row">
+            <div class="rl">mp-html</div>
+            <div class="rb"><div class="bar" style="width:17.7%;background:undefined"></div></div>
+            <div class="rv">1.6k <small>ops/s · ±0.8%</small></div>
+            <div class="rr ">x-mini 快 1.82×</div>
+          </div>
+          <div class="row">
+            <div class="rl">marked (仅 lex)</div>
+            <div class="rb"><div class="bar" style="width:49.7%;background:#bfbfbf"></div></div>
+            <div class="rv">4.6k <small>ops/s · ±0.7%</small></div>
+            <div class="rr ">x-mini 0.65×</div>
+          </div>
+          <div class="row">
+            <div class="rl">markdown-it (仅 parse)</div>
+            <div class="rb"><div class="bar" style="width:100.0%;background:#d9d9d9"></div></div>
+            <div class="rv">9.3k <small>ops/s · ±1.1%</small></div>
+            <div class="rr ">x-mini 0.32×</div>
+          </div>
+      </section>
+
+  <footer>
+    方法：tinybench，每项 warmup 后采样 400ms 取吞吐均值；±RME 为相对误差。<br/>
+    同机同时段运行，结果随机器/负载波动，关注相对倍率而非绝对值。
+  </footer>
+</div>
+</body>
+</html>
