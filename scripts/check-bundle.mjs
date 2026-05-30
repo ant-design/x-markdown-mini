@@ -33,19 +33,29 @@ const KB = 1024;
 //   fallback path through customTokenRenderer.
 const BUDGETS = [
   // 主库（npm 消费方 + 支付宝默认包根）
-  { file: 'index.mjs', rawMax: 112 * KB, gzipMax: 28 * KB },
-  { file: 'index.js', rawMax: 114 * KB, gzipMax: 28 * KB },
+  // gzip 28→29 KB：components 合成节点新增 `tag` 字段（宿主 slot/抽象节点按
+  //   node.tag 分发自定义组件）。
+  // raw +2 KB：内置轻量 Footnote 扩展（`[^标签:内容]` 行内脚注，组件可按名启用）
+  //   打进主 bundle，raw ~114.4 KB / mjs ~112.8 KB。
+  // raw +1 KB：typewriter mode now requeues unrendered chunks when a new
+  // cumulative streaming update arrives before the previous timer chain drains.
+  { file: 'index.mjs', rawMax: 116 * KB, gzipMax: 29 * KB },
+  { file: 'index.js', rawMax: 117 * KB, gzipMax: 29 * KB },
   // 微信专用主库副本（通过 package.json#miniprogram 进入）
-  { file: 'miniprogram_dist/index.js', rawMax: 114 * KB, gzipMax: 28 * KB },
+  { file: 'miniprogram_dist/index.js', rawMax: 117 * KB, gzipMax: 29 * KB },
   // 共享 helper（alipay 包根 + wechat 包根 各一份）
   { file: 'shared/flattenInline.js', rawMax: 5 * KB },
   { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 5 * KB },
   // Alipay 组件
   { file: 'es/Markdown/index.js', rawMax: 5 * KB },
-  { file: 'es/NodesRenderer/index.js', rawMax: 5 * KB },
+  { file: 'es/MiniNodeRenderer/index.js', rawMax: 5 * KB },
+  { file: 'components/Markdown/index.js', rawMax: 5 * KB },
+  { file: 'components/MiniNodeRenderer/index.js', rawMax: 5 * KB },
   // Wechat 组件
   { file: 'miniprogram_dist/es/Markdown/index.js', rawMax: 5 * KB },
-  { file: 'miniprogram_dist/es/NodesRenderer/index.js', rawMax: 5 * KB },
+  { file: 'miniprogram_dist/es/MiniNodeRenderer/index.js', rawMax: 5 * KB },
+  { file: 'miniprogram_dist/components/Markdown/index.js', rawMax: 5 * KB },
+  { file: 'miniprogram_dist/components/MiniNodeRenderer/index.js', rawMax: 5 * KB },
   // Plugin bundles (separate entries — not counted against main lib budget)
   // KaTeX includes font data and CSS; highlight.js/lib/common bundles ~18 languages.
   { file: 'plugins/Latex/index.js', rawMax: 500 * KB, gzipMax: 110 * KB },
@@ -64,9 +74,13 @@ const COMPAT_CJS_FILES = [
   'shared/flattenInline.js',
   'miniprogram_dist/shared/flattenInline.js',
   'es/Markdown/index.js',
-  'es/NodesRenderer/index.js',
+  'es/MiniNodeRenderer/index.js',
+  'components/Markdown/index.js',
+  'components/MiniNodeRenderer/index.js',
   'miniprogram_dist/es/Markdown/index.js',
-  'miniprogram_dist/es/NodesRenderer/index.js',
+  'miniprogram_dist/es/MiniNodeRenderer/index.js',
+  'miniprogram_dist/components/Markdown/index.js',
+  'miniprogram_dist/components/MiniNodeRenderer/index.js',
   'plugins/Latex/index.js',
   'plugins/CodeHighlight/index.js',
   'miniprogram_dist/plugins/Latex/index.js',

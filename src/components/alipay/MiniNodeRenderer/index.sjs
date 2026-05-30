@@ -13,11 +13,14 @@ function isBr(name) { return name === 'br'; }
 function isImg(name) { return name === 'img'; }
 function isHr(name) { return name === 'hr'; }
 function isPre(name) { return name === 'pre'; }
+function isSlot(name, slotComponents) {
+  return !!slotComponents && slotComponents.indexOf(name) > -1;
+}
 
 function classOf(node) {
   var attrs = node.attrs || {};
   var cls = attrs['class'] || '';
-  if (node.animate === 'block') {
+  if (node.animate) {
     cls = cls ? cls + ' md-animate-block' : 'md-animate-block';
   }
   return cls;
@@ -51,6 +54,7 @@ export default {
   isImg: isImg,
   isHr: isHr,
   isPre: isPre,
+  isSlot: isSlot,
   classOf: classOf,
   styleOf: styleOf,
   srcOf: srcOf,

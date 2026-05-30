@@ -34,11 +34,13 @@
     data-data="{{node}}"
     catch:tap="_tap"
   >
-    <nodes-renderer
+    <mini-node-renderer
       wx:if="{{node.children}}"
+      generic:custom-slot="custom-slot"
       nodes="{{node.children}}"
       selectable="{{selectable}}"
       animation="{{false}}"
+      slotComponents="{{slotComponents}}"
       bind:tap="_tap"
       bind:appear="_appear"
     />
@@ -80,6 +82,14 @@
     >{{u.valueOf(c)}}</text>
   </text>
 
+  <!-- custom component: hand off to host-provided abstract node, keyed by node.tag -->
+  <custom-slot
+    wx:elif="{{u.isSlot(node.name, slotComponents)}}"
+    node="{{node}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  />
+
   <!-- block tag rendered as <view> -->
   <view
     wx:else
@@ -88,11 +98,13 @@
     data-data="{{node}}"
     catch:tap="_tap"
   >
-    <nodes-renderer
+    <mini-node-renderer
       wx:if="{{node.children}}"
+      generic:custom-slot="custom-slot"
       nodes="{{node.children}}"
       selectable="{{selectable}}"
       animation="{{animation}}"
+      slotComponents="{{slotComponents}}"
       bind:tap="_tap"
       bind:appear="_appear"
     />

@@ -11,6 +11,8 @@ Component({
     nodes: { type: Array, value: [] },
     selectable: { type: Boolean, value: true },
     animation: { type: Boolean, value: false },
+    // 自定义组件标签白名单：命中的节点交给抽象节点 <custom-slot>（由宿主提供）渲染。
+    slotComponents: { type: Array, value: [] },
   },
   methods: {
     _tap(this: any, e: unknown) {

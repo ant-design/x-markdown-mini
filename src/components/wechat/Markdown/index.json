@@ -2,6 +2,9 @@
   "component": true,
   "styleIsolation": "shared",
   "usingComponents": {
-    "nodes-renderer": "../NodesRenderer/index"
+    "mini-node-renderer": "../MiniNodeRenderer/index"
+  },
+  "componentGenerics": {
+    "custom-slot": { "default": "view" }
   }
 }

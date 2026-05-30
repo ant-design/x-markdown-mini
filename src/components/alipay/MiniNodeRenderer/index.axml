@@ -35,14 +35,17 @@
     data-data="{{node}}"
     catchTap="_tap"
   >
-    <nodes-renderer
+    <mini-node-renderer
       a:if="{{node.children}}"
       nodes="{{node.children}}"
       selectable="{{selectable}}"
       animation="{{false}}"
+      slotComponents="{{slotComponents}}"
       onTap="onTap"
       onAppear="onAppear"
-    />
+    >
+      <slot slot-scope="prop" data="{{prop.data}}" />
+    </mini-node-renderer>
   </scroll-view>
 
   <!-- anchor: kept interactive, children are already flattened text runs -->
@@ -81,6 +84,12 @@
     >{{u.valueOf(c)}}</text>
   </text>
 
+  <!-- custom component: hand off to host scoped slot, keyed by node.tag -->
+  <slot
+    a:elif="{{u.isSlot(node.name, slotComponents)}}"
+    data="{{node}}"
+  />
+
   <!-- block tag rendered as <view> -->
   <view
     a:else
@@ -89,13 +98,16 @@
     data-data="{{node}}"
     catchTap="_tap"
   >
-    <nodes-renderer
+    <mini-node-renderer
       a:if="{{node.children}}"
       nodes="{{node.children}}"
       selectable="{{selectable}}"
       animation="{{animation}}"
+      slotComponents="{{slotComponents}}"
       onTap="onTap"
       onAppear="onAppear"
-    />
+    >
+      <slot slot-scope="prop" data="{{prop.data}}" />
+    </mini-node-renderer>
   </view>
 </block>

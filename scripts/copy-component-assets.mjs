@@ -1,7 +1,7 @@
 // 1. 把 mini-program 静态资源（.axml/.acss/.json/.sjs/.wxml/.wxss/.wxs）
 //    从 src/components/{alipay,wechat}/<Comp>/ 复制到 dist 对应位置：
-//      alipay → dist/es/<Comp>/
-//      wechat → dist/miniprogram_dist/es/<Comp>/
+//      alipay → dist/es/<Comp>/ and dist/components/<Comp>/
+//      wechat → dist/miniprogram_dist/es/<Comp>/ and dist/miniprogram_dist/components/<Comp>/
 //    （JS 文件由 tsup 输出到同一位置）
 // 2. 同步 dist 内对应平台的子树到 examples/{wechat,alipay}/dist/，
 //    让两个 examples 目录可以被开发者工具直接打开。
@@ -44,26 +44,22 @@ function copyTree(src, dest) {
   }
 }
 
-// 1. 静态资源 — alipay → dist/es/<Comp>/, wechat → dist/miniprogram_dist/es/<Comp>/
+function copyComponentAssets(platformSrc, baseDest, filter) {
+  if (!existsSync(platformSrc)) return;
+  for (const comp of readdirSync(platformSrc)) {
+    const sd = join(platformSrc, comp);
+    if (!statSync(sd).isDirectory()) continue;
+    walkAndCopy(sd, join(baseDest, 'es', comp), filter);
+    walkAndCopy(sd, join(baseDest, 'components', comp), filter);
+  }
+}
+
+// 1. 静态资源 — keep legacy es/* and the unified components/* entry in sync.
 const alipaySrc = join(srcRoot, 'alipay');
 const wechatSrc = join(srcRoot, 'wechat');
-if (existsSync(alipaySrc)) {
-  for (const comp of readdirSync(alipaySrc)) {
-    const sd = join(alipaySrc, comp);
-    if (statSync(sd).isDirectory()) {
-      walkAndCopy(sd, join(distRoot, 'es', comp), ALIPAY_EXT);
-    }
-  }
-}
-if (existsSync(wechatSrc)) {
-  for (const comp of readdirSync(wechatSrc)) {
-    const sd = join(wechatSrc, comp);
-    if (statSync(sd).isDirectory()) {
-      walkAndCopy(sd, join(distMpRoot, 'es', comp), WECHAT_EXT);
-    }
-  }
-}
-console.log('[x-markdown-mini] component static assets copied to dist/es and dist/miniprogram_dist/es');
+copyComponentAssets(alipaySrc, distRoot, ALIPAY_EXT);
+copyComponentAssets(wechatSrc, distMpRoot, WECHAT_EXT);
+console.log('[x-markdown-mini] component static assets copied to es/* and components/* entries');
 
 // 1b. Plugin styles — copy .acss to dist/plugins/<Name>/ and .wxss to dist/miniprogram_dist/plugins/<Name>/
 const pluginsSrc = join(root, 'src', 'plugins');

@@ -2,6 +2,6 @@
   "component": true,
   "styleIsolation": "shared",
   "usingComponents": {
-    "nodes-renderer": "./index"
+    "mini-node-renderer": "./index"
   }
 }

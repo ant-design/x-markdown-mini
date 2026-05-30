@@ -5,8 +5,8 @@ import { defineConfig } from 'tsup';
 // → src/components/shared/flattenInline.js 是 2 上）。
 //
 // 构建后组件输出目录变成：
-//   dist/es/<Comp>/index.js                          (alipay 默认包根)
-//   dist/miniprogram_dist/es/<Comp>/index.js         (wechat 通过 package.json#miniprogram 进入)
+//   dist/es/<Comp>/index.js and dist/components/<Comp>/index.js
+//   dist/miniprogram_dist/es/<Comp>/index.js and dist/miniprogram_dist/components/<Comp>/index.js
 //
 // 此时主库 API 需要走 `../../index.js`（2 上即可到达 dist 或 dist/miniprogram_dist）；
 // shared/flattenInline 仍是 `../../shared/flattenInline.js`（路径串不变）。
@@ -73,7 +73,9 @@ export default defineConfig([
   {
     entry: {
       'es/Markdown/index': 'src/components/alipay/Markdown/index.ts',
-      'es/NodesRenderer/index': 'src/components/alipay/NodesRenderer/index.ts',
+      'es/MiniNodeRenderer/index': 'src/components/alipay/MiniNodeRenderer/index.ts',
+      'components/Markdown/index': 'src/components/alipay/Markdown/index.ts',
+      'components/MiniNodeRenderer/index': 'src/components/alipay/MiniNodeRenderer/index.ts',
     },
     outDir: 'dist',
     format: ['cjs'],
@@ -89,7 +91,9 @@ export default defineConfig([
   {
     entry: {
       'es/Markdown/index': 'src/components/wechat/Markdown/index.ts',
-      'es/NodesRenderer/index': 'src/components/wechat/NodesRenderer/index.ts',
+      'es/MiniNodeRenderer/index': 'src/components/wechat/MiniNodeRenderer/index.ts',
+      'components/Markdown/index': 'src/components/wechat/Markdown/index.ts',
+      'components/MiniNodeRenderer/index': 'src/components/wechat/MiniNodeRenderer/index.ts',
     },
     outDir: 'dist/miniprogram_dist',
     format: ['cjs'],
