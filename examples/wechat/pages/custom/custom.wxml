@@ -1,0 +1,27 @@
+<view class="page">
+  <view class="header">
+    <view class="title">自定义组件 · WeChat</view>
+    <view class="hint">components 白名单 + 抽象节点 generics（dispatcher）</view>
+  </view>
+
+  <view class="card">
+    <!--
+      关键（微信侧与支付宝不同）：
+      1) components="{{['countdown']}}" 让 <countdown> 被识别为自定义组件节点；
+      2) 微信不支持 slot-scope，改用抽象节点：generic:custom-slot="custom-renderer"
+         把 markdown 内部的 <custom-slot> 解析为页面注册的 dispatcher 组件；
+      3) dispatcher 拿到 node 后按 node.name 分发到真实组件。
+    -->
+    <markdown
+      content="{{content}}"
+      components="{{['countdown']}}"
+      generic:custom-slot="custom-renderer"
+      bind:tap="onNodeTap"
+    />
+  </view>
+
+  <view class="logs">
+    <view class="logs__title">事件日志</view>
+    <view wx:for="{{logs}}" wx:for-item="line" wx:key="*this" class="logs__item">{{line}}</view>
+  </view>
+</view>

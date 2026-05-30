@@ -49,6 +49,22 @@ my.* → alipay        wx.* → wechat        (兜底) → alipay
 renderNodes({ content, platform: 'alipay' });
 ```
 
+## 统一组件入口
+
+组件层提供统一子路径：
+
+```json
+{
+  "usingComponents": {
+    "x-markdown": "@ant-design/x-markdown-mini/components/Markdown/index"
+  }
+}
+```
+
+构建产物仍然按平台分发：支付宝使用包根 `dist/components/*`，微信通过
+`package.json#miniprogram` 使用 `dist/miniprogram_dist/components/*`。使用方不需要在
+业务代码里判断平台；新增平台时应补一套同名 `components/*` 产物。
+
 ## 自定义平台
 
 新增平台的最小改动：

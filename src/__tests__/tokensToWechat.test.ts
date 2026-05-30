@@ -49,7 +49,7 @@ describe('tokensToWechat — platform-specific behavior', () => {
 
   it('preserves animation flag (md-animate-block class still stripped)', () => {
     const out = tokensToWechat('# X', { animation: true });
-    expect(out[0].animate).toBe('block');
+    expect(out[0].animate).toBe(true);
     expect(out[0].attrs?.class).toBeUndefined();
   });
 });

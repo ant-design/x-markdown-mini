@@ -53,7 +53,7 @@ describe('tokensToAlipay — platform-specific behavior', () => {
 
   it('preserves animation flag', () => {
     const out = tokensToAlipay('# X', { animation: true });
-    expect(out[0].animate).toBe('block');
+    expect(out[0].animate).toBe(true);
     expect(out[0].attrs?.class).toBeUndefined();
   });
 });

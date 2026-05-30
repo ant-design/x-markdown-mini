@@ -37,8 +37,8 @@ export interface XMarkdownMiniOptions {
    * same object — preferred) or a plain `MarkedExtension` (for community
    * marked plugins that only emit HTML). All entries are forwarded to
    * `new Marked(...)`; the new fields (`miniRenderer`) are ignored by marked.
-   * Extensions are baked into the underlying `Marked` instance at construction
-   * and cannot vary per render call.
+   * Can be overridden per render call via `renderNodes({ extensions })` /
+   * `renderTokens({ extensions })`.
    */
   extensions?: (XMarkdownExtension | MarkedExtension)[];
   /**
@@ -141,7 +141,7 @@ function synthesizeComponentsExtension(tags: string[]): XMarkdownExtension {
           attrs: Record<string, string | boolean>;
           tokens?: Token[];
         };
-        const node: MiniNode = { name: t.tag };
+        const node: MiniNode = { name: t.tag, tag: t.tag };
         if (t.attrs && Object.keys(t.attrs).length > 0) {
           node.attrs = t.attrs as Record<string, string | number | boolean>;
         }
@@ -169,7 +169,13 @@ export class XMarkdownMini {
   private readonly gfm: boolean | undefined;
   private readonly breaks: boolean | undefined;
   private readonly marked: Marked;
+  private activeTokenStreamDefaults: MarkedOptions | null = null;
+  private activeNodeStreamDefaults: MarkedOptions | null = null;
+  /** Instance-level user extensions (from constructor options). */
   private readonly extensions: readonly XMarkdownExtension[];
+  /** Components extension synthesized from `opts.components`, kept separate so
+   *  per-call extensions can override user extensions but keep components. */
+  private readonly componentsExtension: XMarkdownExtension | undefined;
 
   constructor(opts: XMarkdownMiniOptions = {}) {
     this.escapeText = opts.escapeText ?? true;
@@ -188,13 +194,13 @@ export class XMarkdownMini {
     // user-registered extensions with the same `name` (e.g.
     // `customTag:ant-button`) win — the resolution loop in
     // `customTokenRenderer.ts` is first-match-wins.
-    const componentsExtension =
+    this.componentsExtension =
       opts.components && opts.components.length > 0
         ? synthesizeComponentsExtension(opts.components)
         : undefined;
     const allMarkedExtensions: MarkedExtension[] = [
       ...(directExtensions as MarkedExtension[]),
-      ...(componentsExtension ? [componentsExtension as MarkedExtension] : []),
+      ...(this.componentsExtension ? [this.componentsExtension as MarkedExtension] : []),
     ];
 
     // Both XMarkdownExtension and MarkedExtension share the same outer
@@ -204,12 +210,48 @@ export class XMarkdownMini {
     // MarkedExtension entries simply lack `miniRenderer`, and their
     // `renderer` shape is an object (not a function) so the typeof check
     // correctly skips them.
-    this.extensions = [
-      ...(directExtensions as XMarkdownExtension[]),
-      ...(componentsExtension ? [componentsExtension] : []),
-    ];
+    this.extensions = directExtensions as XMarkdownExtension[];
 
     this.marked = new Marked(...allMarkedExtensions);
+  }
+
+  /**
+   * Build the full RenderContext.extensions list for a render call.
+   * Per-call extensions replace instance-level user extensions; the
+   * components extension is always appended so that `<custom-tag>` sugar
+   * continues to work regardless of per-call overrides.
+   */
+  private resolveExtensions(
+    perCall?: (XMarkdownExtension | MarkedExtension)[],
+  ): readonly XMarkdownExtension[] {
+    if (!perCall || perCall.length === 0) {
+      return [
+        ...this.extensions,
+        ...(this.componentsExtension ? [this.componentsExtension] : []),
+      ];
+    }
+    return [
+      ...(perCall as XMarkdownExtension[]),
+      ...(this.componentsExtension ? [this.componentsExtension] : []),
+    ];
+  }
+
+  /**
+   * Register per-call extensions with the Marked instance and return a
+   * snapshot of the previous defaults so they can be restored after the call.
+   * Returns `null` if nothing to apply (no per-call extensions).
+   */
+  private applyPerCallExtensions(
+    perCall?: (XMarkdownExtension | MarkedExtension)[],
+  ): MarkedOptions | null {
+    if (!perCall || perCall.length === 0) return null;
+    const saved = { ...this.marked.defaults };
+    this.marked.use(...(perCall as MarkedExtension[]));
+    return saved;
+  }
+
+  private restoreDefaults(saved: MarkedOptions | null): void {
+    if (saved) this.marked.defaults = saved;
   }
 
   private buildMarkedOptions(perCall?: { gfm?: boolean; breaks?: boolean }): MarkedOptions {
@@ -256,20 +298,29 @@ export class XMarkdownMini {
    * Token streaming entry. AI streaming fixup runs on markdown text before lex.
    */
   renderTokens(props: XMarkdownMiniTokenProps): Token[] {
-    const { content, gfm, breaks } = props;
+    const { content, gfm, breaks, extensions: perCallExts } = props;
     const stream = normalizeStreamingConfig(props.streaming);
-    const markedOpts = this.buildMarkedOptions({ gfm, breaks });
 
     if (!stream) {
       this.tokenStreamProcessor = null;
-      props.onRenderStart?.();
-      const tokens = this.lex(content, markedOpts);
-      props.onPatch?.(tokens);
-      props.onRenderComplete?.();
-      return tokens;
+      this.restoreDefaults(this.activeTokenStreamDefaults);
+      this.activeTokenStreamDefaults = null;
+      const saved = this.applyPerCallExtensions(perCallExts);
+      try {
+        const markedOpts = this.buildMarkedOptions({ gfm, breaks });
+        props.onRenderStart?.();
+        const tokens = this.lex(content, markedOpts);
+        props.onPatch?.(tokens);
+        props.onRenderComplete?.();
+        return tokens;
+      } finally {
+        this.restoreDefaults(saved);
+      }
     }
 
     if (!this.tokenStreamProcessor) {
+      this.activeTokenStreamDefaults = this.applyPerCallExtensions(perCallExts);
+      const markedOpts = this.buildMarkedOptions({ gfm, breaks });
       const transform = (md: string): Token[] => this.lex(md, markedOpts);
       this.tokenStreamProcessor = new StreamingProcessor<Token>({
         transform,
@@ -281,6 +332,8 @@ export class XMarkdownMini {
         onComplete: () => {
           props.onRenderComplete?.();
           this.tokenStreamProcessor = null;
+          this.restoreDefaults(this.activeTokenStreamDefaults);
+          this.activeTokenStreamDefaults = null;
         },
       });
       props.onRenderStart?.();
@@ -295,34 +348,44 @@ export class XMarkdownMini {
    * Component/node entry. Tokens are rendered by the selected platform renderer.
    */
   renderNodes(props: XMarkdownMiniProps): MiniNode[] {
-    const { content, platform = 'auto', selectable = true, gfm, breaks } = props;
+    const { content, platform = 'auto', selectable = true, gfm, breaks, extensions: perCallExts } = props;
     const target = resolvePlatform(platform);
     const renderer = getPlatformRenderer(target);
     const stream = normalizeStreamingConfig(props.streaming);
-    const markedOpts = this.buildMarkedOptions({ gfm, breaks });
+    const ctxExtensions = this.resolveExtensions(perCallExts);
 
     if (!stream) {
       this.nodeStreamProcessor = null;
-      props.onRenderStart?.();
-      const ctx: RenderContext = {
-        animation: false,
-        selectable,
-        escapeText: this.escapeText,
-        extensions: this.extensions,
-      };
-      const tokens = this.lex(content, markedOpts);
-      const nodes = renderer.renderTokens(tokens, ctx);
-      props.onPatch?.(nodes);
-      props.onRenderComplete?.();
-      return nodes;
+      this.restoreDefaults(this.activeNodeStreamDefaults);
+      this.activeNodeStreamDefaults = null;
+      const saved = this.applyPerCallExtensions(perCallExts);
+      try {
+        const markedOpts = this.buildMarkedOptions({ gfm, breaks });
+        props.onRenderStart?.();
+        const ctx: RenderContext = {
+          animation: false,
+          selectable,
+          escapeText: this.escapeText,
+          extensions: ctxExtensions,
+        };
+        const tokens = this.lex(content, markedOpts);
+        const nodes = renderer.renderTokens(tokens, ctx);
+        props.onPatch?.(nodes);
+        props.onRenderComplete?.();
+        return nodes;
+      } finally {
+        this.restoreDefaults(saved);
+      }
     }
 
     if (!this.nodeStreamProcessor) {
+      this.activeNodeStreamDefaults = this.applyPerCallExtensions(perCallExts);
+      const markedOpts = this.buildMarkedOptions({ gfm, breaks });
       const ctx: RenderContext = {
         animation: stream.enableAnimation,
         selectable,
         escapeText: this.escapeText,
-        extensions: this.extensions,
+        extensions: ctxExtensions,
       };
       const transform = (md: string): MiniNode[] =>
         renderer.renderTokens(this.lex(md, markedOpts), ctx);
@@ -336,6 +399,8 @@ export class XMarkdownMini {
         onComplete: () => {
           props.onRenderComplete?.();
           this.nodeStreamProcessor = null;
+          this.restoreDefaults(this.activeNodeStreamDefaults);
+          this.activeNodeStreamDefaults = null;
         },
       });
       props.onRenderStart?.();
@@ -352,5 +417,9 @@ export class XMarkdownMini {
     this.nodeStreamProcessor?.reset();
     this.tokenStreamProcessor = null;
     this.nodeStreamProcessor = null;
+    this.restoreDefaults(this.activeTokenStreamDefaults);
+    this.restoreDefaults(this.activeNodeStreamDefaults);
+    this.activeTokenStreamDefaults = null;
+    this.activeNodeStreamDefaults = null;
   }
 }

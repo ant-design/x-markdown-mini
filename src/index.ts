@@ -57,6 +57,7 @@ export type {
   PlatformRenderer,
 } from './platforms/index.js';
 export { StreamingProcessor } from './streaming/index.js';
+export { default as Footnote, type FootnoteOptions } from './plugins/Footnote/index.js';
 export {
   flattenInlineTokens,
   type FlattenInlineTokensOptions,

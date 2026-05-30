@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "脚注 · WeChat",
+  "usingComponents": {
+    "markdown": "../../dist/components/Markdown/index",
+    "custom-renderer": "../../components/custom-renderer/index"
+  }
+}

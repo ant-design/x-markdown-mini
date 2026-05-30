@@ -1,0 +1,36 @@
+<view class="page">
+  <view class="header">
+    <view class="title">自定义组件 · Alipay</view>
+    <view class="hint">components 白名单 + 作用域插槽（slot-scope）</view>
+  </view>
+
+  <view class="card">
+    <!--
+      关键：
+      1) components="{{['countdown']}}" 让 <countdown> 被识别为自定义组件节点；
+      2) <view slot-scope="prop"> 拿到每个自定义节点（prop.data 即 MiniNode）；
+      3) 按 prop.data.tag 分发到页面已注册的真实组件，事件天然落在页面作用域。
+    -->
+    <markdown
+      content="{{content}}"
+      components="{{['countdown']}}"
+      onTap="onNodeTap"
+    >
+      <view slot-scope="prop">
+        <countdown
+          a:if="{{prop.data.tag === 'countdown'}}"
+          data-data="{{prop.data}}"
+          seconds="{{prop.data.attrs.seconds}}"
+          label="{{prop.data.attrs.label}}"
+          onFinish="onCountdownFinish"
+          onTap="onCountdownTap"
+        />
+      </view>
+    </markdown>
+  </view>
+
+  <view class="logs">
+    <view class="logs__title">事件日志</view>
+    <view a:for="{{logs}}" a:for-item="line" a:key="*this" class="logs__item">{{line}}</view>
+  </view>
+</view>

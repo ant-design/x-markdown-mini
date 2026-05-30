@@ -72,6 +72,37 @@ describe('XMarkdownMini — extensions', () => {
     expect(walked).toContain('mention');
   });
 
+  it('per-call extensions are active for one-shot render()', () => {
+    const md = new XMarkdownMini();
+    const tokens = md.render({
+      content: 'hello @delta',
+      extensions: [mentionExtension],
+    });
+    const para = tokens.find((t) => t.type === 'paragraph') as Tokens.Paragraph;
+    expect((para.tokens ?? []).some((t) => t.type === 'mention')).toBe(true);
+  });
+
+  it('streaming per-call extensions do not leak after completion', () => {
+    const md = new XMarkdownMini();
+    let tokens: Token[] = [];
+
+    md.render({
+      content: 'hello @stream',
+      streaming: { hasNextChunk: false },
+      extensions: [mentionExtension],
+      onPatch: (next) => {
+        tokens = next;
+      },
+    });
+
+    const streamedPara = tokens.find((t) => t.type === 'paragraph') as Tokens.Paragraph;
+    expect((streamedPara.tokens ?? []).some((t) => t.type === 'mention')).toBe(true);
+
+    const after = md.parse('hello @plain');
+    const afterPara = after.find((t) => t.type === 'paragraph') as Tokens.Paragraph;
+    expect((afterPara.tokens ?? []).some((t) => t.type === 'mention')).toBe(false);
+  });
+
   it('no extensions: legacy XMarkdownMini behavior preserved (mention is plain text)', () => {
     const md = new XMarkdownMini();
     const tokens = md.parse('hi @alice');

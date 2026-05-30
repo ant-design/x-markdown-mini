@@ -1,6 +1,6 @@
 {
   "usingComponents": {
-    "x-markdown": "@ant-design/x-markdown-mini/es/Markdown/index",
+    "x-markdown": "@ant-design/x-markdown-mini/components/Markdown/index",
     "towxml": "towxml/towxml"
   }
 }

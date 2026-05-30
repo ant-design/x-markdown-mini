@@ -1,5 +1,5 @@
 {
   "usingComponents": {
-    "markdown": "../../dist/es/Markdown/index"
+    "markdown": "../../dist/components/Markdown/index"
   }
 }

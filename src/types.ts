@@ -71,6 +71,14 @@ export interface XMarkdownMiniProps {
   /** 软换行 \n 解析为 <br>（默认 false）。Per-call 可覆盖构造时的默认值 */
   breaks?: boolean;
 
+  /**
+   * Per-call extensions that override instance-level extensions for this render.
+   * Accepts XMarkdownExtension (preferred, with miniRenderer) or MarkedExtension.
+   * Tokenizers are registered via `marked.use()`; renderers are resolved through
+   * the per-call list (instance-level `components` extension is always preserved).
+   */
+  extensions?: (XMarkdownExtension | MarkedExtension)[];
+
   /** 渲染生命周期 */
   onRenderStart?: () => void;
   onRenderProgress?: (payload: { markdown: string }) => void;
@@ -81,22 +89,30 @@ export interface XMarkdownMiniProps {
 }
 
 export interface XMarkdownMiniTokenProps {
-  /** Markdown 文本（全量或当前累计流式内容） */
+  /** Markdown 文本（全量或累计流式内容） */
   content: string;
-
-  /**
-   * 流式解析：
-   * - false: 关闭流式，走一次性 lex
-   * - true: 开启默认流式优化（等同 { hasNextChunk: true, semantic: true }）
-   * - object: 自定义流式行为，需显式提供 hasNextChunk
-   */
-  streaming?: false | true | StreamingConfig;
 
   /** GFM 表格、删除线、自动换行（默认 true）。Per-call 可覆盖构造时的默认值 */
   gfm?: boolean;
 
   /** 软换行 \n 解析为 <br>（默认 false）。Per-call 可覆盖构造时的默认值 */
   breaks?: boolean;
+
+  /**
+   * Per-call extensions that override instance-level extensions for this render.
+   * Accepts XMarkdownExtension (preferred, with miniRenderer) or MarkedExtension.
+   * Tokenizers are registered via `marked.use()`; renderers are resolved through
+   * the per-call list (instance-level `components` extension is always preserved).
+   */
+  extensions?: (XMarkdownExtension | MarkedExtension)[];
+
+    /**
+   * 流式解析：
+   * - false: 关闭流式，走一次性 lex
+   * - true: 开启默认流式优化（等同 { hasNextChunk: true, semantic: true }）
+   * - object: 自定义流式行为，需显式提供 hasNextChunk
+   */
+  streaming?: false | true | StreamingConfig;
 
   /** 生命周期 */
   onRenderStart?: () => void;
@@ -179,10 +195,15 @@ export interface RenderContext {
 export interface MiniNode {
   /** 标签名，小写 */
   name: string;
+  /**
+   * 自定义组件原始标签名。仅由 `components` 白名单合成的节点携带，等于 `name`，
+   * 用于宿主页面在作用域插槽 / dispatcher 里按 `node.tag` 分发（对齐 markdown-x 约定）。
+   */
+  tag?: string;
   /** 属性，class/style 等小写 */
   attrs?: Record<string, string | number | boolean>;
   /** 子节点 */
   children?: MiniNode[];
-  /** 动画：块级 / 文本级 / 关闭 */
-  animate?: 'block' | 'text' | false;
+  /** 是否开启动画 */
+  animate?: boolean;
 }

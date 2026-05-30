@@ -142,6 +142,38 @@ describe('components: string[] sugar', () => {
     expect(icon!.children).toBeUndefined();
   });
 
+  it('synthesized component node carries `tag` for host slot dispatch', () => {
+    // The shipped renderer dispatches custom nodes to the host scoped slot
+    // (alipay) / abstract node (wechat); the host keys on node.tag (or name).
+    const md = new XMarkdownMini({ components: ['countdown'] });
+    const nodes = md.renderNodes({
+      // Inline context so marked's block lexer doesn't claim the bare tag as
+      // a standalone block-HTML token (see other tests in this file).
+      content: '倒计时 <countdown countdownEndTime="123" countdownType="second" /> 哦',
+      platform: 'alipay',
+    });
+    const cd = findNode(nodes, 'countdown');
+    expect(cd).toBeDefined();
+    expect(cd!.tag).toBe('countdown');
+    expect(cd!.name).toBe('countdown');
+    expect(cd!.attrs?.countdownEndTime).toBe('123');
+    expect(cd!.attrs?.countdownType).toBe('second');
+  });
+
+  it('custom component node survives inline flattening with tag + attrs intact', async () => {
+    const { flattenInlineNodes } = await import('../components/shared/flattenInline.js');
+    const md = new XMarkdownMini({ components: ['countdown'], escapeText: false });
+    const nodes = md.renderNodes({
+      content: '倒计时 <countdown countdownEndTime="999" /> 结束',
+      platform: 'wechat',
+    });
+    const flat = flattenInlineNodes(nodes);
+    const cd = findNode(flat, 'countdown');
+    expect(cd).toBeDefined();
+    expect(cd!.tag).toBe('countdown');
+    expect(cd!.attrs?.countdownEndTime).toBe('999');
+  });
+
   it('synth extension renders component without needing tokenRenderers', () => {
     // Verify that components sugar works purely through the synth extension
     // without any legacy tokenRenderers fallback.

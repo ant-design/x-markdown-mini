@@ -42,7 +42,7 @@ function block(
   const node: MiniNode = { name };
   if (extra && Object.keys(extra).length > 0) node.attrs = extra;
   if (children.length) node.children = children;
-  if (animate) node.animate = 'block';
+  if (animate) node.animate = true;
   return adaptNode(adapter, node, { role: 'block', token }) ?? node;
 }
 

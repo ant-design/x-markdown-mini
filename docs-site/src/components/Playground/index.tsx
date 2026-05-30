@@ -166,7 +166,9 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
     instanceRef.current = new XMarkdownMini({
       escapeText,
       streamingFixup: streamingFixup ? 'remend' : false,
-      options: { gfm, breaks, extensions },
+      gfm,
+      breaks,
+      extensions,
     });
     lastOptsRef.current = optsKey;
     return instanceRef.current;
@@ -222,10 +224,9 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
         streaming: {
           hasNextChunk: false,
           enableAnimation: streamAnimation,
-          semantic: streamSemantic,
-          maxChunkSize: streamMaxChunkSize,
-          chunkDelay: streamChunkDelay,
-          charDelay: streamCharDelay,
+          semantic: streamSemantic
+            ? { maxChunkSize: streamMaxChunkSize, chunkDelay: streamChunkDelay, charDelay: streamCharDelay }
+            : false,
         },
         onRenderProgress: ({ markdown: rendered }) => {
           if (streamRunId.current === runId) setMarkdown(rendered);

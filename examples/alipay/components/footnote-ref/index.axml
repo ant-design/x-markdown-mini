@@ -1,0 +1,8 @@
+<view class="fn">
+  <text class="fn__marker" onTap="onToggle">[{{label}}]</text>
+  <view a:if="{{open}}" class="fn__pop" onTap="onClose">
+    <view class="fn__bubble">
+      <text class="fn__text">{{content}}</text>
+    </view>
+  </view>
+</view>

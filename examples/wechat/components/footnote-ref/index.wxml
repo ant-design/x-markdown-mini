@@ -1,0 +1,8 @@
+<view class="fn">
+  <text class="fn__marker" catch:tap="onToggle">[{{label}}]</text>
+  <view wx:if="{{open}}" class="fn__pop" catch:tap="onClose">
+    <view class="fn__bubble">
+      <text class="fn__text">{{content}}</text>
+    </view>
+  </view>
+</view>

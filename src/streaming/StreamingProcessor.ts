@@ -51,6 +51,8 @@ export class StreamingProcessor<T = unknown> {
 
   private pendingChunks: string[] = [];
   private chunkIndex = 0;
+  private activeChunk = '';
+  private activeChunkOffset = 0;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private currentHasNextChunk = false;
 
@@ -99,14 +101,13 @@ export class StreamingProcessor<T = unknown> {
     this.previousMarkdown = '';
     this.pendingChunks = [];
     this.chunkIndex = 0;
+    this.activeChunk = '';
+    this.activeChunkOffset = 0;
     this.stableNodes = [];
     this.committedLen = 0;
     this.committedInFence = false;
     this.committedFenceChar = '';
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = null;
-    }
+    this.cancelScheduledRender();
   }
 
   /**
@@ -115,6 +116,8 @@ export class StreamingProcessor<T = unknown> {
   runRenderLoop(hasNextChunk: boolean): void {
     this.currentHasNextChunk = hasNextChunk;
     const { chunkDelay, charDelay } = this.config;
+
+    this.cancelScheduledRender();
 
     if (chunkDelay === 0 && charDelay === 0) {
       // 非打字机模式：直接把 buffer 一次性渲染出去
@@ -198,19 +201,26 @@ export class StreamingProcessor<T = unknown> {
           return;
         }
         this.timer = null;
+        this.activeChunk = '';
+        this.activeChunkOffset = 0;
         if (!this.currentHasNextChunk) onComplete();
         return;
       }
 
       const chunk = this.pendingChunks[this.chunkIndex];
+      this.activeChunk = chunk;
+      this.activeChunkOffset = 0;
       if (charDelay > 0 && chunk.length > 1) {
         let i = 0;
         const step = (): void => {
           if (i < chunk.length) {
             this.renderedText += chunk[i++];
+            this.activeChunkOffset = i;
             this.flushNodes();
             this.timer = setTimeout(step, charDelay);
           } else {
+            this.activeChunk = '';
+            this.activeChunkOffset = 0;
             this.chunkIndex += 1;
             this.scheduleNext();
           }
@@ -218,11 +228,35 @@ export class StreamingProcessor<T = unknown> {
         step();
       } else {
         this.renderedText += chunk;
+        this.activeChunk = '';
+        this.activeChunkOffset = 0;
         this.chunkIndex += 1;
         this.flushNodes();
         this.scheduleNext();
       }
     }, this.chunkIndex === 0 ? 0 : chunkDelay);
+  }
+
+  private cancelScheduledRender(): void {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+
+    let remaining = '';
+    let startIndex = this.chunkIndex;
+    if (this.activeChunk) {
+      remaining += this.activeChunk.slice(this.activeChunkOffset);
+      startIndex = this.chunkIndex + 1;
+    }
+    if (startIndex < this.pendingChunks.length) {
+      remaining += this.pendingChunks.slice(startIndex).join('');
+    }
+    if (remaining) this.buffer = remaining + this.buffer;
+    this.pendingChunks = [];
+    this.chunkIndex = 0;
+    this.activeChunk = '';
+    this.activeChunkOffset = 0;
   }
 
   /** 推进 commit 点：从上次 committedLen 开始增量扫描，找 fenced code 之外的最后一段「双换行」位置。 */

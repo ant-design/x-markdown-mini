@@ -1,0 +1,4 @@
+<view class="cd {{done ? 'cd--done' : ''}}" onTap="onTapCard">
+  <text class="cd__label">{{label || '倒计时'}}</text>
+  <text class="cd__time">{{done ? '已结束' : remain + ' 秒'}}</text>
+</view>

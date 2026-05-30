@@ -1,0 +1,19 @@
+<view class="page">
+  <view class="header">
+    <view class="title">脚注 · WeChat</view>
+    <view class="hint">footnote 扩展（[^标签:内容]）+ 抽象节点 dispatcher + popover</view>
+  </view>
+
+  <view class="card">
+    <!--
+      footnote="{{true}}" 开启内置脚注扩展；微信用抽象节点：
+      generic:custom-slot="custom-renderer" 把 footnote 节点交给 dispatcher，
+      dispatcher 再按 node.name 路由到 footnote-ref（marker + 本地 popover）。
+    -->
+    <markdown
+      content="{{content}}"
+      footnote="{{true}}"
+      generic:custom-slot="custom-renderer"
+    />
+  </view>
+</view>

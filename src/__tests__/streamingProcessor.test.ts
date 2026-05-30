@@ -189,6 +189,21 @@ describe('StreamingProcessor — typewriter mode (fake timers)', () => {
     expect(collector.completed).toBe(true);
   });
 
+  it('typewriter loop preserves pending chunks when new content arrives mid-render', () => {
+    const { proc } = make({ chunkDelay: 10, charDelay: 0, delimiters: /\./ });
+
+    proc.handleContentUpdate('one. two.');
+    proc.runRenderLoop(true);
+    vi.advanceTimersByTime(0);
+    expect(proc.getRenderedText()).toBe('one.');
+
+    proc.handleContentUpdate('one. two. three.');
+    proc.runRenderLoop(false);
+    vi.runAllTimers();
+
+    expect(proc.getRenderedText()).toBe('one. two. three.');
+  });
+
   it('typewriter mode also triggers advanceCommit (double-blank between blocks)', () => {
     const md = '# A\n\n\nParagraph here. Another sentence.';
     const { proc, collector } = make({ chunkDelay: 5, charDelay: 0 });
@@ -300,7 +315,7 @@ describe('StreamingProcessor — config propagation', () => {
     proc.handleContentUpdate('# Hi');
     proc.runRenderLoop(false);
     const last = collector.patches[collector.patches.length - 1];
-    expect(last[0].animate).toBe('block');
+    expect(last[0].animate).toBe(true);
   });
 });
 
