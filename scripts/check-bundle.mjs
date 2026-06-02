@@ -6,7 +6,9 @@
 //      (Alipay's compile-time parser rejects `(?<name>...)` even though
 //       runtime JSC/V8 supports it; scripts/patch-modern-regex.mjs converts
 //       them to new RegExp("...") form. This verifies the patch ran.)
-//   3. Bundle syntax stays within ES2018 (delegates to `es-check`).
+//   3. No object-spread syntax leaks into dist/. Alipay IDE rejects object
+//      spread in dependencies even though it is valid ES2018.
+//   4. Bundle syntax stays within ES2018 (delegates to `es-check`).
 //
 // Runs after `npm run build`. Exits non-zero on any violation.
 import { readFileSync, existsSync, statSync } from 'node:fs';
@@ -41,10 +43,11 @@ const BUDGETS = [
   // cumulative streaming update arrives before the previous timer chain drains.
   // raw/gzip +~0.6 KB：StreamingProcessor 变速打字机（chunkDelay/charDelay 支持
   //   number[] 随块加速）+ grapheme-safe 切分（Intl.Segmenter，回退 Array.from）。
-  { file: 'index.mjs', rawMax: 117 * KB, gzipMax: 30 * KB },
-  { file: 'index.js', rawMax: 118 * KB, gzipMax: 30 * KB },
+  // raw +~1.1 KB：小程序产物降到 es2017，避免支付宝 IDE 拒绝对象展开语法。
+  { file: 'index.mjs', rawMax: 118 * KB, gzipMax: 30 * KB },
+  { file: 'index.js', rawMax: 120 * KB, gzipMax: 30 * KB },
   // 微信专用主库副本（通过 package.json#miniprogram 进入）
-  { file: 'miniprogram_dist/index.js', rawMax: 118 * KB, gzipMax: 30 * KB },
+  { file: 'miniprogram_dist/index.js', rawMax: 120 * KB, gzipMax: 30 * KB },
   // 共享 helper（alipay 包根 + wechat 包根 各一份）
   { file: 'shared/flattenInline.js', rawMax: 5 * KB },
   { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 5 * KB },
@@ -93,6 +96,7 @@ const COMPAT_FILES = [...COMPAT_ESM_FILES, ...COMPAT_CJS_FILES];
 // Same regex as scripts/patch-modern-regex.mjs — finds regex literals whose
 // body contains a named capture group `(?<name>` or backreference `\k<name>`.
 const NAMED_GROUP_REGEX = /\/((?:\\.|\[(?:\\.|[^\]\\])*\]|[^/\\\n])+?)\/([gimsuy]*)(?=[\s,);.\]])/g;
+const OBJECT_SPREAD_REGEX = /\{\s*\.\.\./;
 
 const errors = [];
 const rows = [];
@@ -158,7 +162,23 @@ for (const file of COMPAT_FILES) {
   }
 }
 
-// --- 3. ES2018 syntax check via es-check ---
+// --- 3. object-spread syntax scan ---
+console.log('\nCompatibility (object-spread syntax):');
+for (const file of COMPAT_FILES) {
+  const path = join(dist, file);
+  if (!existsSync(path)) continue;
+  const src = readFileSync(path, 'utf8');
+  if (OBJECT_SPREAD_REGEX.test(src)) {
+    errors.push(
+      `[compat] ${file} contains object-spread syntax — Alipay IDE rejects this in package dependencies.`,
+    );
+    console.log(`  FAIL  ${file}`);
+  } else {
+    console.log(`  OK    ${file}`);
+  }
+}
+
+// --- 4. ES2018 syntax check via es-check ---
 // Run twice: once for ESM (.mjs needs --module) and once for CJS (.js).
 console.log('\nCompatibility (ES2018 syntax via es-check):');
 function runEsCheck(label, extraArgs, files) {

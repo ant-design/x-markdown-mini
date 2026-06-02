@@ -1,8 +1,6 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/custom/custom",
-    "pages/footnote/footnote"
+    "pages/index/index"
   ],
   "window": {
     "defaultTitle": "x-markdown-mini",

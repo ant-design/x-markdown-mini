@@ -13,7 +13,7 @@
 }
 
 .empty {
-  margin-top: 30vh;
+  margin-top: 22vh;
   text-align: center;
   color: #86909c;
 }
@@ -25,6 +25,26 @@
 .empty-sub {
   margin-top: 8rpx;
   font-size: 26rpx;
+}
+.prompt-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 36rpx;
+}
+.prompt-chip {
+  max-width: 88%;
+  padding: 14rpx 22rpx;
+  margin-top: 16rpx;
+  border: 1rpx solid #d9e4ff;
+  border-radius: 999rpx;
+  background: #f4f7ff;
+  color: #2454a6;
+  font-size: 26rpx;
+  line-height: 1.4;
+}
+.prompt-chip-disabled {
+  opacity: 0.48;
 }
 
 .row {

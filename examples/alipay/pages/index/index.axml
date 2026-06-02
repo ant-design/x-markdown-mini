@@ -7,16 +7,27 @@
   >
     <view a:if="{{!messages.length}}" class="empty">
       <view class="empty-title">x-markdown-mini · Alipay Agent</view>
-      <view class="empty-sub">输入消息，和真实模型聊聊吧</view>
+      <view class="empty-sub">npm 包组件渲染 Agent Markdown，setTimeout 模拟模型返回</view>
+      <view class="prompt-list">
+        <view
+          a:for="{{prompts}}"
+          a:key="id"
+          class="prompt-chip {{promptDisabledClass}}"
+          data-text="{{item.text}}"
+          onTap="onPromptTap"
+        >
+          {{item.text}}
+        </view>
+      </view>
     </view>
 
     <view
       a:for="{{messages}}"
       a:key="id"
       id="{{item.id}}"
-      class="row {{item.role === 'user' ? 'row-user' : 'row-ai'}}"
+      class="row {{item.rowClass}}"
     >
-      <view a:if="{{item.role === 'user'}}" class="bubble bubble-user">{{item.content}}</view>
+      <view a:if="{{item.isUser}}" class="bubble bubble-user">{{item.content}}</view>
       <view a:else class="bubble bubble-ai">
         <text a:if="{{!item.content}}" class="typing">思考中…</text>
         <markdown a:else content="{{item.content}}" streaming="{{item.streaming}}" selectable="{{true}}" />

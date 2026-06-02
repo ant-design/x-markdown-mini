@@ -1,5 +1,7 @@
 import { defineConfig } from 'tsup';
 
+const MINI_PROGRAM_TARGET = 'es2017';
+
 // Mini-program 组件源码里写的是 `../../../index.js` / `../../shared/flattenInline.js`，
 // 在 src 里能解析（components/<platform>/Markdown/ → src/index.ts 是 3 上、
 // → src/components/shared/flattenInline.js 是 2 上）。
@@ -56,7 +58,7 @@ export default defineConfig([
     clean: true,
     sourcemap: false,
     splitting: false,
-    target: 'es2018',
+    target: MINI_PROGRAM_TARGET,
     noExternal: ['marked', 'remend'],
   },
   // 2) shared helpers（仅主 dist；miniprogram_dist 副本由 copy-miniprogram-dist.mjs 生成）
@@ -67,7 +69,7 @@ export default defineConfig([
     bundle: false,
     dts: false,
     clean: false,
-    target: 'es2018',
+    target: MINI_PROGRAM_TARGET,
   },
   // 3) Alipay 组件 — bundle: true 但 runtime/shared external，输出只剩 wrapper 逻辑
   {
@@ -84,7 +86,7 @@ export default defineConfig([
     clean: false,
     sourcemap: false,
     splitting: false,
-    target: 'es2018',
+    target: MINI_PROGRAM_TARGET,
     esbuildPlugins: [externalRuntimePlugin],
   },
   // 4) Wechat 组件 — 同上，输出到 miniprogram_dist 子树
@@ -102,7 +104,7 @@ export default defineConfig([
     clean: false,
     sourcemap: false,
     splitting: false,
-    target: 'es2018',
+    target: MINI_PROGRAM_TARGET,
     esbuildPlugins: [externalRuntimePlugin],
   },
   // 5) Plugin bundles — alipay 默认包根
@@ -119,7 +121,7 @@ export default defineConfig([
     clean: false,
     sourcemap: false,
     splitting: false,
-    target: 'es2018',
+    target: MINI_PROGRAM_TARGET,
     noExternal: ['katex', 'highlight.js'],
     esbuildPlugins: [externalRuntimePluginForPlugins],
   },
@@ -137,7 +139,7 @@ export default defineConfig([
     clean: false,
     sourcemap: false,
     splitting: false,
-    target: 'es2018',
+    target: MINI_PROGRAM_TARGET,
     noExternal: ['katex', 'highlight.js'],
     esbuildPlugins: [externalRuntimePluginForPlugins],
   },

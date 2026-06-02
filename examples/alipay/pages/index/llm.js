@@ -1,117 +1,116 @@
-// 支付宝端真实对话客户端。
-//
-// 支付宝 my.request 没有稳定的分块回调（onChunkReceived），无法做到真·边收边渲染，
-// 因此采用「整段获取 → 本地打字机回放」的降级方案（设计已确认）：
-//   my.request 拿到完整 SSE 响应体 → 解析所有 data: 事件拼出全文 → setTimeout 逐段
-//   通过 onChunk 吐出，交给组件的 streaming 排版动画。
-// 对页面而言，回调签名与微信端完全一致（onChunk/onDone/onError），页面代码可复用。
+// 支付宝端 Agent mock：用 setTimeout 模拟模型分块返回。
+// 页面层仍使用真实流式客户端的回调形态，后续接入网关时只需要替换本文件。
 
-const { ENDPOINT, MODEL, SYSTEM_PROMPT, TOOLS } = require('./config.js');
-
-// 行缓冲 SSE 解析器：识别 data: 前缀与 [DONE]。整段解析时一次 push 完即可。
-function createSSEParser() {
-  let buffer = '';
-  const toEvent = (rawLine) => {
-    const line = rawLine.replace(/\r$/, '').trim();
-    if (!line) return null;
-    let payload = line;
-    if (line.indexOf('data:') === 0) payload = line.slice(5).trim();
-    if (payload === '[DONE]') return { done: true };
-    return { payload };
-  };
-  return {
-    push(text) {
-      buffer += text;
-      const events = [];
-      let idx;
-      while ((idx = buffer.indexOf('\n')) >= 0) {
-        const ev = toEvent(buffer.slice(0, idx));
-        buffer = buffer.slice(idx + 1);
-        if (ev) events.push(ev);
-      }
-      return events;
-    },
-    flush() {
-      const ev = toEvent(buffer);
-      buffer = '';
-      return ev ? [ev] : [];
-    },
-  };
+function includesAny(text, words) {
+  return words.some((word) => text.indexOf(word) >= 0);
 }
 
-// 单个事件 payload → 正文增量。容忍多种返回形态，优先 wohu 的 { data }。
-function chunkToText(payload) {
-  let parsed;
-  try {
-    parsed = JSON.parse(payload);
-  } catch (e) {
-    return payload; // 非 JSON：当作纯文本增量
+function mockAgentReply(query) {
+  const lower = query.toLowerCase();
+
+  if (includesAny(lower, ['table', '表格', '对比', 'compare'])) {
+    return [
+      '下面用一个 **GFM 表格** 展示 `x-markdown-mini` 在 Agent 场景里的价值：',
+      '',
+      '| 能力 | Demo 中的表现 | 对真实业务的意义 |',
+      '| --- | --- | --- |',
+      '| 流式渲染 | `setTimeout` 分块追加 Markdown | 模型边生成，页面边排版 |',
+      '| 复杂结构 | 表格、列表、代码块混排 | 回答不是纯文本时也稳定 |',
+      '| 小程序组件 | 通过 `<markdown />` 组件渲染 | 不依赖 `<rich-text>` 的白名单 |',
+      '',
+      '结论：这个 demo 应该突出 **真实小程序接入方式**，而不是把精力浪费在假网络请求上。',
+    ].join('\n');
   }
-  if (typeof parsed === 'string') return parsed;
-  if (parsed && typeof parsed.data === 'string') return parsed.data;
-  if (parsed && parsed.data && typeof parsed.data === 'object') return ''; // 工具调用对象：本 Demo 忽略
-  const delta = parsed && parsed.choices && parsed.choices[0] && parsed.choices[0].delta;
-  if (delta && typeof delta.content === 'string') return delta.content;
-  return '';
+
+  if (includesAny(lower, ['code', '代码', 'api', '接入'])) {
+    return [
+      '可以把 Agent 返回看成一段不断增长的 Markdown 字符串：',
+      '',
+      '```js',
+      "streamChat({ query }, {",
+      '  onChunk(delta, full) {',
+      "    this.setData({ ['messages[' + aiIndex + '].content']: full });",
+      '  },',
+      '  onDone(full) {',
+      "    this.setData({ ['messages[' + aiIndex + '].streaming']: false });",
+      '  },',
+      '});',
+      '```',
+      '',
+      '页面只关心两件事：',
+      '',
+      '1. 把 `content` 传给 `<markdown content="{{...}}" />`。',
+      '2. 生成中传入 `streaming`，结束后改成 `false`。',
+    ].join('\n');
+  }
+
+  if (includesAny(lower, ['agent', '场景', '真实', 'demo'])) {
+    return [
+      '这是一个更贴近真实支付宝小程序的 Agent demo：',
+      '',
+      '- 用户消息直接走普通文本气泡。',
+      '- Agent 消息交给 `x-markdown-mini` 渲染 Markdown。',
+      '- `setTimeout` 模拟模型增量返回，触发组件的流式排版能力。',
+      '- 示例内容覆盖 **加粗**、列表、表格、代码块等高频 LLM 输出形态。',
+      '',
+      '> 真正接模型时，保留页面结构，只替换 `pages/index/llm.js` 的 `streamChat` 实现即可。',
+    ].join('\n');
+  }
+
+  return [
+    '我收到的问题是：',
+    '',
+    '> ' + query,
+    '',
+    '下面给一个 Markdown 结构化回复，方便观察渲染效果：',
+    '',
+    '### 建议',
+    '',
+    '1. 用 npm 包里的支付宝组件作为页面入口。',
+    '2. 用本地 mock 固定输出，避免 demo 受网络和鉴权影响。',
+    '3. 保持流式回调协议，后续接真实模型时改动最小。',
+    '',
+    '这类 demo 的重点不是“回答多聪明”，而是证明 **LLM 输出的 Markdown 在支付宝小程序里能稳定、渐进、可控地渲染**。',
+  ].join('\n');
 }
 
-function parseFullBody(body) {
-  const parser = createSSEParser();
-  const events = parser.push(body).concat(parser.flush());
-  let full = '';
-  events.forEach((ev) => {
-    if (ev.done) return;
-    full += chunkToText(ev.payload);
-  });
-  return full;
+function nextChunkSize(index) {
+  if (index < 24) return 2;
+  if (index < 96) return 4;
+  return 8;
 }
 
-// streamChat({ query }, { onChunk(delta, full), onDone(full), onError(err) }) → { abort }
+// streamChat({ query }, { onChunk(delta, full), onDone(full), onError(err) }) -> { abort }
 function streamChat({ query }, handlers) {
   const onChunk = (handlers && handlers.onChunk) || function () {};
   const onDone = (handlers && handlers.onDone) || function () {};
-  const onError = (handlers && handlers.onError) || function () {};
 
   let timer = null;
   let aborted = false;
+  const fullText = mockAgentReply(query);
+  let index = 0;
 
-  my.request({
-    url: ENDPOINT,
-    method: 'POST',
-    headers: { 'content-type': 'application/json', Accept: 'text/event-stream' },
-    data: { query, model: MODEL, system_prompt: SYSTEM_PROMPT, tools: TOOLS },
-    dataType: 'text',
-    success(res) {
+  const tick = () => {
+    if (aborted) return;
+
+    const prev = index;
+    index = Math.min(index + nextChunkSize(index), fullText.length);
+    const slice = fullText.slice(0, index);
+    onChunk(fullText.slice(prev, index), slice);
+
+    if (index < fullText.length) {
+      timer = setTimeout(tick, 36);
+      return;
+    }
+
+    timer = setTimeout(() => {
       if (aborted) return;
-      const raw = res && res.data;
-      const body = typeof raw === 'string' ? raw : raw ? JSON.stringify(raw) : '';
-      const fullText = parseFullBody(body);
-      if (!fullText) {
-        onDone('');
-        return;
-      }
-      // 本地打字机回放，复用组件的流式排版动画。
-      const STEP = 2;
-      let i = 0;
-      const tick = () => {
-        if (aborted) return;
-        i = Math.min(i + STEP, fullText.length);
-        const slice = fullText.slice(0, i);
-        onChunk(slice, slice);
-        if (i < fullText.length) {
-          timer = setTimeout(tick, 28);
-        } else {
-          timer = null;
-          onDone(fullText);
-        }
-      };
-      tick();
-    },
-    fail(err) {
-      if (aborted) return;
-      onError(err);
-    },
-  });
+      timer = null;
+      onDone(fullText);
+    }, 120);
+  };
+
+  timer = setTimeout(tick, 260);
 
   return {
     abort() {

@@ -1,7 +1,8 @@
 {
-  "format": "json",
+  "format": 2,
   "compileType": "mini",
   "miniprogramRoot": "./",
+  "description": "x-markdown-mini Alipay Agent demo. Open this directory in Alipay DevTools.",
   "compileOptions": {
     "component2": true,
     "typescript": false
