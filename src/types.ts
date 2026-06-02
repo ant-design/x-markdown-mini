@@ -16,10 +16,18 @@ export interface SemanticStreamingConfig {
   delimiters?: RegExp;
   /** 单块最大字符数，超长句强制按长度切 */
   maxChunkSize?: number;
-  /** 语义块之间的延迟（ms） */
-  chunkDelay?: number;
-  /** 块内字符延迟（ms） */
-  charDelay?: number;
+  /**
+   * 语义块之间的延迟（ms）。
+   * - number: 恒定延迟
+   * - number[]: 按已渲染块序号变速（如 [300,200,100,0] 随块加速），超出长度取最后一项
+   */
+  chunkDelay?: number | number[];
+  /**
+   * 块内字符延迟（ms），打字机逐字节奏。
+   * - number: 恒定延迟
+   * - number[]: 按已渲染块序号变速（如 [50,30,20,10,50]），超出长度取最后一项
+   */
+  charDelay?: number | number[];
 }
 
 /**

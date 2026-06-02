@@ -1,6 +1,49 @@
 const DEFAULT_DELIMITERS = /[。？！……；：——，、\n]/;
 const DEFAULT_MAX_CHUNK_SIZE = 80;
 
+/** 数组延迟视为「全 0 / 空」时等同恒定 0，可走同步立即渲染路径。 */
+function isZeroDelay(spec: number | number[]): boolean {
+  if (Array.isArray(spec)) return spec.length === 0 || spec.every((d) => d === 0);
+  return spec === 0;
+}
+
+/** 取第 index 个已渲染块对应的延迟；数组越界取末项，空数组当 0。 */
+function resolveDelay(spec: number | number[], index: number): number {
+  if (Array.isArray(spec)) {
+    if (spec.length === 0) return 0;
+    return spec[Math.min(index, spec.length - 1)];
+  }
+  return spec;
+}
+
+interface GraphemeSegmenter {
+  segment(input: string): Iterable<{ segment: string }>;
+}
+let cachedSegmenter: GraphemeSegmenter | null = null;
+let segmenterResolved = false;
+
+/**
+ * 按 grapheme cluster 切分（emoji、组合字符不被劈开）。优先 Intl.Segmenter，
+ * 不可用时回退 Array.from（已按 code point 迭代，至少不劈 surrogate pair）。
+ */
+function splitGraphemes(text: string): string[] {
+  if (!segmenterResolved) {
+    segmenterResolved = true;
+    try {
+      const Seg = (Intl as { Segmenter?: new () => GraphemeSegmenter }).Segmenter;
+      if (Seg) cachedSegmenter = new Seg();
+    } catch {
+      cachedSegmenter = null;
+    }
+  }
+  if (cachedSegmenter) {
+    const out: string[] = [];
+    for (const s of cachedSegmenter.segment(text)) out.push(s.segment);
+    return out;
+  }
+  return Array.from(text);
+}
+
 export interface StreamingProcessorConfig<T> {
   /**
    * 把一段已经过流式预处理的 markdown 文本转成平台节点的函数。
@@ -26,8 +69,10 @@ export interface StreamingProcessorConfig<T> {
   semanticEnabled?: boolean;
   delimiters?: RegExp;
   maxChunkSize?: number;
-  chunkDelay?: number;
-  charDelay?: number;
+  /** number = 恒定；number[] = 按已渲染块序号变速（随块加速），超出取末项 */
+  chunkDelay?: number | number[];
+  /** number = 恒定；number[] = 按已渲染块序号变速，超出取末项 */
+  charDelay?: number | number[];
 }
 
 /**
@@ -51,6 +96,8 @@ export class StreamingProcessor<T = unknown> {
 
   private pendingChunks: string[] = [];
   private chunkIndex = 0;
+  /** 已渲染块的累计序号，用于数组变速延迟（charDelay/chunkDelay 为数组时按此取值）。 */
+  private chunkRenderIndex = 0;
   private activeChunk = '';
   private activeChunkOffset = 0;
   private timer: ReturnType<typeof setTimeout> | null = null;
@@ -65,8 +112,8 @@ export class StreamingProcessor<T = unknown> {
     semanticEnabled: boolean;
     delimiters: RegExp;
     maxChunkSize: number;
-    chunkDelay: number;
-    charDelay: number;
+    chunkDelay: number | number[];
+    charDelay: number | number[];
   };
 
   constructor(cfg: StreamingProcessorConfig<T>) {
@@ -101,6 +148,7 @@ export class StreamingProcessor<T = unknown> {
     this.previousMarkdown = '';
     this.pendingChunks = [];
     this.chunkIndex = 0;
+    this.chunkRenderIndex = 0;
     this.activeChunk = '';
     this.activeChunkOffset = 0;
     this.stableNodes = [];
@@ -119,7 +167,7 @@ export class StreamingProcessor<T = unknown> {
 
     this.cancelScheduledRender();
 
-    if (chunkDelay === 0 && charDelay === 0) {
+    if (isZeroDelay(chunkDelay) && isZeroDelay(charDelay)) {
       // 非打字机模式：直接把 buffer 一次性渲染出去
       if (this.buffer.length > 0) {
         this.renderedText += this.buffer;
@@ -192,6 +240,8 @@ export class StreamingProcessor<T = unknown> {
 
   private scheduleNext(): void {
     const { chunkDelay, charDelay, onComplete } = this.config;
+    // 数组变速：本块的 char/chunk 延迟按已渲染块序号取值，块内保持恒定。
+    const interChunkDelay = this.chunkIndex === 0 ? 0 : resolveDelay(chunkDelay, this.chunkRenderIndex);
 
     this.timer = setTimeout(() => {
       if (this.chunkIndex >= this.pendingChunks.length) {
@@ -210,18 +260,25 @@ export class StreamingProcessor<T = unknown> {
       const chunk = this.pendingChunks[this.chunkIndex];
       this.activeChunk = chunk;
       this.activeChunkOffset = 0;
-      if (charDelay > 0 && chunk.length > 1) {
-        let i = 0;
+      const cd = resolveDelay(charDelay, this.chunkRenderIndex);
+      const graphemes = cd > 0 ? splitGraphemes(chunk) : null;
+      if (cd > 0 && graphemes && graphemes.length > 1) {
+        // 打字机逐字（按 grapheme，避免劈坏 emoji/组合字符）。
+        let gi = 0;
+        let offset = 0;
         const step = (): void => {
-          if (i < chunk.length) {
-            this.renderedText += chunk[i++];
-            this.activeChunkOffset = i;
+          if (gi < graphemes.length) {
+            const g = graphemes[gi++];
+            this.renderedText += g;
+            offset += g.length;
+            this.activeChunkOffset = offset;
             this.flushNodes();
-            this.timer = setTimeout(step, charDelay);
+            this.timer = setTimeout(step, cd);
           } else {
             this.activeChunk = '';
             this.activeChunkOffset = 0;
             this.chunkIndex += 1;
+            this.chunkRenderIndex += 1;
             this.scheduleNext();
           }
         };
@@ -231,10 +288,11 @@ export class StreamingProcessor<T = unknown> {
         this.activeChunk = '';
         this.activeChunkOffset = 0;
         this.chunkIndex += 1;
+        this.chunkRenderIndex += 1;
         this.flushNodes();
         this.scheduleNext();
       }
-    }, this.chunkIndex === 0 ? 0 : chunkDelay);
+    }, interChunkDelay);
   }
 
   private cancelScheduledRender(): void {

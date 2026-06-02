@@ -20,6 +20,11 @@ const PLATFORM_LABEL: Record<DemoPlatform, string> = {
 };
 const PLATFORMS: DemoPlatform[] = ['alipay', 'wechat'];
 
+// 变速打字机的默认节奏（移植自 markdown-x-mini）：随已渲染块序号加速，
+// 块内字符延迟与块间延迟各成一条曲线，超出长度取末项。
+const RAMP_CHAR_DELAYS = [50, 30, 20, 10, 50];
+const RAMP_CHUNK_DELAYS = [300, 200, 100, 0];
+
 const STREAM_DEMO = `你好！我是 AI 助手，下面为你演示 x-markdown-mini 的流式渲染能力。
 
 ## 流式补全
@@ -126,9 +131,11 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
   const [streamingFixup, setStreamingFixup] = useState(true);
   const [streamAnimation, setStreamAnimation] = useState(true);
   const [streamSemantic, setStreamSemantic] = useState(true);
-  const [streamMaxChunkSize, setStreamMaxChunkSize] = useState(80);
+  // 变速：开启则按 RAMP_* 数组随块加速（默认），关闭则用下方 Chunk/Char 固定值。
+  const [streamVariableSpeed, setStreamVariableSpeed] = useState(true);
+  const [streamMaxChunkSize, setStreamMaxChunkSize] = useState(18);
   const [streamChunkDelay, setStreamChunkDelay] = useState(120);
-  const [streamCharDelay, setStreamCharDelay] = useState(0);
+  const [streamCharDelay, setStreamCharDelay] = useState(24);
 
   // Streaming state
   const [isStreaming, setIsStreaming] = useState(false);
@@ -186,7 +193,7 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
   // and preserves existing DOM elements. This prevents CSS animation replay
   // on streaming updates — only new blocks animate in.
   const { reactNodes, issues } = useMemo(() => {
-    if (isStreaming) return { reactNodes: renderMiniNodes(streamNodes), issues: [] };
+    if (isStreaming) return { reactNodes: renderMiniNodes(streamNodes, streamAnimation), issues: [] };
     try {
       const instance = getOrCreateInstance();
       const nodes = instance.renderNodes({ content: markdown, platform, selectable });
@@ -204,7 +211,7 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
         issues: [] as DegradeIssue[],
       };
     }
-  }, [markdown, platform, selectable, isStreaming, streamNodes, getOrCreateInstance]);
+  }, [markdown, platform, selectable, isStreaming, streamNodes, streamAnimation, getOrCreateInstance]);
 
   // Streaming demo: simulate AI chunk delivery character by character
   const startStream = useCallback(() => {
@@ -225,7 +232,11 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
           hasNextChunk: false,
           enableAnimation: streamAnimation,
           semantic: streamSemantic
-            ? { maxChunkSize: streamMaxChunkSize, chunkDelay: streamChunkDelay, charDelay: streamCharDelay }
+            ? {
+                maxChunkSize: streamMaxChunkSize,
+                chunkDelay: streamVariableSpeed ? RAMP_CHUNK_DELAYS : streamChunkDelay,
+                charDelay: streamVariableSpeed ? RAMP_CHAR_DELAYS : streamCharDelay,
+              }
             : false,
         },
         onRenderProgress: ({ markdown: rendered }) => {
@@ -248,6 +259,7 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
     selectable,
     streamAnimation,
     streamSemantic,
+    streamVariableSpeed,
     streamMaxChunkSize,
     streamChunkDelay,
     streamCharDelay,
@@ -347,6 +359,11 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
                 <span>Semantic</span>
                 <span className="xmd-pg-config-desc">语义分块</span>
               </label>
+              <label className="xmd-pg-config-item">
+                <input type="checkbox" checked={streamVariableSpeed} onChange={(e) => setStreamVariableSpeed(e.target.checked)} />
+                <span>变速</span>
+                <span className="xmd-pg-config-desc">随块加速打字机</span>
+              </label>
               <label className="xmd-pg-config-item xmd-pg-config-number">
                 <span>Max</span>
                 <input
@@ -363,6 +380,7 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
                   type="number"
                   min={0}
                   max={2000}
+                  disabled={streamVariableSpeed}
                   value={streamChunkDelay}
                   onChange={(e) => setStreamChunkDelay(Number(e.target.value) || 0)}
                 />
@@ -373,6 +391,7 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
                   type="number"
                   min={0}
                   max={200}
+                  disabled={streamVariableSpeed}
                   value={streamCharDelay}
                   onChange={(e) => setStreamCharDelay(Number(e.target.value) || 0)}
                 />

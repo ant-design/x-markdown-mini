@@ -13,8 +13,8 @@ interface MakeOpts {
   semanticEnabled?: boolean;
   delimiters?: RegExp;
   maxChunkSize?: number;
-  chunkDelay?: number;
-  charDelay?: number;
+  chunkDelay?: number | number[];
+  charDelay?: number | number[];
   /** Transformer context (folded into a tokensToWechat closure for tests). */
   gfm?: boolean;
   breaks?: boolean;
@@ -318,6 +318,67 @@ describe('StreamingProcessor — config propagation', () => {
     expect(last[0].animate).toBe(true);
   });
 });
+
+describe('StreamingProcessor — variable-speed (array) timing', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('accepts array charDelay/chunkDelay and renders the full text', () => {
+    const { proc, collector } = make({
+      chunkDelay: [30, 20, 0],
+      charDelay: [20, 10, 5],
+    });
+    proc.handleContentUpdate('一句一。二句二。三句三。');
+    proc.runRenderLoop(false);
+    vi.runAllTimers();
+    expect(collector.completed).toBe(true);
+    expect(proc.getRenderedText()).toBe('一句一。二句二。三句三。');
+    // Per-character flushes → many patches
+    expect(collector.patches.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('array delay of all-zeros behaves like immediate (synchronous) flush', () => {
+    const { proc, collector } = make({ chunkDelay: [0, 0], charDelay: [0, 0] });
+    proc.handleContentUpdate('hello world');
+    proc.runRenderLoop(false);
+    // No timers needed — immediate path
+    expect(proc.getRenderedText()).toBe('hello world');
+    expect(collector.completed).toBe(true);
+  });
+
+  it('never splits an emoji surrogate pair across char-step updates', () => {
+    const text = 'ab😀cd🎉ef';
+    const { proc, collector } = make({ chunkDelay: [5], charDelay: [5] });
+    proc.handleContentUpdate(text);
+    proc.runRenderLoop(false);
+    vi.runAllTimers();
+    expect(proc.getRenderedText()).toBe(text);
+    // Every intermediate update must be free of a lone (unpaired) surrogate
+    for (const u of collector.updates) {
+      expect(hasLoneSurrogate(u)).toBe(false);
+    }
+  });
+});
+
+function hasLoneSurrogate(s: string): boolean {
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c >= 0xd800 && c <= 0xdbff) {
+      // high surrogate must be followed by a low surrogate
+      const next = i + 1 < s.length ? s.charCodeAt(i + 1) : 0;
+      if (!(next >= 0xdc00 && next <= 0xdfff)) return true;
+      i++;
+    } else if (c >= 0xdc00 && c <= 0xdfff) {
+      // lone low surrogate
+      return true;
+    }
+  }
+  return false;
+}
 
 function textContent(nodes: MiniNode[]): string {
   const out: string[] = [];

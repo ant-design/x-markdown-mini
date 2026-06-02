@@ -1,5 +1,6 @@
 import React from 'react';
 import type { MiniNode } from '@ant-design/x-markdown-mini';
+import { AnimationText } from './AnimationText';
 
 const TAG_CLASS: Record<string, string> = {
   h1: 'md-h1',
@@ -39,14 +40,19 @@ function escapeHtmlForText(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function renderNode(node: MiniNode, key: React.Key): React.ReactNode {
+function renderNode(node: MiniNode, key: React.Key, animateText: boolean): React.ReactNode {
   const { name, attrs, children, animate } = node;
   const tag = (name || 'div').toLowerCase();
 
   // Text node: value may contain HTML entities (escapeText=true default).
-  // Use dangerouslySetInnerHTML so the browser decodes them correctly.
   if (tag === 'text') {
     const value = attrs?.value != null ? String(attrs.value) : '';
+    // Streaming: render via AnimationText so each newly-appended segment fades in
+    // individually (typewriter). It decodes entities and renders plain text.
+    if (animateText) {
+      return <AnimationText key={key} value={value} />;
+    }
+    // Use dangerouslySetInnerHTML so the browser decodes entities correctly.
     const html = /<|>|"|'/.test(value) ? escapeHtmlForText(value) : value;
     return React.createElement('span', { key, dangerouslySetInnerHTML: { __html: html } });
   }
@@ -54,7 +60,7 @@ function renderNode(node: MiniNode, key: React.Key): React.ReactNode {
   // Build className
   const classes: string[] = [];
   if (TAG_CLASS[tag]) classes.push(TAG_CLASS[tag]);
-  if (animate === 'block' || animate === 'text') classes.push('md-animate-block');
+  if (animate) classes.push('md-animate-block');
 
   // Build React props
   const elProps: Record<string, unknown> = { key };
@@ -88,7 +94,7 @@ function renderNode(node: MiniNode, key: React.Key): React.ReactNode {
     return React.createElement(tag, elProps);
   }
 
-  const childNodes = children?.map((child, i) => renderNode(child, i));
+  const childNodes = children?.map((child, i) => renderNode(child, i, animateText));
   if (childNodes && childNodes.length > 0) {
     return React.createElement(tag, elProps, ...childNodes);
   }
@@ -96,6 +102,10 @@ function renderNode(node: MiniNode, key: React.Key): React.ReactNode {
   return React.createElement(tag, elProps);
 }
 
-export function renderMiniNodes(nodes: MiniNode[]): React.ReactNode[] {
-  return nodes.map((node, i) => renderNode(node, i));
+/**
+ * @param animateText  流式渲染时传 true：文本叶子走 AnimationText 逐字渐显（打字机）。
+ *                     一次性渲染传 false（默认），文本作为静态 span。
+ */
+export function renderMiniNodes(nodes: MiniNode[], animateText = false): React.ReactNode[] {
+  return nodes.map((node, i) => renderNode(node, i, animateText));
 }

@@ -7,7 +7,7 @@ export interface MiniNode {
   name: string;
   attrs?: Record<string, string | number | boolean>;
   children?: MiniNode[];
-  animate?: 'block' | 'text' | false;
+  animate?: boolean;
 }
 
 /** Map MiniNode tag names to semantic CSS classes for the phone preview. */
@@ -70,7 +70,7 @@ export function nodesToHTML(nodes: MiniNode[]): string {
     // Build the class string: merge TAG_CLASS with any existing class attr
     const extraCls: string[] = [];
     if (TAG_CLASS[tag]) extraCls.push(TAG_CLASS[tag]);
-    if (animate === 'block' || animate === 'text') extraCls.push('md-animate-block');
+    if (animate) extraCls.push('md-animate-block');
 
     let mergedAttrs = attrs;
     if (extraCls.length > 0) {

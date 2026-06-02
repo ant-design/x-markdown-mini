@@ -39,10 +39,12 @@ const BUDGETS = [
   //   打进主 bundle，raw ~114.4 KB / mjs ~112.8 KB。
   // raw +1 KB：typewriter mode now requeues unrendered chunks when a new
   // cumulative streaming update arrives before the previous timer chain drains.
-  { file: 'index.mjs', rawMax: 116 * KB, gzipMax: 29 * KB },
-  { file: 'index.js', rawMax: 117 * KB, gzipMax: 29 * KB },
+  // raw/gzip +~0.6 KB：StreamingProcessor 变速打字机（chunkDelay/charDelay 支持
+  //   number[] 随块加速）+ grapheme-safe 切分（Intl.Segmenter，回退 Array.from）。
+  { file: 'index.mjs', rawMax: 117 * KB, gzipMax: 30 * KB },
+  { file: 'index.js', rawMax: 118 * KB, gzipMax: 30 * KB },
   // 微信专用主库副本（通过 package.json#miniprogram 进入）
-  { file: 'miniprogram_dist/index.js', rawMax: 117 * KB, gzipMax: 29 * KB },
+  { file: 'miniprogram_dist/index.js', rawMax: 118 * KB, gzipMax: 30 * KB },
   // 共享 helper（alipay 包根 + wechat 包根 各一份）
   { file: 'shared/flattenInline.js', rawMax: 5 * KB },
   { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 5 * KB },
