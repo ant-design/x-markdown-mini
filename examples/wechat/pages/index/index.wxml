@@ -1,4 +1,12 @@
 <view class="page">
+  <view class="topbar">
+    <view>
+      <view class="title">Agent Demo</view>
+      <view class="subtitle">x-markdown-mini</view>
+    </view>
+    <button wx:if="{{messages.length}}" class="ghost-button" size="mini" bindtap="onReset">清空</button>
+  </view>
+
   <scroll-view
     class="messages"
     scroll-y
@@ -6,8 +14,20 @@
     scroll-with-animation
   >
     <view wx:if="{{!messages.length}}" class="empty">
-      <view class="empty-title">x-markdown-mini · WeChat Agent</view>
-      <view class="empty-sub">输入消息，和真实模型聊聊吧</view>
+      <view class="empty-title">微信小程序 Markdown Agent</view>
+      <view class="empty-sub">Agent 已就绪</view>
+      <view class="suggestions">
+        <button
+          wx:for="{{suggestions}}"
+          wx:key="*this"
+          class="suggestion"
+          size="mini"
+          data-text="{{item}}"
+          bindtap="onTapSuggestion"
+        >
+          {{item}}
+        </button>
+      </view>
     </view>
 
     <view
@@ -16,10 +36,23 @@
       id="{{item.id}}"
       class="row {{item.role === 'user' ? 'row-user' : 'row-ai'}}"
     >
-      <view wx:if="{{item.role === 'user'}}" class="bubble bubble-user">{{item.content}}</view>
+      <view wx:if="{{item.role === 'user'}}" class="bubble bubble-user">
+        <text selectable>{{item.content}}</text>
+      </view>
       <view wx:else class="bubble bubble-ai">
-        <text wx:if="{{!item.content}}" class="typing">思考中…</text>
-        <markdown wx:else content="{{item.content}}" streaming="{{item.streaming}}" selectable="{{true}}" />
+        <view wx:if="{{!item.content}}" class="typing">
+          <text class="dot"></text>
+          <text class="dot"></text>
+          <text class="dot"></text>
+        </view>
+        <markdown
+          wx:else
+          content="{{item.content}}"
+          streaming="{{item.streaming}}"
+          extensions="{{markdownExtensions}}"
+          selectable="{{true}}"
+        />
+        <view wx:if="{{item.streaming && item.content}}" class="stream-cursor"></view>
       </view>
     </view>
 
@@ -30,14 +63,12 @@
     <input
       class="composer-input"
       value="{{input}}"
-      placeholder="输入消息，和 Agent 聊聊…"
+      placeholder="输入消息"
       confirm-type="send"
       disabled="{{sending}}"
       bindinput="onInput"
       bindconfirm="onSend"
     />
-    <button class="composer-send" type="primary" size="mini" loading="{{sending}}" bindtap="onSend">
-      发送
-    </button>
+    <button class="composer-send" type="primary" size="mini" loading="{{sending}}" bindtap="onSend">发送</button>
   </view>
 </view>

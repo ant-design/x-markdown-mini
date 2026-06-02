@@ -1,157 +1,157 @@
-// 微信端真实流式对话客户端。
-//
-// wx.request 支持 enableChunked + onChunkReceived，可做到「真·逐 token 流式」：
-//   网关 → SSE 分块(ArrayBuffer) → UTF-8 增量解码 → 行缓冲拆 data: 事件 → JSON.parse().data
-//
-// 与 service-completion-poc 中 AbstractChatProvider.transformMessage 同义：
-// 每个事件 JSON 的 .data 若为字符串即追加正文；本 Demo 不处理工具调用对象。
+// Local mock chat client for the WeChat example.
+// It keeps the same streamChat contract as a real model gateway:
+// streamChat({ query }, { onChunk, onDone, onError }) -> { abort }
 
-const { ENDPOINT, MODEL, SYSTEM_PROMPT, TOOLS } = require('./config.js');
+const BASE_DELAY = 280;
+const CHUNK_DELAY = 30;
 
-// 增量 UTF-8 解码器：跨分块边界可能切断多字节字符，保留不完整的尾字节到下一块。
-function createUtf8Decoder() {
-  let pending = [];
-  return {
-    decode(arrayBuffer) {
-      const bytes = new Uint8Array(arrayBuffer);
-      const buf = pending.concat(Array.prototype.slice.call(bytes));
-      let i = 0;
-      let out = '';
-      while (i < buf.length) {
-        const b = buf[i];
-        let needed;
-        let cp;
-        if (b < 0x80) {
-          cp = b;
-          needed = 0;
-        } else if (b >= 0xc0 && b < 0xe0) {
-          cp = b & 0x1f;
-          needed = 1;
-        } else if (b >= 0xe0 && b < 0xf0) {
-          cp = b & 0x0f;
-          needed = 2;
-        } else if (b >= 0xf0) {
-          cp = b & 0x07;
-          needed = 3;
-        } else {
-          i += 1; // 游离的续字节，跳过
-          continue;
-        }
-        if (i + needed >= buf.length) break; // 尾部不完整，留到下一块
-        for (let j = 1; j <= needed; j += 1) {
-          cp = (cp << 6) | (buf[i + j] & 0x3f);
-        }
-        i += needed + 1;
-        if (cp > 0xffff) {
-          cp -= 0x10000;
-          out += String.fromCharCode(0xd800 + (cp >> 10), 0xdc00 + (cp & 0x3ff));
-        } else {
-          out += String.fromCharCode(cp);
-        }
-      }
-      pending = buf.slice(i);
-      return out;
-    },
-  };
-}
+function pickReply(query) {
+  const normalized = String(query || '').toLowerCase();
 
-// 行缓冲 SSE 解析器：按 \n 切行，未结束的尾行留在缓冲，识别 data: 前缀与 [DONE]。
-function createSSEParser() {
-  let buffer = '';
-  const toEvent = (rawLine) => {
-    const line = rawLine.replace(/\r$/, '').trim();
-    if (!line) return null;
-    let payload = line;
-    if (line.indexOf('data:') === 0) payload = line.slice(5).trim();
-    if (payload === '[DONE]') return { done: true };
-    return { payload };
-  };
-  return {
-    push(text) {
-      buffer += text;
-      const events = [];
-      let idx;
-      while ((idx = buffer.indexOf('\n')) >= 0) {
-        const ev = toEvent(buffer.slice(0, idx));
-        buffer = buffer.slice(idx + 1);
-        if (ev) events.push(ev);
-      }
-      return events;
-    },
-    flush() {
-      const ev = toEvent(buffer);
-      buffer = '';
-      return ev ? [ev] : [];
-    },
-  };
-}
-
-// 单个事件 payload → 正文增量。容忍多种返回形态，优先 wohu 的 { data }。
-function chunkToText(payload) {
-  let parsed;
-  try {
-    parsed = JSON.parse(payload);
-  } catch (e) {
-    return payload; // 非 JSON：当作纯文本增量
+  if (normalized.indexOf('性能') >= 0 || normalized.indexOf('perf') >= 0) {
+    return [
+      '## 性能排查结论',
+      '',
+      '在微信小程序里，Markdown 渲染最容易被这几件事拖慢：',
+      '',
+      '1. **重复 parse 全文**：流式输出时每个 token 都全量重算，会把长回复拖成线性累积成本。',
+      '2. **rich-text 白名单损耗**：先转 HTML 再交给 `<rich-text>`，事件、动画和部分属性会再次被过滤。',
+      '3. **节点层级过深**：小程序 `<text>` 不能像 Web DOM 那样随便嵌套，内联节点需要提前压平。',
+      '',
+      '| 场景 | 建议 | 原因 |',
+      '| --- | --- | --- |',
+      '| 普通回答 | 直接用 `content` | 简单稳定 |',
+      '| 流式回答 | 传 `streaming` | 只修补尾部内容 |',
+      '| 多会话并发 | 每个 view 独立实例 | 避免共享流状态 |',
+      '',
+      '流式场景下也可以正常处理公式，例如 $T(n)=O(n)$；复杂公式适合单独成块：',
+      '',
+      '$$',
+      '\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}',
+      '$$',
+      '',
+      '> 这个 demo 用 `setTimeout` 模拟模型返回；真实接入时只要把 `onChunk(delta, full)` 接到网关流即可。',
+    ].join('\n');
   }
-  if (typeof parsed === 'string') return parsed;
-  if (parsed && typeof parsed.data === 'string') return parsed.data;
-  if (parsed && parsed.data && typeof parsed.data === 'object') return ''; // 工具调用对象：本 Demo 忽略
-  // OpenAI 兼容形态兜底
-  const delta = parsed && parsed.choices && parsed.choices[0] && parsed.choices[0].delta;
-  if (delta && typeof delta.content === 'string') return delta.content;
-  return '';
+
+  if (
+    normalized.indexOf('代码') >= 0 ||
+    normalized.indexOf('code') >= 0 ||
+    normalized.indexOf('latex') >= 0 ||
+    normalized.indexOf('公式') >= 0
+  ) {
+    return [
+      '## 代码高亮与 LaTeX',
+      '',
+      '页面默认启用了 `CodeHighlight()` 和 `Latex()`，所以模型返回里可以直接混合代码与公式。',
+      '',
+      '```js',
+      'let full = "";',
+      '',
+      'modelStream.onChunk((delta) => {',
+      '  full += delta;',
+      '  this.setData({',
+      '    "messages[0].content": full,',
+      '    "messages[0].streaming": {',
+      '      hasNextChunk: true,',
+      '      enableAnimation: true,',
+      '    },',
+      '  });',
+      '});',
+      '```',
+      '',
+      '内联公式：$E = mc^2$。',
+      '',
+      '块级公式：',
+      '',
+      '$$',
+      '\\nabla \\cdot \\vec{E} = \\frac{\\rho}{\\varepsilon_0}',
+      '$$',
+      '',
+      '- 用户气泡用普通 `<text>`。',
+      '- Agent 气泡用 `<markdown content="{{...}}" />`。',
+      '- 完成后把 `streaming` 设为 `false`。',
+    ].join('\n');
+  }
+
+  return [
+    '## Agent 回复',
+    '',
+    '我会把你的问题当成一个小程序真实对话场景来处理。',
+    '',
+    '### 当前判断',
+    '',
+    '- 渲染层应该直接使用已发布的 `@ant-design/x-markdown-mini` 组件。',
+    '- 对话层只维护 `messages`、`input`、`sending` 三类状态。',
+    '- 代码高亮和 LaTeX 通过 `extensions` 注入，不需要改组件源码。',
+    '- 模型返回可以先用 `setTimeout` 模拟，后续替换为 `wx.request` 分块流。',
+    '',
+    '### 一个可落地的数据结构',
+    '',
+    '```js',
+    '{',
+    '  id: "m1",',
+    '  role: "ai",',
+    '  content: "## Markdown 回复",',
+    '  streaming: { hasNextChunk: true, enableAnimation: true }',
+    '}',
+    '```',
+    '',
+    '公式也会随流式内容逐步修补，例如 $a^2+b^2=c^2$。',
+    '',
+    '这样页面只负责展示，模型客户端只负责把 Markdown 按块吐出来。两边边界很清楚。',
+  ].join('\n');
 }
 
-// streamChat({ query }, { onChunk(delta, full), onDone(full), onError(err) }) → { abort }
-function streamChat({ query }, handlers) {
+function nextChunkSize(text, index) {
+  const char = text.charAt(index);
+  if (char === '\n') return 1;
+  if (/[\u4e00-\u9fa5，。；：、！？]/.test(char)) return 1;
+  return Math.min(3, Math.max(1, Math.floor(text.length / 260)));
+}
+
+function streamChat(params, handlers) {
   const onChunk = (handlers && handlers.onChunk) || function () {};
   const onDone = (handlers && handlers.onDone) || function () {};
   const onError = (handlers && handlers.onError) || function () {};
 
-  const decoder = createUtf8Decoder();
-  const parser = createSSEParser();
+  const fullText = pickReply(params && params.query);
+  const timers = [];
+  let index = 0;
   let full = '';
-  let settled = false;
+  let aborted = false;
 
-  const handleEvent = (ev) => {
-    if (!ev || ev.done) return;
-    const text = chunkToText(ev.payload);
-    if (text) {
-      full += text;
-      onChunk(text, full);
+  const schedule = (fn, delay) => {
+    const timer = setTimeout(fn, delay);
+    timers.push(timer);
+  };
+
+  const pump = () => {
+    if (aborted) return;
+
+    try {
+      if (index >= fullText.length) {
+        onDone(full);
+        return;
+      }
+
+      const size = nextChunkSize(fullText, index);
+      const delta = fullText.slice(index, index + size);
+      index += size;
+      full += delta;
+      onChunk(delta, full);
+      schedule(pump, CHUNK_DELAY);
+    } catch (err) {
+      onError(err);
     }
   };
 
-  const task = wx.request({
-    url: ENDPOINT,
-    method: 'POST',
-    header: { 'content-type': 'application/json', Accept: 'text/event-stream' },
-    data: { query, model: MODEL, system_prompt: SYSTEM_PROMPT, tools: TOOLS },
-    enableChunked: true,
-    success() {
-      if (settled) return;
-      parser.flush().forEach(handleEvent);
-      settled = true;
-      onDone(full);
-    },
-    fail(err) {
-      if (settled) return;
-      settled = true;
-      onError(err);
-    },
-  });
-
-  if (task && task.onChunkReceived) {
-    task.onChunkReceived((res) => {
-      const text = decoder.decode(res.data);
-      if (text) parser.push(text).forEach(handleEvent);
-    });
-  }
+  schedule(pump, BASE_DELAY);
 
   return {
     abort() {
-      if (task && task.abort) task.abort();
+      aborted = true;
+      while (timers.length) clearTimeout(timers.pop());
     },
   };
 }

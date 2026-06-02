@@ -218,11 +218,6 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.katex * {
-  -ms-high-contrast-adjust: none !important;
-  border-color: currentColor;
-}
-
 .katex .katex-mathml {
   position: absolute;
   clip: rect(1px, 1px, 1px, 1px);
