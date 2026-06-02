@@ -1,75 +1,73 @@
-const FULL = `# x-markdown-mini · Alipay
-
-支持 **加粗**、*斜体* 与 \`inline code\`。
-
-- 列表项一
-- 列表项二
-  - 嵌套
-- [Ant Design](https://ant.design)
-
-> 引用块：用于演示 blockquote 的渲染降级。
-
-\`\`\`js
-const greet = (name) => \`Hello \${name}\`;
-greet('mini');
-\`\`\`
-
-| 列 A | 列 B |
-| --- | --- |
-| 1   | 2   |
-| 3   | 4   |
-`;
-
-let timer = null;
+// 支付宝端对话 Agent：调用真实模型网关，流式渲染 Markdown 回复。
+const { streamChat } = require('./llm.js');
 
 Page({
   data: {
-    content: FULL,
-    streaming: false,
+    messages: [], // { id, role: 'user' | 'ai', content, streaming }
+    input: '',
+    sending: false,
+    scrollAnchor: 'a0',
   },
+
+  _idSeq: 0,
+  _anchorSeq: 0,
+  _task: null,
+
+  _scrollToBottom() {
+    this.setData({ scrollAnchor: 'a' + (this._anchorSeq += 1) });
+  },
+
   onUnload() {
-    if (timer) {
-      clearTimeout(timer);
-      timer = null;
-    }
+    if (this._task && this._task.abort) this._task.abort();
+    this._task = null;
   },
-  reset() {
-    if (timer) {
-      clearTimeout(timer);
-      timer = null;
-    }
-    this.setData({
-      content: FULL,
-      streaming: false,
-    });
+
+  onInput(e) {
+    this.setData({ input: e.detail.value });
   },
-  startStream() {
-    if (timer) {
-      clearTimeout(timer);
-      timer = null;
-    }
-    this.setData({
-      content: '',
-      streaming: { hasNextChunk: true, enableAnimation: true },
-    });
-    let i = 0;
-    const STEP = 4;
-    const tick = () => {
-      i = Math.min(i + STEP, FULL.length);
-      const done = i >= FULL.length;
-      this.setData({
-        content: FULL.slice(0, i),
-        streaming: { hasNextChunk: !done, enableAnimation: true },
-      });
-      if (!done) {
-        timer = setTimeout(tick, 50);
-      } else {
-        timer = null;
+
+  onSend() {
+    const text = (this.data.input || '').trim();
+    if (!text || this.data.sending) return;
+
+    const userId = 'm' + (this._idSeq += 1);
+    const aiId = 'm' + (this._idSeq += 1);
+    const messages = this.data.messages.concat([
+      { id: userId, role: 'user', content: text, streaming: false },
+      { id: aiId, role: 'ai', content: '', streaming: { hasNextChunk: true, enableAnimation: true } },
+    ]);
+    const aiIndex = messages.length - 1;
+
+    this.setData({ messages, input: '', sending: true });
+    this._scrollToBottom();
+
+    let acc = '';
+    this._task = streamChat(
+      { query: text },
+      {
+        onChunk: (_delta, full) => {
+          acc = full;
+          this.setData({ ['messages[' + aiIndex + '].content']: acc });
+          this._scrollToBottom();
+        },
+        onDone: (full) => {
+          this.setData({
+            ['messages[' + aiIndex + '].content']: full || acc || '（无内容）',
+            ['messages[' + aiIndex + '].streaming']: false,
+            sending: false,
+          });
+          this._scrollToBottom();
+          this._task = null;
+        },
+        onError: () => {
+          this.setData({
+            ['messages[' + aiIndex + '].content']: '请求失败，请稍后重试',
+            ['messages[' + aiIndex + '].streaming']: false,
+            sending: false,
+          });
+          this._task = null;
+        },
       }
-    };
-    tick();
-  },
-  onRenderComplete() {
-    console.log('[markdown] render complete');
+    );
   },
 });

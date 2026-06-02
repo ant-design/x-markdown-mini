@@ -1,35 +1,95 @@
 .page {
-  padding: 24rpx;
-}
-.header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24rpx;
-}
-.title {
-  font-size: 32rpx;
-  font-weight: 600;
-}
-.actions {
-  display: flex;
-  gap: 12rpx;
-}
-.actions button {
-  margin: 0;
-}
-.card {
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+  background: #f7f8fa;
 }
 
-/* 与 IR → UnifiedNode 注入的 class 对齐，便于真机视觉验证 */
-.md-h1 { font-size: 44rpx; font-weight: 700; margin: 24rpx 0 16rpx; }
-.md-h2 { font-size: 36rpx; font-weight: 700; margin: 24rpx 0 16rpx; }
-.md-h3 { font-size: 32rpx; font-weight: 600; margin: 20rpx 0 12rpx; }
-.md-paragraph { line-height: 1.7; margin: 12rpx 0; }
+.messages {
+  flex: 1;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.empty {
+  margin-top: 30vh;
+  text-align: center;
+  color: #86909c;
+}
+.empty-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #4e5969;
+}
+.empty-sub {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+}
+
+.row {
+  display: flex;
+  margin-bottom: 24rpx;
+}
+.row-user {
+  justify-content: flex-end;
+}
+.row-ai {
+  justify-content: flex-start;
+}
+
+.bubble {
+  max-width: 76%;
+  padding: 16rpx 24rpx;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+  word-break: break-word;
+}
+.bubble-user {
+  background: #1677ff;
+  color: #fff;
+  border-bottom-right-radius: 6rpx;
+}
+.bubble-ai {
+  background: #fff;
+  color: #1d2129;
+  border-bottom-left-radius: 6rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+.typing {
+  color: #86909c;
+  font-size: 26rpx;
+}
+.anchor {
+  height: 1rpx;
+}
+
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #e5e6eb;
+}
+.composer-input {
+  flex: 1;
+  background: #f2f3f5;
+  border-radius: 32rpx;
+  padding: 14rpx 24rpx;
+  font-size: 28rpx;
+}
+.composer-send {
+  margin: 0;
+}
+
+/* Markdown 节点样式（与组件注入的 class 对齐） */
+.md-h1 { font-size: 40rpx; font-weight: 700; margin: 20rpx 0 12rpx; }
+.md-h2 { font-size: 34rpx; font-weight: 700; margin: 20rpx 0 12rpx; }
+.md-h3 { font-size: 30rpx; font-weight: 600; margin: 16rpx 0 10rpx; }
+.md-paragraph { line-height: 1.7; margin: 10rpx 0; }
 .md-strong { font-weight: 600; }
 .md-em { font-style: italic; }
 .md-inline-code {
@@ -57,7 +117,7 @@
   margin: 16rpx 0;
 }
 .md-link { color: #1677ff; }
-.md-list { padding-left: 36rpx; margin: 12rpx 0; }
+.md-list { padding-left: 36rpx; margin: 10rpx 0; }
 .md-list-item { margin: 6rpx 0; line-height: 1.7; }
 .md-table { border-collapse: collapse; margin: 16rpx 0; width: 100%; }
 .md-table th, .md-table td {
