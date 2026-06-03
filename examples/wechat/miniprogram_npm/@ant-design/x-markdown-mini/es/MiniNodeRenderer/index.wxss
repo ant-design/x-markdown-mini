@@ -1,8 +1,8 @@
 .md-animate-block {
   animation-fill-mode: forwards;
   animation-name: md-block-appear;
-  animation-timing-function: ease-in;
-  animation-duration: 300ms;
+  animation-timing-function: var(--md-animation-timing, ease-in);
+  animation-duration: var(--md-animation-duration, 300ms);
 }
 
 @keyframes md-block-appear {

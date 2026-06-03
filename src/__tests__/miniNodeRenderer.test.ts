@@ -79,6 +79,24 @@ describe('renderTokensToMiniNodes', () => {
     expect(find(nodes, 'table')).toBeUndefined();
   });
 
+  it('adds table classes consumed by mini-program component styles', () => {
+    const adapter: MiniNodePlatformAdapter = {
+      linkAttrs: (href) => ({ href }),
+      imageSrc: (src) => src,
+      olAttrs: () => ({}),
+    };
+
+    const nodes = renderTokensToMiniNodes(
+      Lexer.lex('| h |\n|---|\n| v |'),
+      adapter,
+      { escapeText: false },
+    );
+
+    expect(find(nodes, 'table')?.attrs?.class).toBe('md-table');
+    expect(find(nodes, 'th')?.attrs?.class).toBe('md-th');
+    expect(find(nodes, 'td')?.attrs?.class).toBe('md-td');
+  });
+
   it('lets adapters rewrite final nodes without changing markdown semantics', () => {
     const adapter: MiniNodePlatformAdapter = {
       linkAttrs: (href) => ({ href }),

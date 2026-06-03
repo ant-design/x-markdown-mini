@@ -218,11 +218,18 @@
 .md-link { color: #1677ff; }
 .md-list { padding-left: 36rpx; margin: 10rpx 0; }
 .md-list-item { margin: 6rpx 0; line-height: 1.7; }
-.md-table { border-collapse: collapse; margin: 16rpx 0; width: 100%; }
-.md-table th, .md-table td {
+.md-table { display: block; margin: 16rpx 0; width: 100%; }
+.md-tr { display: table-row; }
+.md-th, .md-td {
+  display: table-cell;
   border: 1rpx solid #e5e6eb;
   padding: 8rpx 12rpx;
   text-align: left;
+  vertical-align: top;
+}
+.md-th {
+  background: #f7f8fa;
+  font-weight: 600;
 }
 .md-animate-block {
   animation: md-fade-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;

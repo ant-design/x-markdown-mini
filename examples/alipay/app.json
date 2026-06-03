@@ -2,6 +2,7 @@
   "pages": [
     "pages/index/index"
   ],
+  "lazyCodeLoading": "renderedComponents",
   "window": {
     "defaultTitle": "x-markdown-mini",
     "titleBarColor": "#ffffff",

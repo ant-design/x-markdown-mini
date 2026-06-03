@@ -191,21 +191,25 @@ function blockTok(
       }
       const headCells: MiniNode[] = (t.header ?? []).map((cell) => ({
         name: 'th',
+        attrs: { class: 'md-th' },
         children: inlineTokens(cell.tokens ?? [], adapter, enc, ctx),
       }));
       const rowNodes: MiniNode[] = (t.rows ?? []).map((row) => ({
         name: 'tr',
+        attrs: { class: 'md-tr' },
         children: row.map((cell) => ({
           name: 'td',
+          attrs: { class: 'md-td' },
           children: inlineTokens(cell.tokens ?? [], adapter, enc, ctx),
         })),
       }));
       const thead: MiniNode = {
         name: 'thead',
-        children: [{ name: 'tr', attrs: {}, children: headCells }],
+        attrs: { class: 'md-thead' },
+        children: [{ name: 'tr', attrs: { class: 'md-tr' }, children: headCells }],
       };
-      const tbody: MiniNode = { name: 'tbody', attrs: {}, children: rowNodes };
-      return block('table', [compactNode(thead), compactNode(tbody)], animate, adapter, tok);
+      const tbody: MiniNode = { name: 'tbody', attrs: { class: 'md-tbody' }, children: rowNodes };
+      return block('table', [compactNode(thead), compactNode(tbody)], animate, adapter, tok, { class: 'md-table' });
     }
     case 'text': {
       const t = tok as Tokens.Text;

@@ -1,4 +1,12 @@
 <view class="page">
+  <view class="topbar">
+    <view>
+      <view class="title">Agent Demo</view>
+      <view class="subtitle">x-markdown-mini · Alipay</view>
+    </view>
+    <button a:if="{{messages.length}}" class="ghost-button" size="mini" onTap="onReset">清空</button>
+  </view>
+
   <scroll-view
     class="messages"
     scroll-y
@@ -6,18 +14,19 @@
     scroll-with-animation
   >
     <view a:if="{{!messages.length}}" class="empty">
-      <view class="empty-title">x-markdown-mini · Alipay Agent</view>
-      <view class="empty-sub">npm 包组件渲染 Agent Markdown，setTimeout 模拟模型返回</view>
-      <view class="prompt-list">
-        <view
-          a:for="{{prompts}}"
+      <view class="empty-title">支付宝小程序 Markdown Agent</view>
+      <view class="empty-sub">Agent 已就绪</view>
+      <view class="suggestions">
+        <button
+          a:for="{{suggestions}}"
           a:key="id"
-          class="prompt-chip {{promptDisabledClass}}"
+          class="suggestion"
+          size="mini"
           data-text="{{item.text}}"
-          onTap="onPromptTap"
+          onTap="onTapSuggestion"
         >
           {{item.text}}
-        </view>
+        </button>
       </view>
     </view>
 
@@ -27,10 +36,33 @@
       id="{{item.id}}"
       class="row {{item.rowClass}}"
     >
-      <view a:if="{{item.isUser}}" class="bubble bubble-user">{{item.content}}</view>
+      <view a:if="{{item.isUser}}" class="bubble bubble-user">
+        <text selectable>{{item.content}}</text>
+      </view>
       <view a:else class="bubble bubble-ai">
-        <text a:if="{{!item.content}}" class="typing">思考中…</text>
-        <markdown a:else content="{{item.content}}" streaming="{{item.streaming}}" selectable="{{true}}" />
+        <view a:if="{{!item.content}}" class="typing">
+          <text class="dot"></text>
+          <text class="dot"></text>
+          <text class="dot"></text>
+        </view>
+        <markdown
+          a:else
+          content="{{item.content}}"
+          streaming="{{item.streaming}}"
+          extensions="{{markdownExtensions}}"
+          footnote="{{true}}"
+          selectable="{{true}}"
+        >
+          <view slot-scope="prop" class="fn">
+            <text
+              class="fn__marker"
+              data-label="{{prop.data.attrs.label}}"
+              data-content="{{prop.data.attrs.content}}"
+              onTap="onFootnoteTap"
+            >[{{prop.data.attrs.label}}]</text>
+          </view>
+        </markdown>
+        <view a:if="{{item.streaming && item.content}}" class="stream-cursor"></view>
       </view>
     </view>
 
@@ -41,14 +73,31 @@
     <input
       class="composer-input"
       value="{{input}}"
-      placeholder="输入消息，和 Agent 聊聊…"
+      placeholder="输入消息"
       confirm-type="send"
       disabled="{{sending}}"
       onInput="onInput"
       onConfirm="onSend"
     />
-    <button class="composer-send" type="primary" size="mini" loading="{{sending}}" onTap="onSend">
+    <button
+      class="composer-send"
+      type="primary"
+      size="mini"
+      loading="{{sending}}"
+      onTap="onSend"
+    >
       发送
     </button>
+  </view>
+
+  <view
+    a:if="{{activeFootnote}}"
+    class="fn__pop"
+    onTap="onCloseFootnote"
+  >
+    <view class="fn__bubble" catchTap="noop">
+      <view class="fn__title">脚注 {{activeFootnote.label}}</view>
+      <text class="fn__text">{{activeFootnote.content}}</text>
+    </view>
   </view>
 </view>

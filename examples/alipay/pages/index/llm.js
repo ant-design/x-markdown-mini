@@ -1,124 +1,182 @@
-// 支付宝端 Agent mock：用 setTimeout 模拟模型分块返回。
-// 页面层仍使用真实流式客户端的回调形态，后续接入网关时只需要替换本文件。
+// Local mock chat client for the Alipay example.
+// It keeps the same streamChat contract as a real model gateway:
+// streamChat({ query }, { onChunk, onDone, onError }) -> { abort }
+
+const BASE_DELAY = 260;
+const CHUNK_DELAY = 28;
 
 function includesAny(text, words) {
   return words.some((word) => text.indexOf(word) >= 0);
 }
 
-function mockAgentReply(query) {
-  const lower = query.toLowerCase();
+function pickReply(query) {
+  const normalized = String(query || '').toLowerCase();
 
-  if (includesAny(lower, ['table', '表格', '对比', 'compare'])) {
+  if (includesAny(normalized, ['性能', 'perf', '优势'])) {
     return [
-      '下面用一个 **GFM 表格** 展示 `x-markdown-mini` 在 Agent 场景里的价值：',
+      '## 性能排查结论',
       '',
-      '| 能力 | Demo 中的表现 | 对真实业务的意义 |',
+      '支付宝小程序里的 Markdown Agent 最怕三件事：',
+      '',
+      '1. **每个分块都重算全文**：长回复会被拖成越来越重的尾部更新。',
+      '2. **HTML rich-text 白名单**：事件、动画和部分属性会被二次过滤。',
+      '3. **内联节点过深**：小程序文本节点不适合保留 Web DOM 式嵌套。',
+      '',
+      '| 场景 | 做法 | 收益 |',
       '| --- | --- | --- |',
-      '| 流式渲染 | `setTimeout` 分块追加 Markdown | 模型边生成，页面边排版 |',
-      '| 复杂结构 | 表格、列表、代码块混排 | 回答不是纯文本时也稳定 |',
-      '| 小程序组件 | 通过 `<markdown />` 组件渲染 | 不依赖 `<rich-text>` 的白名单 |',
+      '| 普通回答 | 直接传 `content` | 简单稳定 |',
+      '| 流式回答 | 传 `streaming` | 尾部修补，稳定块缓存 |',
+      '| 复杂回答 | 注入扩展 | 代码、公式、脚注走结构化节点 |',
       '',
-      '结论：这个 demo 应该突出 **真实小程序接入方式**，而不是把精力浪费在假网络请求上。',
+      '公式也可以在流式过程中逐步修补：$T(n)=O(n)$。',
+      '',
+      '$$',
+      '\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}',
+      '$$',
+      '',
+      '补充脚注[^1:这个脚注由 Footnote 扩展产出，再交给支付宝 scoped slot 渲染弹层。]。',
     ].join('\n');
   }
 
-  if (includesAny(lower, ['code', '代码', 'api', '接入'])) {
+  if (
+    includesAny(normalized, ['代码', 'code', '流式', '接口', '接入']) &&
+    !includesAny(normalized, ['latex', '公式', '脚注', '表格'])
+  ) {
     return [
-      '可以把 Agent 返回看成一段不断增长的 Markdown 字符串：',
+      '## 流式渲染接入方式',
+      '',
+      '页面只维护一条不断增长的 Markdown 字符串：',
       '',
       '```js',
-      "streamChat({ query }, {",
-      '  onChunk(delta, full) {',
-      "    this.setData({ ['messages[' + aiIndex + '].content']: full });",
+      'let full = "";',
+      '',
+      'streamChat({ query }, {',
+      '  onChunk(delta, nextFull) {',
+      '    full = nextFull;',
+      '    this.setData({',
+      '      ["messages[" + aiIndex + "].content"]: full,',
+      '    });',
       '  },',
-      '  onDone(full) {',
-      "    this.setData({ ['messages[' + aiIndex + '].streaming']: false });",
+      '  onDone(finalText) {',
+      '    this.setData({',
+      '      ["messages[" + aiIndex + "].content"]: finalText,',
+      '      ["messages[" + aiIndex + "].streaming"]: false,',
+      '    });',
       '  },',
       '});',
       '```',
       '',
-      '页面只关心两件事：',
+      'Agent 气泡里直接渲染：',
       '',
-      '1. 把 `content` 传给 `<markdown content="{{...}}" />`。',
-      '2. 生成中传入 `streaming`，结束后改成 `false`。',
+      '```axml',
+      '<markdown',
+      '  content="{{item.content}}"',
+      '  streaming="{{item.streaming}}"',
+      '  extensions="{{markdownExtensions}}"',
+      '  footnote="{{true}}"',
+      '/>',
+      '```',
     ].join('\n');
   }
 
-  if (includesAny(lower, ['agent', '场景', '真实', 'demo'])) {
+  if (includesAny(normalized, ['latex', '公式', '脚注', '表格', '高亮'])) {
     return [
-      '这是一个更贴近真实支付宝小程序的 Agent demo：',
+      '## 复杂 Markdown 能力展示',
       '',
-      '- 用户消息直接走普通文本气泡。',
-      '- Agent 消息交给 `x-markdown-mini` 渲染 Markdown。',
-      '- `setTimeout` 模拟模型增量返回，触发组件的流式排版能力。',
-      '- 示例内容覆盖 **加粗**、列表、表格、代码块等高频 LLM 输出形态。',
+      '这条回复同时包含 **代码高亮**、LaTeX、脚注和 GFM 表格。',
       '',
-      '> 真正接模型时，保留页面结构，只替换 `pages/index/llm.js` 的 `streamChat` 实现即可。',
+      '| 能力 | 当前状态 | 渲染路径 |',
+      '| --- | --- | --- |',
+      '| 代码高亮 | 支持 | `CodeHighlight()` |',
+      '| LaTeX | 支持 | `Latex()` |',
+      '| 脚注 | 支持 | `Footnote()` + scoped slot |',
+      '| 表格 | 支持 | GFM token → Alipay MiniNode |',
+      '',
+      '行内公式：$E = mc^2$。',
+      '',
+      '块级公式：',
+      '',
+      '$$',
+      '\\int_0^1 x^2\\,dx = \\frac{1}{3}',
+      '$$',
+      '',
+      '脚注 marker 可以点击[^demo:脚注内容保存在 MiniNode.attrs.content，页面层决定弹层样式和交互。]。',
+      '',
+      '```ts',
+      'import { XMarkdownMini } from "@ant-design/x-markdown-mini";',
+      '',
+      'const md = new XMarkdownMini({',
+      '  extensions: [Footnote(), CodeHighlight(), Latex()],',
+      '});',
+      '```',
     ].join('\n');
   }
 
   return [
-    '我收到的问题是：',
+    '## Agent 回复',
     '',
-    '> ' + query,
+    '我会把你的输入当成支付宝小程序里的真实 Agent 消息处理。',
     '',
-    '下面给一个 Markdown 结构化回复，方便观察渲染效果：',
+    '- 用户消息使用普通文本气泡。',
+    '- Agent 消息交给 `<markdown />`。',
+    '- 生成中设置 `streaming: { hasNextChunk: true, enableAnimation: true }`。',
+    '- 结束后把 `streaming` 设为 `false`。',
     '',
-    '### 建议',
+    '> 现在的 `llm.js` 是本地 mock。接真实模型时，只替换 `streamChat` 内部实现，页面状态机不用动。',
     '',
-    '1. 用 npm 包里的支付宝组件作为页面入口。',
-    '2. 用本地 mock 固定输出，避免 demo 受网络和鉴权影响。',
-    '3. 保持流式回调协议，后续接真实模型时改动最小。',
-    '',
-    '这类 demo 的重点不是“回答多聪明”，而是证明 **LLM 输出的 Markdown 在支付宝小程序里能稳定、渐进、可控地渲染**。',
+    '也可以混合公式 $a^2+b^2=c^2$ 和脚注[^note:默认回复也会验证脚注 slot 是否工作。]。',
   ].join('\n');
 }
 
-function nextChunkSize(index) {
-  if (index < 24) return 2;
-  if (index < 96) return 4;
-  return 8;
+function nextChunkSize(text, index) {
+  const char = text.charAt(index);
+  if (char === '\n') return 1;
+  if (/[\u4e00-\u9fa5，。；：、！？]/.test(char)) return 1;
+  return Math.min(3, Math.max(1, Math.floor(text.length / 260)));
 }
 
-// streamChat({ query }, { onChunk(delta, full), onDone(full), onError(err) }) -> { abort }
-function streamChat({ query }, handlers) {
+function streamChat(params, handlers) {
   const onChunk = (handlers && handlers.onChunk) || function () {};
   const onDone = (handlers && handlers.onDone) || function () {};
+  const onError = (handlers && handlers.onError) || function () {};
 
-  let timer = null;
-  let aborted = false;
-  const fullText = mockAgentReply(query);
+  const fullText = pickReply(params && params.query);
+  const timers = [];
   let index = 0;
+  let full = '';
+  let aborted = false;
 
-  const tick = () => {
-    if (aborted) return;
-
-    const prev = index;
-    index = Math.min(index + nextChunkSize(index), fullText.length);
-    const slice = fullText.slice(0, index);
-    onChunk(fullText.slice(prev, index), slice);
-
-    if (index < fullText.length) {
-      timer = setTimeout(tick, 36);
-      return;
-    }
-
-    timer = setTimeout(() => {
-      if (aborted) return;
-      timer = null;
-      onDone(fullText);
-    }, 120);
+  const schedule = (fn, delay) => {
+    const timer = setTimeout(fn, delay);
+    timers.push(timer);
   };
 
-  timer = setTimeout(tick, 260);
+  const pump = () => {
+    if (aborted) return;
+
+    try {
+      if (index >= fullText.length) {
+        onDone(full);
+        return;
+      }
+
+      const size = nextChunkSize(fullText, index);
+      const delta = fullText.slice(index, index + size);
+      index += size;
+      full += delta;
+      onChunk(delta, full);
+      schedule(pump, CHUNK_DELAY);
+    } catch (err) {
+      onError(err);
+    }
+  };
+
+  schedule(pump, BASE_DELAY);
 
   return {
     abort() {
       aborted = true;
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-      }
+      while (timers.length) clearTimeout(timers.pop());
     },
   };
 }

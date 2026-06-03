@@ -1,111 +1,112 @@
-<import-sjs from="./index.sjs" name="u" />
+<wxs src="./index.wxs" module="u" />
 
-<block a:for="{{nodes}}" a:for-item="node" a:for-index="i" a:key="i">
+<block wx:for="{{nodes}}" wx:for-item="node" wx:for-index="i" wx:key="i">
   <!-- text leaf -->
   <text
-    a:if="{{u.isText(node.name)}}"
+    wx:if="{{u.isText(node.name)}}"
     class="{{u.classOf(node)}}"
     selectable="{{selectable}}"
   >{{u.valueOf(node)}}</text>
 
   <!-- br -->
-  <text a:elif="{{u.isBr(node.name)}}">{{'\n'}}</text>
+  <text wx:elif="{{u.isBr(node.name)}}">{{'\n'}}</text>
 
   <!-- hr -->
-  <view a:elif="{{u.isHr(node.name)}}" class="{{u.classOf(node)}}" />
+  <view wx:elif="{{u.isHr(node.name)}}" class="{{u.classOf(node)}}" />
 
   <!-- img -->
   <image
-    a:elif="{{u.isImg(node.name)}}"
+    wx:elif="{{u.isImg(node.name)}}"
     class="{{u.classOf(node)}}"
     style="{{u.styleOf(node)}}"
     src="{{u.srcOf(node)}}"
     mode="widthFix"
     data-data="{{node}}"
-    catchTap="_tap"
-    onAppear="_appear"
+    catch:tap="_tap"
   />
 
   <!-- pre: scrollable code container -->
   <scroll-view
-    a:elif="{{u.isPre(node.name)}}"
+    wx:elif="{{u.isPre(node.name)}}"
     scroll-x
     class="{{u.classOf(node)}}"
     style="{{u.styleOf(node)}}"
     data-data="{{node}}"
-    catchTap="_tap"
+    catch:tap="_tap"
   >
     <mini-node-renderer
-      a:if="{{node.children}}"
+      wx:if="{{node.children}}"
+      generic:custom-slot="custom-slot"
       nodes="{{node.children}}"
       selectable="{{selectable}}"
       animation="{{false}}"
       slotComponents="{{slotComponents}}"
-      onTap="onTap"
-      onAppear="onAppear"
-    >
-      <slot slot-scope="prop" data="{{prop.data}}" />
-    </mini-node-renderer>
+      bind:tap="_tap"
+      bind:appear="_appear"
+    />
   </scroll-view>
 
   <!-- anchor: kept interactive, children are already flattened text runs -->
-  <view
-    a:elif="{{node.name === 'a'}}"
+  <text
+    wx:elif="{{node.name === 'a'}}"
     class="{{u.classOf(node)}}"
     style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
     data-data="{{node}}"
-    catchTap="_tap"
+    catch:tap="_tap"
   >
     <text
-      a:for="{{node.children}}"
-      a:for-item="c"
-      a:for-index="ci"
-      a:key="ci"
+      wx:for="{{node.children}}"
+      wx:for-item="c"
+      wx:for-index="ci"
+      wx:key="ci"
       class="{{u.classOf(c)}}"
     >{{u.valueOf(c)}}</text>
-  </view>
+  </text>
 
-  <!-- inline tag rendered as a flat container because Alipay SDK 2.x rejects nested <text>. -->
-  <view
-    a:elif="{{u.isInline(node.name)}}"
+  <!-- inline tag rendered as <text>: children are flat text runs -->
+  <text
+    wx:elif="{{u.isInline(node.name)}}"
     class="{{u.classOf(node)}}"
     style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
     data-data="{{node}}"
-    catchTap="_tap"
+    catch:tap="_tap"
   >
     <text
-      a:for="{{node.children}}"
-      a:for-item="c"
-      a:for-index="ci"
-      a:key="ci"
+      wx:for="{{node.children}}"
+      wx:for-item="c"
+      wx:for-index="ci"
+      wx:key="ci"
       class="{{u.classOf(c)}}"
     >{{u.valueOf(c)}}</text>
-  </view>
+  </text>
 
-  <!-- custom component: hand off to host scoped slot, keyed by node.tag -->
-  <slot
-    a:elif="{{u.isSlot(node.name, slotComponents)}}"
-    data="{{node}}"
+  <!-- custom component: hand off to host-provided abstract node, keyed by node.tag -->
+  <custom-slot
+    wx:elif="{{u.isSlot(node.name, slotComponents)}}"
+    node="{{node}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
   />
 
   <!-- block tag rendered as <view> -->
   <view
-    a:else
+    wx:else
     class="{{u.classOf(node)}}"
     style="{{u.styleOf(node)}}"
     data-data="{{node}}"
-    catchTap="_tap"
+    catch:tap="_tap"
   >
     <mini-node-renderer
-      a:if="{{node.children}}"
+      wx:if="{{node.children}}"
+      generic:custom-slot="custom-slot"
       nodes="{{node.children}}"
       selectable="{{selectable}}"
       animation="{{animation}}"
       slotComponents="{{slotComponents}}"
-      onTap="onTap"
-      onAppear="onAppear"
-    >
-      <slot slot-scope="prop" data="{{prop.data}}" />
-    </mini-node-renderer>
+      bind:tap="_tap"
+      bind:appear="_appear"
+    />
   </view>
 </block>

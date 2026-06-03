@@ -55,7 +55,7 @@ export default defineConfig([
     outDir: 'dist',
     format: ['cjs', 'esm'],
     dts: true,
-    clean: true,
+    clean: false,
     sourcemap: false,
     splitting: false,
     target: MINI_PROGRAM_TARGET,

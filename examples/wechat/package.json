@@ -1,0 +1,9 @@
+{
+  "name": "x-markdown-mini-wechat-agent-demo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "WeChat mini-program Agent demo for x-markdown-mini.",
+  "dependencies": {
+    "@ant-design/x-markdown-mini": "0.1.0-beta.0"
+  }
+}

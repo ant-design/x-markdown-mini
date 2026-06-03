@@ -93,6 +93,7 @@
   margin: 12rpx 0;
   border-collapse: collapse;
 }
+.md-tr { display: table-row; }
 .md-th, .md-td {
   display: table-cell;
   padding: 8rpx 12rpx;

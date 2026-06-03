@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@mini-types/alipay": "^3"
+  }
+}

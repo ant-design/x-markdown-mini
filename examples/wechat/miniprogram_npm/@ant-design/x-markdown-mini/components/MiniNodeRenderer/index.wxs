@@ -1,0 +1,40 @@
+var INLINE = { strong: 1, em: 1, del: 1, code: 1, a: 1, span: 1 };
+
+function isInline(name) { return INLINE[name] === 1; }
+function isText(name) { return name === 'text'; }
+function isBr(name) { return name === 'br'; }
+function isImg(name) { return name === 'img'; }
+function isHr(name) { return name === 'hr'; }
+function isPre(name) { return name === 'pre'; }
+function isSlot(name, slotComponents) {
+  return !!slotComponents && slotComponents.indexOf(name) > -1;
+}
+
+function classOf(node) {
+  var attrs = node.attrs || {};
+  var cls = attrs['class'] || '';
+  if (node.animate) {
+    cls = cls ? cls + ' md-animate-block' : 'md-animate-block';
+  }
+  return cls;
+}
+
+function styleOf(node) { return (node.attrs || {}).style || ''; }
+function srcOf(node)   { return (node.attrs || {}).src || ''; }
+function altOf(node)   { return (node.attrs || {}).alt || ''; }
+function valueOf(node) { return (node.attrs || {}).value || ''; }
+
+module.exports = {
+  isInline: isInline,
+  isText: isText,
+  isBr: isBr,
+  isImg: isImg,
+  isHr: isHr,
+  isPre: isPre,
+  isSlot: isSlot,
+  classOf: classOf,
+  styleOf: styleOf,
+  srcOf: srcOf,
+  altOf: altOf,
+  valueOf: valueOf,
+};

@@ -1,7 +1,0 @@
-{
-  "defaultTitle": "自定义组件 · Alipay",
-  "usingComponents": {
-    "markdown": "../../dist/components/Markdown/index",
-    "countdown": "../../components/countdown/index"
-  }
-}

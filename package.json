@@ -31,7 +31,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup && node scripts/patch-modern-regex.mjs && node scripts/copy-miniprogram-dist.mjs && node scripts/copy-component-assets.mjs",
+    "build": "node scripts/clean.mjs && tsup && node scripts/patch-modern-regex.mjs && node scripts/copy-miniprogram-dist.mjs && node scripts/copy-component-assets.mjs",
     "clean": "node scripts/clean.mjs",
     "clean:all": "node scripts/clean.mjs --all",
     "test": "vitest run --coverage",
@@ -42,6 +42,7 @@
     "bench:check": "npm run bench && node scripts/check-bench.mjs --threshold 0.10",
     "bench:update": "npm run bench && node scripts/bench-update.mjs",
     "bench:compare": "tsx benchmark/compare.ts",
+    "check:examples": "node scripts/check-examples.mjs",
     "lint": "eslint src --ext .ts",
     "docs": "npm run build && cd docs-site && npm run dev",
     "docs:build": "npm run build && cd docs-site && npm run build",
