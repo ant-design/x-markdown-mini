@@ -209,6 +209,7 @@
 /* Note: '>' child combinators replaced with ' ' (descendant) for mini-program compat */
 
 .katex {
+  display: inline-block;
   font-family: KaTeX_Main, "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 1em;
   font-weight: normal;
@@ -217,6 +218,10 @@
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
 }
+
+/* mini-program 无原生 <span>，KaTeX 节点渲染为 <view>/<text>；未带显式 display
+   的原子默认 inline-block，结构性 class 规则（.base/.vlist* 等）按特异性覆盖。 */
+.katex view { display: inline-block; vertical-align: baseline; }
 
 .katex * {
   -ms-high-contrast-adjust: none !important;
@@ -281,13 +286,13 @@
   position: relative;
 }
 
-.katex .vlist span {
+.katex .vlist view {
   display: block;
   height: 0;
   position: relative;
 }
 
-.katex .vlist span span { display: inline-block; }
+.katex .vlist view view { display: inline-block; }
 
 .katex .vlist .pstrut {
   overflow: hidden;
@@ -326,7 +331,7 @@
 
 .katex .msupsub { text-align: left; }
 
-.katex .mfrac span span { text-align: center; }
+.katex .mfrac view view { text-align: center; }
 
 .katex .mfrac .frac-line {
   display: inline-block;
@@ -354,7 +359,7 @@
 .katex .llap .fix, .katex .rlap .fix, .katex .clap .fix { display: inline-block; }
 .katex .llap .inner { right: 0; }
 .katex .rlap .inner, .katex .clap .inner { left: 0; }
-.katex .clap .inner span { margin-left: -50%; margin-right: 50%; }
+.katex .clap .inner view { margin-left: -50%; margin-right: 50%; }
 
 .katex .rule {
   display: inline-block;
@@ -529,8 +534,8 @@
 .katex .delimsizing.size3 { font-family: KaTeX_Size3; }
 .katex .delimsizing.size4 { font-family: KaTeX_Size4; }
 
-.katex .delimsizing.mult .delim-size1 span { font-family: KaTeX_Size1; }
-.katex .delimsizing.mult .delim-size4 span { font-family: KaTeX_Size4; }
+.katex .delimsizing.mult .delim-size1 view { font-family: KaTeX_Size1; }
+.katex .delimsizing.mult .delim-size4 view { font-family: KaTeX_Size4; }
 
 .katex .nulldelimiter { display: inline-block; width: 0.12em; }
 .katex .delimcenter { position: relative; }

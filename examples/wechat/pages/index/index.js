@@ -5,6 +5,14 @@ const Latex = require('../../dist/plugins/Latex/index.js').default;
 
 const markdownExtensions = [CodeHighlight(), Latex()];
 
+// 打字机 + 语义分块配置：模型按行快速吐字，由 StreamingProcessor 以
+// 「变速逐字 + 句读分块」节奏渲染（charDelay/chunkDelay 为数组时按块加速）。
+const TYPEWRITER = { charDelay: [26, 18, 13, 10, 8], chunkDelay: [80, 55, 38, 26] };
+// 生成中：还有后续输入，保留未完成片段。
+const STREAM_ON = { hasNextChunk: true, semantic: TYPEWRITER, enableAnimation: true };
+// 收尾：模型已结束，但仍交给打字机把缓冲里的剩余内容按节奏播完。
+const STREAM_FLUSH = { hasNextChunk: false, semantic: TYPEWRITER, enableAnimation: true };
+
 Page({
   data: {
     messages: [], // { id, role: 'user' | 'ai', content, streaming }
@@ -60,7 +68,7 @@ Page({
     const aiId = 'm' + (this._idSeq += 1);
     const messages = this.data.messages.concat([
       { id: userId, role: 'user', content: text, streaming: false },
-      { id: aiId, role: 'ai', content: '', streaming: { hasNextChunk: true, enableAnimation: true } },
+      { id: aiId, role: 'ai', content: '', streaming: STREAM_ON },
     ]);
     const aiIndex = messages.length - 1;
 
@@ -77,9 +85,11 @@ Page({
           this._scrollToBottom();
         },
         onDone: (full) => {
+          // 不直接置 false（会一次性整段渲染），而是切到 hasNextChunk:false，
+          // 让打字机把尾部缓冲按节奏播完，结束后停留为最终态。
           this.setData({
             ['messages[' + aiIndex + '].content']: full || acc || '（无内容）',
-            ['messages[' + aiIndex + '].streaming']: false,
+            ['messages[' + aiIndex + '].streaming']: STREAM_FLUSH,
             sending: false,
           });
           this._scrollToBottom();

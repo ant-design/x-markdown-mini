@@ -142,8 +142,12 @@ function blockTok(
       return block('p', inlineTokens(t.tokens ?? [], adapter, enc, ctx), animate, adapter, tok);
     }
     case 'code': {
+      const lang = ((tok as Tokens.Code).lang ?? '').trim().split(/\s+/)[0] ?? '';
+      const preAttrs: MiniNodeAttrs = lang
+        ? { class: 'md-code-block', lang }
+        : { class: 'md-code-block' };
       const custom = renderCustomToken(tok, ctx);
-      if (custom.length) return block('pre', custom, animate, adapter, tok);
+      if (custom.length) return block('pre', custom, animate, adapter, tok, preAttrs);
       const t = tok as Tokens.Code;
       if (!supports(adapter, 'supportsPre')) {
         return textBlock(enc(t.text ?? ''), animate, adapter, tok);
@@ -152,7 +156,7 @@ function blockTok(
         name: 'code',
         children: [{ name: 'text', attrs: { value: enc(t.text ?? '') } }],
       };
-      return block('pre', [codeChild], animate, adapter, tok);
+      return block('pre', [codeChild], animate, adapter, tok, preAttrs);
     }
     case 'hr':
       return block('hr', [], animate, adapter, tok);
@@ -203,13 +207,11 @@ function blockTok(
           children: inlineTokens(cell.tokens ?? [], adapter, enc, ctx),
         })),
       }));
-      const thead: MiniNode = {
-        name: 'thead',
-        attrs: { class: 'md-thead' },
-        children: [{ name: 'tr', attrs: { class: 'md-tr' }, children: headCells }],
-      };
-      const tbody: MiniNode = { name: 'tbody', attrs: { class: 'md-tbody' }, children: rowNodes };
-      return block('table', [compactNode(thead), compactNode(tbody)], animate, adapter, tok, { class: 'md-table' });
+      // No thead/tbody wrappers: WeChat does not render display:table-row-group
+      // reliably on <view>, which breaks column alignment. Putting <tr> rows
+      // directly under the CSS table is the cross-platform-robust structure.
+      const headerRow: MiniNode = { name: 'tr', attrs: { class: 'md-tr' }, children: headCells };
+      return block('table', [headerRow, ...rowNodes], animate, adapter, tok, { class: 'md-table' });
     }
     case 'text': {
       const t = tok as Tokens.Text;
@@ -324,6 +326,7 @@ function inlineTok(
       const t = tok as Tokens.Codespan;
       const node = inlineNode(adapter, {
         name: 'code',
+        attrs: { class: 'md-inline-code' },
         children: [{ name: 'text', attrs: { value: enc(t.text ?? '') } }],
       }, tok);
       if (node) out.push(node);

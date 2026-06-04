@@ -13,6 +13,18 @@ function isBr(name) { return name === 'br'; }
 function isImg(name) { return name === 'img'; }
 function isHr(name) { return name === 'hr'; }
 function isPre(name) { return name === 'pre'; }
+function isTable(name) { return name === 'table'; }
+// 富内联节点（如 KaTeX 公式容器）含有元素子节点，必须走递归 <view> 路径
+// 渲染，保留嵌套结构与 style；普通已扁平化的内联只有 text/br 子节点。
+function isRich(node) {
+  var ch = node.children;
+  if (!ch) return false;
+  for (var i = 0; i < ch.length; i++) {
+    var nm = ch[i].name;
+    if (nm !== 'text' && nm !== 'br') return true;
+  }
+  return false;
+}
 function isSlot(name, slotComponents) {
   return !!slotComponents && slotComponents.indexOf(name) > -1;
 }
@@ -36,6 +48,11 @@ function srcOf(node) {
   return attrs.src || '';
 }
 
+function langOf(node) {
+  var attrs = node.attrs || {};
+  return attrs.lang || '';
+}
+
 function altOf(node) {
   var attrs = node.attrs || {};
   return attrs.alt || '';
@@ -54,10 +71,13 @@ export default {
   isImg: isImg,
   isHr: isHr,
   isPre: isPre,
+  isTable: isTable,
+  isRich: isRich,
   isSlot: isSlot,
   classOf: classOf,
   styleOf: styleOf,
   srcOf: srcOf,
+  langOf: langOf,
   altOf: altOf,
   valueOf: valueOf,
 };

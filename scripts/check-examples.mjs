@@ -10,13 +10,21 @@ const examples = [
     name: 'alipay',
     dir: join(root, 'examples', 'alipay'),
     pageExts: ['.js', '.axml', '.json'],
-    markdownComponent: '../../dist/components/Markdown/index',
+    // The shipped lean component, or a demo-local wrapper that bakes plugins
+    // (function-bearing extensions can't cross setData — see markdown-rich/).
+    markdownComponents: [
+      '../../dist/components/Markdown/index',
+      '../../components/markdown-rich/index',
+    ],
   },
   {
     name: 'wechat',
     dir: join(root, 'examples', 'wechat'),
     pageExts: ['.js', '.wxml', '.json'],
-    markdownComponent: '../../dist/components/Markdown/index',
+    markdownComponents: [
+      '../../dist/components/Markdown/index',
+      '../../components/markdown-rich/index',
+    ],
   },
 ];
 
@@ -48,9 +56,9 @@ for (const example of examples) {
     const config = readJson(pageJson);
     const components = config.usingComponents || {};
 
-    if (components.markdown !== example.markdownComponent) {
+    if (!example.markdownComponents.includes(components.markdown)) {
       throw new Error(
-        `${example.name} ${page}.json must use ${example.markdownComponent}, got ${components.markdown}`
+        `${example.name} ${page}.json must use one of ${example.markdownComponents.join(' | ')}, got ${components.markdown}`
       );
     }
 

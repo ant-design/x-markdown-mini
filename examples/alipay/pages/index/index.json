@@ -1,6 +1,6 @@
 {
   "defaultTitle": "x-markdown-mini",
   "usingComponents": {
-    "markdown": "../../dist/components/Markdown/index"
+    "markdown": "../../components/markdown-rich/index"
   }
 }

@@ -129,11 +129,14 @@
   border-bottom-right-radius: 6rpx;
 }
 
-.bubble-ai {
-  background: #fff;
+/* Agent 回复平铺：无气泡、占满整行宽度 */
+.reply-ai {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 28rpx;
+  line-height: 1.6;
   color: #1d2129;
-  border-bottom-left-radius: 6rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  word-break: break-word;
 }
 
 .typing {
@@ -157,15 +160,6 @@
 
 .dot:nth-child(3) {
   animation-delay: 240ms;
-}
-
-.stream-cursor {
-  width: 24rpx;
-  height: 4rpx;
-  margin: 8rpx 0 2rpx;
-  border-radius: 999rpx;
-  background: #1677ff;
-  animation: cursor-blink 720ms ease-out infinite;
 }
 
 .anchor {
@@ -241,20 +235,7 @@
   font-size: 26rpx;
 }
 
-.md-code-block {
-  min-width: 100%;
-  margin: 16rpx 0;
-  padding: 16rpx 20rpx;
-  border: 1rpx solid #e5e8ed;
-  border-radius: 8rpx;
-  background: #f8fafb;
-  box-sizing: border-box;
-  color: #1d2129;
-  font-family: ui-monospace, Menlo, monospace;
-  font-size: 26rpx;
-  line-height: 1.6;
-  white-space: pre;
-}
+/* 代码块样式（含语言条/复制工具条）由组件内置，示例不再覆盖，避免重复边框。 */
 
 .md-blockquote {
   margin: 16rpx 0;
@@ -279,29 +260,8 @@
   line-height: 1.7;
 }
 
-.md-table {
-  display: block;
-  min-width: 640rpx;
-  margin: 16rpx 0;
-}
-
-.md-tr {
-  display: table-row;
-}
-
-.md-th,
-.md-td {
-  display: table-cell;
-  padding: 8rpx 12rpx;
-  border: 1rpx solid #e5e6eb;
-  text-align: left;
-  vertical-align: top;
-}
-
-.md-th {
-  background: #f7f8fa;
-  font-weight: 600;
-}
+/* 表格样式由组件内置（.md-table-scroll/.md-table 等），示例不再覆盖，
+   否则 display:block + 内层 margin 会破坏列对齐并产生多余边距。 */
 
 .katex-display {
   overflow-x: auto;
@@ -369,18 +329,6 @@
   to {
     opacity: 1;
     transform: none;
-  }
-}
-
-@keyframes cursor-blink {
-  0%,
-  100% {
-    opacity: 0.18;
-    transform: scaleX(0.72);
-  }
-  45% {
-    opacity: 1;
-    transform: scaleX(1);
   }
 }
 

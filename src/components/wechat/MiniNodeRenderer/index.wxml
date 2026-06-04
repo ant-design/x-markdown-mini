@@ -25,26 +25,52 @@
     catch:tap="_tap"
   />
 
-  <!-- pre: scrollable code container -->
-  <scroll-view
+  <!-- pre: code block with language label + copy toolbar, scrollable body -->
+  <view
     wx:elif="{{u.isPre(node.name)}}"
-    scroll-x
-    class="{{u.classOf(node)}}"
-    style="{{u.styleOf(node)}}"
-    data-data="{{node}}"
-    catch:tap="_tap"
+    class="md-codeblock {{node.animate ? 'md-animate-block' : ''}}"
   >
-    <mini-node-renderer
-      wx:if="{{node.children}}"
-      generic:custom-slot="custom-slot"
-      nodes="{{node.children}}"
-      selectable="{{selectable}}"
-      animation="{{false}}"
-      slotComponents="{{slotComponents}}"
-      bind:tap="_tap"
-      bind:appear="_appear"
-    />
-  </scroll-view>
+    <view class="md-codeblock-bar">
+      <text class="md-codeblock-lang">{{u.langOf(node)}}</text>
+      <view class="md-codeblock-copy" data-data="{{node}}" catch:tap="_copyCode">复制</view>
+    </view>
+    <scroll-view scroll-x class="md-code-block">
+      <mini-node-renderer
+        wx:if="{{node.children}}"
+        generic:custom-slot="custom-slot"
+        nodes="{{node.children}}"
+        selectable="{{selectable}}"
+        animation="{{false}}"
+        slotComponents="{{slotComponents}}"
+        bind:tap="_tap"
+        bind:appear="_appear"
+      />
+    </scroll-view>
+  </view>
+
+  <!-- table: copy toolbar + horizontal-scroll CSS table (columns kept aligned) -->
+  <view
+    wx:elif="{{u.isTable(node.name)}}"
+    class="md-tableblock {{node.animate ? 'md-animate-block' : ''}}"
+  >
+    <view class="md-tableblock-bar">
+      <view class="md-tableblock-copy" data-data="{{node}}" catch:tap="_copyTable">复制</view>
+    </view>
+    <scroll-view scroll-x class="md-table-scroll">
+      <view class="md-table">
+        <mini-node-renderer
+          wx:if="{{node.children}}"
+          generic:custom-slot="custom-slot"
+          nodes="{{node.children}}"
+          selectable="{{selectable}}"
+          animation="{{false}}"
+          slotComponents="{{slotComponents}}"
+          bind:tap="_tap"
+          bind:appear="_appear"
+        />
+      </view>
+    </scroll-view>
+  </view>
 
   <!-- anchor: kept interactive, children are already flattened text runs -->
   <text
@@ -66,7 +92,7 @@
 
   <!-- inline tag rendered as <text>: children are flat text runs -->
   <text
-    wx:elif="{{u.isInline(node.name)}}"
+    wx:elif="{{u.isInline(node.name) && !u.isRich(node)}}"
     class="{{u.classOf(node)}}"
     style="{{u.styleOf(node)}}"
     selectable="{{selectable}}"

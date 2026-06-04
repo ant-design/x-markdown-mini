@@ -3,7 +3,9 @@
 
 .hljs {
   color: #24292e;
-  background: #ffffff;
+  /* No background: code runs are flattened into the .md-code-block container,
+     so a per-run background would paint stray boxes inside the code block. */
+  background: transparent;
 }
 
 .hljs-doctag,

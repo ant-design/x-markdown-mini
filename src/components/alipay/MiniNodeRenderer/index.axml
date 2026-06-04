@@ -26,27 +26,54 @@
     onAppear="_appear"
   />
 
-  <!-- pre: scrollable code container -->
-  <scroll-view
+  <!-- pre: code block with language label + copy toolbar, scrollable body -->
+  <view
     a:elif="{{u.isPre(node.name)}}"
-    scroll-x
-    class="{{u.classOf(node)}}"
-    style="{{u.styleOf(node)}}"
-    data-data="{{node}}"
-    catchTap="_tap"
+    class="md-codeblock {{node.animate ? 'md-animate-block' : ''}}"
   >
-    <mini-node-renderer
-      a:if="{{node.children}}"
-      nodes="{{node.children}}"
-      selectable="{{selectable}}"
-      animation="{{false}}"
-      slotComponents="{{slotComponents}}"
-      onTap="onTap"
-      onAppear="onAppear"
-    >
-      <slot slot-scope="prop" data="{{prop.data}}" />
-    </mini-node-renderer>
-  </scroll-view>
+    <view class="md-codeblock-bar">
+      <text class="md-codeblock-lang">{{u.langOf(node)}}</text>
+      <view class="md-codeblock-copy" data-data="{{node}}" catchTap="_copyCode">复制</view>
+    </view>
+    <scroll-view scroll-x class="md-code-block">
+      <mini-node-renderer
+        a:if="{{node.children}}"
+        nodes="{{node.children}}"
+        selectable="{{selectable}}"
+        animation="{{false}}"
+        slotComponents="{{slotComponents}}"
+        onTap="onTap"
+        onAppear="onAppear"
+      >
+        <slot slot-scope="prop" data="{{prop.data}}" />
+      </mini-node-renderer>
+    </scroll-view>
+  </view>
+
+  <!-- table: copy toolbar + horizontal-scroll CSS table (columns kept aligned) -->
+  <view
+    a:elif="{{u.isTable(node.name)}}"
+    class="md-tableblock {{node.animate ? 'md-animate-block' : ''}}"
+  >
+    <view class="md-tableblock-bar">
+      <view class="md-tableblock-copy" data-data="{{node}}" catchTap="_copyTable">复制</view>
+    </view>
+    <scroll-view scroll-x class="md-table-scroll">
+      <view class="md-table">
+        <mini-node-renderer
+          a:if="{{node.children}}"
+          nodes="{{node.children}}"
+          selectable="{{selectable}}"
+          animation="{{false}}"
+          slotComponents="{{slotComponents}}"
+          onTap="onTap"
+          onAppear="onAppear"
+        >
+          <slot slot-scope="prop" data="{{prop.data}}" />
+        </mini-node-renderer>
+      </view>
+    </scroll-view>
+  </view>
 
   <!-- anchor: kept interactive, children are already flattened text runs -->
   <view
@@ -67,7 +94,7 @@
 
   <!-- inline tag rendered as a flat container because Alipay SDK 2.x rejects nested <text>. -->
   <view
-    a:elif="{{u.isInline(node.name)}}"
+    a:elif="{{u.isInline(node.name) && !u.isRich(node)}}"
     class="{{u.classOf(node)}}"
     style="{{u.styleOf(node)}}"
     data-data="{{node}}"

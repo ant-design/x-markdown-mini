@@ -23,11 +23,23 @@ const TAG_CLASS: Record<string, string> = {
   strong: 'md-strong',
   em: 'md-em',
   del: 'md-del',
-  code: 'md-inline-code',
+  // 'code' 不在此处加类：行内 codespan 由 transformer 直接打 md-inline-code，
+  // 而代码块内的 <code>（在 <pre> 中）不应带行内药丸底色。
   // 'span' 不附加额外 class
 };
 
+/**
+ * 富内联子树（如 KaTeX 公式）依赖深层嵌套的 <span> + 内联 style 定位，
+ * 一旦扁平化结构与 style 都会丢失。带 `katex` 类名的节点整棵保留，
+ * 交给渲染器以嵌套 <view> 递归渲染。
+ */
+function isKatex(node: MiniNode): boolean {
+  const cls = node.attrs?.class;
+  return typeof cls === 'string' && cls.indexOf('katex') > -1;
+}
+
 function walk(node: MiniNode): MiniNode {
+  if (isKatex(node)) return node;
   if (!node.children || node.children.length === 0) return node;
 
   // anchor 自身保留，但其内部仍需扁平化
@@ -59,6 +71,12 @@ function flattenOne(n: MiniNode, classChain: string, out: MiniNode[]): void {
   }
   if (n.name === 'br') {
     out.push({ name: 'br', attrs: {} });
+    return;
+  }
+
+  // KaTeX 富子树：整棵保留（含嵌套结构与 style），不折叠。
+  if (isKatex(n)) {
+    out.push(n);
     return;
   }
 

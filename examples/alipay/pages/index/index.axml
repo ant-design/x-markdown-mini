@@ -39,7 +39,7 @@
       <view a:if="{{item.isUser}}" class="bubble bubble-user">
         <text selectable>{{item.content}}</text>
       </view>
-      <view a:else class="bubble bubble-ai">
+      <view a:else class="reply-ai">
         <view a:if="{{!item.content}}" class="typing">
           <text class="dot"></text>
           <text class="dot"></text>
@@ -49,7 +49,6 @@
           a:else
           content="{{item.content}}"
           streaming="{{item.streaming}}"
-          extensions="{{markdownExtensions}}"
           footnote="{{true}}"
           selectable="{{true}}"
         >
@@ -62,7 +61,6 @@
             >[{{prop.data.attrs.label}}]</text>
           </view>
         </markdown>
-        <view a:if="{{item.streaming && item.content}}" class="stream-cursor"></view>
       </view>
     </view>
 

@@ -1,0 +1,10 @@
+{
+  "component": true,
+  "styleIsolation": "shared",
+  "usingComponents": {
+    "mini-node-renderer": "../../dist/components/MiniNodeRenderer/index"
+  },
+  "componentGenerics": {
+    "custom-slot": { "default": "../../dist/components/MiniNodeRenderer/index" }
+  }
+}

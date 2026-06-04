@@ -116,19 +116,14 @@
   color: #fff;
   border-bottom-right-radius: 6rpx;
 }
-.bubble-ai {
-  background: #fff;
+/* Agent 回复平铺：无气泡、占满整行宽度 */
+.reply-ai {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 28rpx;
+  line-height: 1.6;
   color: #1d2129;
-  border-bottom-left-radius: 6rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-}
-.stream-cursor {
-  width: 24rpx;
-  height: 4rpx;
-  margin: 8rpx 0 2rpx;
-  border-radius: 999rpx;
-  background: #0f7a5f;
-  animation: cursor-blink 720ms ease-out infinite;
+  word-break: break-word;
 }
 .typing {
   display: flex;
@@ -195,18 +190,7 @@
   border-radius: 6rpx;
   font-size: 26rpx;
 }
-.md-code-block {
-  background: #f8fafb;
-  border: 1rpx solid #e5e8ed;
-  border-radius: 12rpx;
-  padding: 16rpx 20rpx;
-  font-family: ui-monospace, Menlo, monospace;
-  font-size: 26rpx;
-  line-height: 1.6;
-  white-space: pre;
-  overflow-x: auto;
-  margin: 16rpx 0;
-}
+/* 代码块样式（含语言条/复制工具条）由组件内置，示例不再覆盖，避免重复边框。 */
 .md-blockquote {
   border: 1rpx solid #d9dde3;
   border-radius: 8rpx;
@@ -218,29 +202,14 @@
 .md-link { color: #1677ff; }
 .md-list { padding-left: 36rpx; margin: 10rpx 0; }
 .md-list-item { margin: 6rpx 0; line-height: 1.7; }
-.md-table { display: block; margin: 16rpx 0; width: 100%; }
-.md-tr { display: table-row; }
-.md-th, .md-td {
-  display: table-cell;
-  border: 1rpx solid #e5e6eb;
-  padding: 8rpx 12rpx;
-  text-align: left;
-  vertical-align: top;
-}
-.md-th {
-  background: #f7f8fa;
-  font-weight: 600;
-}
+/* 表格样式由组件内置（.md-table-scroll/.md-table 等），示例不再覆盖，
+   否则 display:block + 内层 margin 会破坏列对齐并产生多余边距。 */
 .md-animate-block {
   animation: md-fade-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes md-fade-in {
   from { opacity: 0; transform: translateY(4rpx); }
   to   { opacity: 1; transform: none; }
-}
-@keyframes cursor-blink {
-  0%, 100% { opacity: 0.18; transform: scaleX(0.72); }
-  45% { opacity: 1; transform: scaleX(1); }
 }
 @keyframes typing-pulse {
   0%, 80%, 100% { opacity: 0.35; transform: scale(0.88); }

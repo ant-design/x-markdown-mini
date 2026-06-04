@@ -39,7 +39,7 @@
       <view wx:if="{{item.role === 'user'}}" class="bubble bubble-user">
         <text selectable>{{item.content}}</text>
       </view>
-      <view wx:else class="bubble bubble-ai">
+      <view wx:else class="reply-ai">
         <view wx:if="{{!item.content}}" class="typing">
           <text class="dot"></text>
           <text class="dot"></text>
@@ -49,10 +49,8 @@
           wx:else
           content="{{item.content}}"
           streaming="{{item.streaming}}"
-          extensions="{{markdownExtensions}}"
           selectable="{{true}}"
         />
-        <view wx:if="{{item.streaming && item.content}}" class="stream-cursor"></view>
       </view>
     </view>
 

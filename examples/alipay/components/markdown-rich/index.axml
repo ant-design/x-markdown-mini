@@ -1,0 +1,11 @@
+<view class="md-root {{className}}">
+  <mini-node-renderer
+    nodes="{{nodes}}"
+    selectable="{{selectable}}"
+    slotComponents="{{slotComponents}}"
+    onTap="onTap"
+    onAppear="onAppear"
+  >
+    <slot slot-scope="prop" data="{{prop.data}}" />
+  </mini-node-renderer>
+</view>

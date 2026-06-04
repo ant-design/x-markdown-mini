@@ -3,7 +3,9 @@
 // streamChat({ query }, { onChunk, onDone, onError }) -> { abort }
 
 const BASE_DELAY = 280;
-const CHUNK_DELAY = 30;
+// 模型「按行快速吐字」：远快于打字机消费速度，缓冲会积压，
+// 因此真正可见的节奏由 StreamingProcessor 的逐字 + 语义分块控制。
+const LINE_DELAY = 18;
 
 function pickReply(query) {
   const normalized = String(query || '').toLowerCase();
@@ -103,21 +105,15 @@ function pickReply(query) {
   ].join('\n');
 }
 
-function nextChunkSize(text, index) {
-  const char = text.charAt(index);
-  if (char === '\n') return 1;
-  if (/[\u4e00-\u9fa5，。；：、！？]/.test(char)) return 1;
-  return Math.min(3, Math.max(1, Math.floor(text.length / 260)));
-}
-
 function streamChat(params, handlers) {
   const onChunk = (handlers && handlers.onChunk) || function () {};
   const onDone = (handlers && handlers.onDone) || function () {};
   const onError = (handlers && handlers.onError) || function () {};
 
   const fullText = pickReply(params && params.query);
+  const lines = fullText.split('\n');
   const timers = [];
-  let index = 0;
+  let li = 0;
   let full = '';
   let aborted = false;
 
@@ -130,17 +126,17 @@ function streamChat(params, handlers) {
     if (aborted) return;
 
     try {
-      if (index >= fullText.length) {
+      if (li >= lines.length) {
         onDone(full);
         return;
       }
 
-      const size = nextChunkSize(fullText, index);
-      const delta = fullText.slice(index, index + size);
-      index += size;
-      full += delta;
-      onChunk(delta, full);
-      schedule(pump, CHUNK_DELAY);
+      // 逐行下发（保留换行），模拟模型成块返回；可见节奏交给打字机。
+      const piece = lines[li] + (li < lines.length - 1 ? '\n' : '');
+      li += 1;
+      full += piece;
+      onChunk(piece, full);
+      schedule(pump, LINE_DELAY);
     } catch (err) {
       onError(err);
     }
