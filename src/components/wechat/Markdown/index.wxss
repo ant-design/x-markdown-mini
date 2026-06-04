@@ -54,42 +54,36 @@
   white-space: pre;
 }
 
-/* code block card: language label + copy toolbar wraps the scrollable body */
-.md-codeblock {
-  margin: 12rpx 0;
-  border: 2rpx solid #e5e8ed;
-  border-radius: 12rpx;
+/* code & table cards share a captioned header bar with an icon copy button */
+.md-codeblock,
+.md-tableblock {
+  margin: 16rpx 0;
+  border: 2rpx solid #eceef1;
+  border-radius: 16rpx;
   overflow: hidden;
 }
-.md-codeblock-bar {
+.md-codeblock-bar,
+.md-tableblock-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6rpx 20rpx;
-  background: #eef1f4;
-  font-size: 22rpx;
+  height: 64rpx;
+  padding: 0 24rpx;
+  background: #f6f7f9;
+  font-size: 24rpx;
   color: #8a8f99;
 }
 .md-codeblock-lang {
   text-transform: uppercase;
   letter-spacing: 1rpx;
+  font-weight: 600;
 }
-.md-codeblock-copy {
-  color: #1677ff;
-  padding: 2rpx 10rpx;
+.md-tableblock-title {
+  font-weight: 600;
 }
-.md-tableblock {
-  margin: 24rpx 0;
-}
-.md-tableblock-bar {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0 0 8rpx;
-}
-.md-tableblock-copy {
-  font-size: 22rpx;
-  color: #1677ff;
-  padding: 2rpx 10rpx;
+.md-copy-icon {
+  width: 32rpx;
+  height: 32rpx;
 }
 
 .md-code {
@@ -129,12 +123,10 @@
   margin: 16rpx 0;
 }
 
-/* table: bordered card, scrolls horizontally when content overflows */
+/* table body scrolls horizontally inside the .md-tableblock card */
 .md-table-scroll {
   display: block;
   width: 100%;
-  border: 2rpx solid #e5e5e5;
-  border-radius: 12rpx;
   overflow: hidden;
   white-space: nowrap;
 }

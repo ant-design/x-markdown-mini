@@ -10,13 +10,12 @@ const markdownExtensions = [
   Latex({ katexOptions: { throwOnError: false } }),
 ];
 
-// 打字机 + 语义分块配置：模型按行快速吐字，由 StreamingProcessor 以
-// 「变速逐字 + 句读分块」节奏渲染（charDelay/chunkDelay 为数组时按块加速）。
-const TYPEWRITER = { charDelay: [26, 18, 13, 10, 8], chunkDelay: [80, 55, 38, 26] };
+// 页面只传简单标记，打字机/语义分块/动画的完整配置由 markdown 组件内部 bake。
 // 生成中：还有后续输入，保留未完成片段。
-const STREAM_ON = { hasNextChunk: true, semantic: TYPEWRITER, enableAnimation: true };
-// 收尾：模型已结束，但仍交给打字机把缓冲里的剩余内容按节奏播完。
-const STREAM_FLUSH = { hasNextChunk: false, semantic: TYPEWRITER, enableAnimation: true };
+const STREAM_ON = { hasNextChunk: true };
+// 收尾：模型已结束，但仍交给打字机把缓冲里的剩余内容按节奏播完（不要置 false，
+// 否则会一次性整段渲染）。
+const STREAM_FLUSH = { hasNextChunk: false };
 
 Page({
   data: {

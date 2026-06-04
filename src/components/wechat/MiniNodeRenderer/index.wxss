@@ -5,7 +5,8 @@
   animation-duration: var(--md-animation-duration, 300ms);
 }
 
+/* 纯透明度淡入：不做 translateY 位移，避免流式逐字重渲染时块体上下抖动。 */
 @keyframes md-block-appear {
-  0%   { opacity: 0; transform: translateY(4rpx); }
-  100% { opacity: 1; transform: translateY(0); }
+  from { opacity: 0.3; }
+  to   { opacity: 1; }
 }

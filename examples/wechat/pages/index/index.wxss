@@ -204,13 +204,8 @@
 .md-list-item { margin: 6rpx 0; line-height: 1.7; }
 /* 表格样式由组件内置（.md-table-scroll/.md-table 等），示例不再覆盖，
    否则 display:block + 内层 margin 会破坏列对齐并产生多余边距。 */
-.md-animate-block {
-  animation: md-fade-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes md-fade-in {
-  from { opacity: 0; transform: translateY(4rpx); }
-  to   { opacity: 1; transform: none; }
-}
+/* 逐块淡入动画由组件（MiniNodeRenderer）内置，示例不再重复定义，
+   避免与组件内 .md-animate-block 冲突导致动画错乱 / 位移。 */
 @keyframes typing-pulse {
   0%, 80%, 100% { opacity: 0.35; transform: scale(0.88); }
   40% { opacity: 1; transform: scale(1); }

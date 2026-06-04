@@ -6,6 +6,18 @@ const CodeHighlight = require('../../dist/plugins/CodeHighlight/index.js').defau
 const Latex = require('../../dist/plugins/Latex/index.js').default;
 const { flattenInlineNodes } = require('../../dist/shared/flattenInline.js');
 
+// 打字机 + 语义分块节奏在组件内组装：charDelay/chunkDelay 为数组时随块加速。
+// 在组件里 bake，而不是从页面经属性传入，避免嵌套配置跨 setData 时被裁剪。
+const TYPEWRITER = { charDelay: [26, 18, 13, 10, 8], chunkDelay: [80, 55, 38, 26] };
+
+// 把页面传来的简单 streaming 标记（{ hasNextChunk } / true / false）补全为
+// 带语义分块 + 逐字节奏 + 动画的完整流式配置。
+function buildStreaming(streaming) {
+  if (!streaming) return false;
+  const hasNextChunk = streaming === true ? true : !!streaming.hasNextChunk;
+  return { hasNextChunk, enableAnimation: true, semantic: TYPEWRITER };
+}
+
 Component({
   props: {
     content: '',
@@ -57,7 +69,7 @@ Component({
       this.md.renderNodes({
         content: props.content,
         platform: 'alipay',
-        streaming: props.streaming,
+        streaming: buildStreaming(props.streaming),
         selectable: props.selectable,
         onPatch: (nodes) => this.setData({ nodes: flattenInlineNodes(nodes) }),
       });

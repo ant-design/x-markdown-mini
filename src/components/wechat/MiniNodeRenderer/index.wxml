@@ -31,8 +31,13 @@
     class="md-codeblock {{node.animate ? 'md-animate-block' : ''}}"
   >
     <view class="md-codeblock-bar">
-      <text class="md-codeblock-lang">{{u.langOf(node)}}</text>
-      <view class="md-codeblock-copy" data-data="{{node}}" catch:tap="_copyCode">复制</view>
+      <text class="md-codeblock-lang">{{u.langOf(node) || 'code'}}</text>
+      <image
+        class="md-copy-icon"
+        src="https://mdn.alipayobjects.com/huamei_y8xg5f/afts/img/JXzqSoHDzm4AAAAAHpAAAAgADuJhAQFr/original"
+        data-data="{{node}}"
+        catch:tap="_copyCode"
+      />
     </view>
     <scroll-view scroll-x class="md-code-block">
       <mini-node-renderer
@@ -48,13 +53,19 @@
     </scroll-view>
   </view>
 
-  <!-- table: copy toolbar + horizontal-scroll CSS table (columns kept aligned) -->
+  <!-- table: caption + copy toolbar card, horizontal-scroll CSS table (columns kept aligned) -->
   <view
     wx:elif="{{u.isTable(node.name)}}"
     class="md-tableblock {{node.animate ? 'md-animate-block' : ''}}"
   >
     <view class="md-tableblock-bar">
-      <view class="md-tableblock-copy" data-data="{{node}}" catch:tap="_copyTable">复制</view>
+      <text class="md-tableblock-title">表格</text>
+      <image
+        class="md-copy-icon"
+        src="https://mdn.alipayobjects.com/huamei_y8xg5f/afts/img/JXzqSoHDzm4AAAAAHpAAAAgADuJhAQFr/original"
+        data-data="{{node}}"
+        catch:tap="_copyTable"
+      />
     </view>
     <scroll-view scroll-x class="md-table-scroll">
       <view class="md-table">
