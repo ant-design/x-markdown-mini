@@ -12,7 +12,7 @@ const { flattenInlineNodes } = require('../../dist/shared/flattenInline.js');
 // charDelay 单字间隔刻意取得比小程序 setData→渲染 的批处理延迟更大（约 ≥20ms），
 // 否则一帧会合并很多字，看起来像整块跳出而不是逐字。chunkDelay 在每个语义块
 // 之前留出停顿，呈现「先攒出一个语义块、再逐字吐出」的节奏。
-const TYPEWRITER = { charDelay: [52, 40, 30, 24, 20], chunkDelay: [200, 150, 100, 60] };
+const TYPEWRITER = { charDelay: [95, 78, 62, 52, 45], chunkDelay: [420, 320, 240, 170] };
 
 // 把页面传来的简单 streaming 标记（{ hasNextChunk } / true / false）补全为
 // 带语义分块 + 逐字节奏 + 动画的完整流式配置。
