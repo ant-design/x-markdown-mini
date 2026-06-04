@@ -8,7 +8,11 @@ const { flattenInlineNodes } = require('../../dist/shared/flattenInline.js');
 
 // 打字机 + 语义分块节奏在组件内组装：charDelay/chunkDelay 为数组时随块加速。
 // 在组件里 bake，而不是从页面经属性传入，避免嵌套配置跨 setData 时被裁剪。
-const TYPEWRITER = { charDelay: [26, 18, 13, 10, 8], chunkDelay: [80, 55, 38, 26] };
+//
+// charDelay 单字间隔刻意取得比小程序 setData→渲染 的批处理延迟更大（约 ≥20ms），
+// 否则一帧会合并很多字，看起来像整块跳出而不是逐字。chunkDelay 在每个语义块
+// 之前留出停顿，呈现「先攒出一个语义块、再逐字吐出」的节奏。
+const TYPEWRITER = { charDelay: [52, 40, 30, 24, 20], chunkDelay: [200, 150, 100, 60] };
 
 // 把页面传来的简单 streaming 标记（{ hasNextChunk } / true / false）补全为
 // 带语义分块 + 逐字节奏 + 动画的完整流式配置。
