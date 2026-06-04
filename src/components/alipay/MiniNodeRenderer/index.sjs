@@ -38,6 +38,26 @@ function classOf(node) {
   return cls;
 }
 
+// 把文本拆成「按 code point 安全」的字符数组（不劈坏 emoji/组合 surrogate pair），
+// 供流式逐字淡入：每个字符渲染成独立 <text>，按下标 key 复用，只有新字符会触发淡入动画。
+function charsOf(node) {
+  var v = (node.attrs || {}).value || '';
+  var out = [];
+  var i = 0;
+  var n = v.length;
+  while (i < n) {
+    var code = v.charCodeAt(i);
+    if (code >= 55296 && code <= 56319 && i + 1 < n) {
+      out.push(v.charAt(i) + v.charAt(i + 1));
+      i += 2;
+    } else {
+      out.push(v.charAt(i));
+      i += 1;
+    }
+  }
+  return out;
+}
+
 function styleOf(node) {
   var attrs = node.attrs || {};
   return attrs.style || '';
@@ -75,6 +95,7 @@ export default {
   isRich: isRich,
   isSlot: isSlot,
   classOf: classOf,
+  charsOf: charsOf,
   styleOf: styleOf,
   srcOf: srcOf,
   langOf: langOf,

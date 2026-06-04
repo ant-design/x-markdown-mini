@@ -2,6 +2,7 @@
   <mini-node-renderer
     nodes="{{nodes}}"
     selectable="{{selectable}}"
+    animation="{{animating}}"
     slotComponents="{{slotComponents}}"
     onTap="onTap"
     onAppear="onAppear"

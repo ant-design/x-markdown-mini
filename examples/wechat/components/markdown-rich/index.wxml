@@ -3,6 +3,7 @@
     generic:custom-slot="custom-slot"
     nodes="{{nodes}}"
     selectable="{{selectable}}"
+    animation="{{animating}}"
     slotComponents="{{slotComponents}}"
     bind:tap="_tap"
     bind:appear="_appear"

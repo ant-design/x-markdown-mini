@@ -1,9 +1,23 @@
 <import-sjs from="./index.sjs" name="u" />
 
 <block a:for="{{nodes}}" a:for-item="node" a:for-index="i" a:key="i">
-  <!-- text leaf -->
+  <!-- text leaf: 流式时逐字淡入（Alipay 不能嵌套 <text>，用 inline <view> 包裹字符 <text>，
+       按下标 key 复用，只有新字触发动画）；非流式时整段渲染为单个 <text>。 -->
+  <view
+    a:if="{{u.isText(node.name) && animation}}"
+    class="md-anim-text {{u.classOf(node)}}"
+  >
+    <text
+      a:for="{{u.charsOf(node)}}"
+      a:for-item="ch"
+      a:for-index="ci"
+      a:key="ci"
+      class="md-anim-char"
+      selectable="{{selectable}}"
+    >{{ch}}</text>
+  </view>
   <text
-    a:if="{{u.isText(node.name)}}"
+    a:elif="{{u.isText(node.name)}}"
     class="{{u.classOf(node)}}"
     selectable="{{selectable}}"
   >{{u.valueOf(node)}}</text>

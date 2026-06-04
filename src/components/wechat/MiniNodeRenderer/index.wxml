@@ -1,9 +1,21 @@
 <wxs src="./index.wxs" module="u" />
 
 <block wx:for="{{nodes}}" wx:for-item="node" wx:for-index="i" wx:key="i">
-  <!-- text leaf -->
+  <!-- text leaf: 流式时逐字淡入（每字一个 <text>，按下标 key 复用，只有新字触发动画）；
+       非流式时整段渲染为单个 <text>。 -->
   <text
-    wx:if="{{u.isText(node.name)}}"
+    wx:if="{{u.isText(node.name) && animation}}"
+    class="{{u.classOf(node)}}"
+    selectable="{{selectable}}"
+  ><text
+      wx:for="{{u.charsOf(node)}}"
+      wx:for-item="ch"
+      wx:for-index="ci"
+      wx:key="ci"
+      class="md-anim-char"
+    >{{ch}}</text></text>
+  <text
+    wx:elif="{{u.isText(node.name)}}"
     class="{{u.classOf(node)}}"
     selectable="{{selectable}}"
   >{{u.valueOf(node)}}</text>

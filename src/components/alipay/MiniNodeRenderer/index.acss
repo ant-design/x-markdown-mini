@@ -10,3 +10,17 @@
   from { opacity: 0.3; }
   to   { opacity: 1; }
 }
+
+/* 流式逐字淡入：每个新字符从透明渐显，已显示的字符（按下标复用）不会重播。
+   Alipay 不能嵌套 <text>，包裹层用 inline view 维持文本流。 */
+.md-anim-text {
+  display: inline;
+}
+.md-anim-char {
+  opacity: 0;
+  animation: md-char-in 360ms ease-out forwards;
+}
+@keyframes md-char-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

@@ -6,20 +6,25 @@ const CodeHighlight = require('../../dist/plugins/CodeHighlight/index.js').defau
 const Latex = require('../../dist/plugins/Latex/index.js').default;
 const { flattenInlineNodes } = require('../../dist/shared/flattenInline.js');
 
-// 打字机 + 语义分块节奏在组件内组装：charDelay/chunkDelay 为数组时随块加速。
-// 在组件里 bake，而不是从页面经属性传入，避免嵌套配置跨 setData 时被裁剪。
-//
-// charDelay 单字间隔刻意取得比小程序 setData→渲染 的批处理延迟更大（约 ≥20ms），
-// 否则一帧会合并很多字，看起来像整块跳出而不是逐字。chunkDelay 在每个语义块
-// 之前留出停顿，呈现「先攒出一个语义块、再逐字吐出」的节奏。
-const TYPEWRITER = { charDelay: [95, 78, 62, 52, 45], chunkDelay: [420, 320, 240, 170] };
+// 打字机 + 语义分块节奏在组件内组装（在组件里 bake，避免嵌套配置/正则跨 setData 被裁剪）。
+// 对齐 markdown-x-mini：
+// - delimiters 句读级语义分隔符（不含 \n），按句子成块而非按行；
+// - maxChunkSize 限制超长无标点串；
+// - charDelay 单字间隔（随块加速），chunkDelay 每个语义块之间的停顿。
+// 真正的「逐字淡入」由 MiniNodeRenderer 的 .md-anim-char（CSS）完成，不受 setData 合帧影响。
+const TYPEWRITER = {
+  delimiters: /[。？！…；：，—]/,
+  maxChunkSize: 18,
+  charDelay: [60, 46, 36, 30, 26],
+  chunkDelay: [340, 260, 180, 120],
+};
 
-// 把页面传来的简单 streaming 标记（{ hasNextChunk } / true / false）补全为
-// 带语义分块 + 逐字节奏 + 动画的完整流式配置。
+// 把页面传来的简单 streaming 标记（{ hasNextChunk } / true / false）补全为完整流式配置。
+// enableAnimation:false —— 关闭逐块淡入，统一用逐字淡入（animation 属性驱动），避免双重动画。
 function buildStreaming(streaming) {
   if (!streaming) return false;
   const hasNextChunk = streaming === true ? true : !!streaming.hasNextChunk;
-  return { hasNextChunk, enableAnimation: true, semantic: TYPEWRITER };
+  return { hasNextChunk, enableAnimation: false, semantic: TYPEWRITER };
 }
 
 Component({
@@ -34,6 +39,7 @@ Component({
   data: {
     nodes: [],
     slotComponents: [],
+    animating: false,
   },
   md: null,
   lifetimes: {
@@ -68,6 +74,8 @@ Component({
     },
     _render() {
       const data = this.data;
+      const animating = !!data.streaming;
+      if (data.animating !== animating) this.setData({ animating });
       this.md.renderNodes({
         content: data.content,
         platform: 'wechat',
