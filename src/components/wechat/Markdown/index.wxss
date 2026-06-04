@@ -69,17 +69,19 @@
   justify-content: space-between;
   height: 64rpx;
   padding: 0 24rpx;
-  background: #f6f7f9;
+  background: #eceef2;
   font-size: 24rpx;
-  color: #8a8f99;
+  color: #4e5969;
 }
 .md-codeblock-lang {
   text-transform: uppercase;
   letter-spacing: 1rpx;
   font-weight: 600;
+  color: #1d2129;
 }
 .md-tableblock-title {
   font-weight: 600;
+  color: #1d2129;
 }
 .md-copy-icon {
   width: 32rpx;
