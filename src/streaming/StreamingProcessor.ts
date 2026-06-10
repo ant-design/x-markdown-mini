@@ -208,7 +208,9 @@ export class StreamingProcessor<T = unknown> {
       let chunk = '';
       if (semanticEnabled) {
         const m = remaining.match(delimiters);
-        const cut = m ? remaining.indexOf(m[0]) + 1 : -1;
+        // `match` (no /g) already carries the match position; reuse it instead
+        // of re-scanning with indexOf.
+        const cut = m ? (m.index ?? 0) + 1 : -1;
         if (cut > 0) {
           chunk = remaining.slice(0, cut);
           remaining = remaining.slice(cut);

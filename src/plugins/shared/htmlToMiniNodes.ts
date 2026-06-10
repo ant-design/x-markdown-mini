@@ -1,5 +1,14 @@
 import type { MiniNode } from '../../types.js';
 
+// Sticky (`y`) regexes match at `lastIndex` without slicing the input — avoids
+// allocating a fresh substring at every `<` while walking large KaTeX/hljs HTML.
+// Stateful, but every use sets `lastIndex` immediately before `.exec` and the
+// parser runs synchronously and non-reentrantly, so module scope is safe.
+const CLOSE_TAG_RE = /<\/(\w+)\s*>/y;
+const OPEN_TAG_RE = /<(\w+)((?:\s+[^>]*?)?)(\/?)>/y;
+const KATEX_CLOSE_SPAN_RE = /<\/span\s*>/iy;
+const KATEX_OPEN_SPAN_RE = /<span[\s>]/iy;
+
 /**
  * Lightweight HTML → MiniNode parser.
  *
@@ -58,7 +67,8 @@ export function htmlToMiniNodes(html: string, escapeText: boolean): MiniNode[] {
   while (i < html.length) {
     if (html[i] === '<') {
       // Closing tag
-      const closeMatch = /^<\/(\w+)\s*>/.exec(html.slice(i));
+      CLOSE_TAG_RE.lastIndex = i;
+      const closeMatch = CLOSE_TAG_RE.exec(html);
       if (closeMatch) {
         // Pop stack until we find the matching open tag (tolerant of mismatches)
         const closeTag = closeMatch[1].toLowerCase();
@@ -73,7 +83,8 @@ export function htmlToMiniNodes(html: string, escapeText: boolean): MiniNode[] {
       }
 
       // Self-closing or opening tag
-      const tagMatch = /^<(\w+)((?:\s+[^>]*?)?)(\/?)>/.exec(html.slice(i));
+      OPEN_TAG_RE.lastIndex = i;
+      const tagMatch = OPEN_TAG_RE.exec(html);
       if (tagMatch) {
         const rawTag = tagMatch[1].toLowerCase();
         const attrStr = tagMatch[2];
@@ -87,8 +98,10 @@ export function htmlToMiniNodes(html: string, escapeText: boolean): MiniNode[] {
           while (si < html.length && depth > 0) {
             const next = html.indexOf('<', si);
             if (next === -1) break;
-            const csm = /^<\/span\s*>/i.exec(html.slice(next));
-            const osm = /^<span[\s>]/i.exec(html.slice(next));
+            KATEX_CLOSE_SPAN_RE.lastIndex = next;
+            const csm = KATEX_CLOSE_SPAN_RE.exec(html);
+            KATEX_OPEN_SPAN_RE.lastIndex = next;
+            const osm = KATEX_OPEN_SPAN_RE.exec(html);
             if (csm) { depth--; si = next + csm[0].length; }
             else if (osm) { depth++; si = next + osm[0].length; }
             else { si = next + 1; }

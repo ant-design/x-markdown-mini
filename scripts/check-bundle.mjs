@@ -44,7 +44,10 @@ const BUDGETS = [
   // raw/gzip +~0.6 KB：StreamingProcessor 变速打字机（chunkDelay/charDelay 支持
   //   number[] 随块加速）+ grapheme-safe 切分（Intl.Segmenter，回退 Array.from）。
   // raw +~1.1 KB：小程序产物降到 es2017，避免支付宝 IDE 拒绝对象展开语法。
-  { file: 'index.mjs', rawMax: 118 * KB, gzipMax: 30 * KB },
+  // mjs raw 118→119：htmlToMiniNodes 改用 sticky 正则按 lastIndex 匹配（消除遍历
+  //   KaTeX/hljs HTML 时每个 `<` 的子串分配）+ StreamingProcessor 复用 match.index。
+  //   实测 mjs raw ~118.14 KB / gzip 不变 ~29 KB；index.js 仍在 120 内。
+  { file: 'index.mjs', rawMax: 119 * KB, gzipMax: 30 * KB },
   { file: 'index.js', rawMax: 120 * KB, gzipMax: 30 * KB },
   // 微信专用主库副本（通过 package.json#miniprogram 进入）
   { file: 'miniprogram_dist/index.js', rawMax: 120 * KB, gzipMax: 30 * KB },
