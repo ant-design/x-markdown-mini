@@ -52,6 +52,58 @@ renderNodes({
 });
 ```
 
+## 流式补全
+
+流式输入经常停在不完整 Markdown 上，例如：
+
+```md
+**正在生成
+
+```ts
+const value =
+```
+
+默认 `streamingFixup: 'remend'` 只作用在尚未提交的 tail 上，会临时补齐粗体、围栏代码、公式等未闭合语法，让当前片段能被 marked 稳定解析。等后续 chunk 到来后，tail 会重新解析，不会污染已经提交的稳定块。
+
+如果业务希望完全按原始输入渲染，可以关闭：
+
+```ts
+const md = new XMarkdownMini({
+  streamingFixup: false,
+});
+```
+
+也可以传入自定义函数：
+
+```ts
+const md = new XMarkdownMini({
+  streamingFixup: (tail) => tail.endsWith('```') ? tail : `${tail}\n\`\`\``,
+});
+```
+
+## 语义化分块
+
+`semantic` 控制 UI patch 的节奏。默认按中文、英文常见标点和换行切块，避免一个 token 一个 token 地刷屏，也避免长句迟迟不出。
+
+```ts
+renderNodes({
+  content: accumulatedMarkdown,
+  platform: 'alipay',
+  streaming: {
+    hasNextChunk: true,
+    semantic: {
+      delimiters: /[。？！；，、\n]/,
+      maxChunkSize: 80,
+      chunkDelay: 0,
+      charDelay: 0,
+    },
+  },
+  onPatch: (nodes) => this.setData({ nodes }),
+});
+```
+
+`chunkDelay` 和 `charDelay` 都为 0 时不会走 `setTimeout`，生产路径会同步触发 `onPatch`。
+
 ## 增量策略
 
 处理器在每次更新时找出「不在 fenced code 内」且「连续两个空行」的位置作为安全边界。纯 JS 路径返回 marked `Token[]`；组件路径会在 tokens 之后进入平台 renderer。两条路径都会先对 tail 字符串做流式 fixup，再进入 marked lexer。

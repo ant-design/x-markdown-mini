@@ -20,11 +20,11 @@ export default defineConfig({
     { id: 'en-US', name: 'English', suffix: '-en' },
   ],
   themeConfig: {
-    name: 'Ant Design x-markdown-mini',
+    name: 'x-markdown-mini',
     logo: '/brand/x-markdown-mark.png',
     nav: [
       { title: '在线体验', link: '/playground' },
-      { title: '文档', link: '/docs/quickstart' },
+      { title: '文档', link: '/docs/introduce' },
     ],
     socialLinks: {
       github: 'https://github.com/ant-design/x-markdown-mini',
@@ -32,37 +32,25 @@ export default defineConfig({
     sidebar: {
       '/docs': [
         {
-          title: '介绍',
+          title: '',
           children: [
-            { title: '文档概览', link: '/docs/quickstart' },
-            { title: '在线体验', link: '/playground' },
-            { title: '主题', link: '/docs/quickstart#插件' },
+            { title: '介绍', link: '/docs/introduce' },
+            { title: '代码示例', link: '/docs/code-examples' },
             { title: '流式渲染', link: '/docs/streaming' },
           ],
         },
         {
           title: '组件',
           children: [
-            { title: '总览', link: '/docs/platforms' },
-            { title: '对话', link: '/docs/streaming' },
-            { title: '图表', link: '/docs/adapter-rules' },
-            { title: '高亮', link: '/docs/quickstart#围栏代码块' },
+            { title: '组件使用', link: '/docs/components' },
           ],
         },
         {
-          title: '插件集',
+          title: '插件',
           children: [
-            { title: '总览', link: '/docs/quickstart#插件' },
-            { title: '公式', link: '/docs/quickstart#插件' },
-            { title: '自定义平台', link: '/docs/custom-platform' },
-          ],
-        },
-        {
-          title: '参考',
-          children: [
-            { title: 'API 参考', link: '/docs/api' },
-            { title: '类型导出', link: '/docs/types' },
-            { title: 'Changelog', link: '/docs/changelog' },
+            { title: '代码高亮', link: '/docs/plugins-code-highlight' },
+            { title: '公式', link: '/docs/plugins-latex' },
+            { title: '自定义插件', link: '/docs/plugins-custom' },
           ],
         },
       ],
@@ -73,42 +61,30 @@ export default defineConfig({
       'en-US': {
         nav: [
           { title: 'Playground', link: '/playground' },
-          { title: 'Docs', link: '/docs/quickstart' },
+          { title: 'Docs', link: '/docs/introduce' },
         ],
         sidebar: {
           '/docs': [
             {
-              title: 'Introduction',
+              title: '',
               children: [
-                { title: 'Overview', link: '/docs/quickstart' },
-                { title: 'Playground', link: '/playground' },
-                { title: 'Themes', link: '/docs/quickstart#plugins' },
+                { title: 'Introduction', link: '/docs/introduce' },
+                { title: 'Code Examples', link: '/docs/code-examples' },
                 { title: 'Streaming Rendering', link: '/docs/streaming' },
               ],
             },
             {
-              title: 'Components',
+              title: 'A Components',
               children: [
-                { title: 'Overview', link: '/docs/platforms' },
-                { title: 'Conversation', link: '/docs/streaming' },
-                { title: 'Charts', link: '/docs/adapter-rules' },
-                { title: 'Highlight', link: '/docs/quickstart#fenced-code-blocks' },
+                { title: 'Component Usage', link: '/docs/components' },
               ],
             },
             {
-              title: 'Plugins',
+              title: 'B Plugins',
               children: [
-                { title: 'Overview', link: '/docs/quickstart#plugins' },
-                { title: 'Formula', link: '/docs/quickstart#plugins' },
-                { title: 'Custom Platform', link: '/docs/custom-platform' },
-              ],
-            },
-            {
-              title: 'Reference',
-              children: [
-                { title: 'API Reference', link: '/docs/api' },
-                { title: 'Type Exports', link: '/docs/types' },
-                { title: 'Changelog', link: '/docs/changelog' },
+                { title: 'Code Highlight', link: '/docs/plugins-code-highlight' },
+                { title: 'Formula', link: '/docs/plugins-latex' },
+                { title: 'Custom Plugin', link: '/docs/plugins-custom' },
               ],
             },
           ],

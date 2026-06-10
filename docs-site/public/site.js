@@ -11,10 +11,156 @@
     document.documentElement.setAttribute('data-xmd-doc-platform', platform);
   }
 
+  function setDocPlatform(platform) {
+    if (platform !== 'wechat' && platform !== 'alipay') return;
+    try {
+      window.localStorage.setItem(PLATFORM_STORAGE_KEY, platform);
+    } catch (_) {
+      /* localStorage can be blocked in embedded previews. */
+    }
+    document.documentElement.setAttribute('data-xmd-doc-platform', platform);
+    syncPlatformTabs();
+  }
+
+  function syncPlatformTabs() {
+    var platform = getDocPlatform();
+    var tabs = document.querySelectorAll('.xmd-platform-tab');
+    for (var i = 0; i < tabs.length; i++) {
+      var tab = tabs[i];
+      var active = tab.getAttribute('data-platform') === platform;
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      tab.setAttribute('tabindex', active ? '0' : '-1');
+    }
+  }
+
+  function enhancePlatformTabs(attempt) {
+    var sidebar = document.querySelector('.dumi-default-sidebar');
+    if (!sidebar) {
+      if ((attempt || 0) < 40) {
+        setTimeout(function () {
+          enhancePlatformTabs((attempt || 0) + 1);
+        }, 100);
+      }
+      return;
+    }
+
+    var tabs = sidebar.querySelector('.xmd-platform-tabs');
+    if (!tabs) {
+      var en = isEnglishPage();
+      tabs = document.createElement('div');
+      tabs.className = 'xmd-platform-tabs';
+      tabs.setAttribute('role', 'tablist');
+      tabs.setAttribute('aria-label', en ? 'Mini-program platform' : '小程序平台');
+      tabs.innerHTML =
+        '<button type="button" class="xmd-platform-tab" role="tab" data-platform="alipay">' +
+        (en ? 'Alipay' : '支付宝') +
+        '</button>' +
+        '<button type="button" class="xmd-platform-tab" role="tab" data-platform="wechat">' +
+        (en ? 'WeChat' : '微信') +
+        '</button>';
+      sidebar.insertBefore(tabs, sidebar.firstChild);
+
+      tabs.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('.xmd-platform-tab');
+        if (!btn) return;
+        setDocPlatform(btn.getAttribute('data-platform'));
+      });
+      tabs.addEventListener('keydown', function (ev) {
+        if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
+        ev.preventDefault();
+        var current = getDocPlatform();
+        setDocPlatform(current === 'alipay' ? 'wechat' : 'alipay');
+        var active = tabs.querySelector('[aria-selected="true"]');
+        if (active) active.focus();
+      });
+    }
+
+    syncPlatformTabs();
+  }
+
+  function syncSidebarLocale(attempt) {
+    var sidebar = document.querySelector('.dumi-default-sidebar');
+    if (!sidebar) {
+      if ((attempt || 0) < 40) {
+        setTimeout(function () {
+          syncSidebarLocale((attempt || 0) + 1);
+        }, 100);
+      }
+      return;
+    }
+
+    if (!isEnglishPage()) return;
+
+    var linkMap = [
+      ['Introduction', '/docs/introduce-en'],
+      ['Code Examples', '/docs/code-examples-en'],
+      ['Streaming Rendering', '/docs/streaming-en'],
+      ['Component Usage', '/docs/components-en'],
+      ['Code Highlight', '/docs/plugins-code-highlight-en'],
+      ['Formula', '/docs/plugins-latex-en'],
+      ['Custom Plugin', '/docs/plugins-custom-en'],
+    ];
+    var links = sidebar.querySelectorAll('dd > a[href]');
+    for (var i = 0; i < links.length && i < linkMap.length; i++) {
+      links[i].textContent = linkMap[i][0];
+      links[i].setAttribute('href', linkMap[i][1]);
+    }
+
+    var titles = Array.prototype.filter.call(sidebar.querySelectorAll('dt'), function (dt) {
+      return dt.textContent.trim();
+    });
+    if (titles[0]) titles[0].textContent = 'A Components';
+    if (titles[1]) titles[1].textContent = 'B Plugins';
+  }
+
+  function normalizeSidebarActive(attempt) {
+    var sidebar = document.querySelector('.dumi-default-sidebar');
+    if (!sidebar) {
+      if ((attempt || 0) < 40) {
+        setTimeout(function () {
+          normalizeSidebarActive((attempt || 0) + 1);
+        }, 100);
+      }
+      return;
+    }
+
+    var currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+    var currentHash = window.location.hash;
+    var links = sidebar.querySelectorAll('dd > a[href]');
+    var best = null;
+
+    for (var i = 0; i < links.length; i++) {
+      var link = links[i];
+      link.classList.remove('active');
+      try {
+        var url = new URL(link.getAttribute('href'), window.location.origin);
+        var linkPath = url.pathname.replace(/\/$/, '') || '/';
+        if (linkPath !== currentPath) continue;
+        if (currentHash) {
+          if (url.hash === currentHash) best = link;
+        } else if (!url.hash) {
+          best = link;
+        }
+      } catch (_) {
+        /* Ignore malformed hrefs from future sidebar extensions. */
+      }
+    }
+
+    if (best) best.classList.add('active');
+  }
+
   function flash(el) {
+    var status = el.querySelector('[data-xmd-copy-status]');
+    var normalText = status ? status.getAttribute('data-normal-text') || status.textContent : '';
+    var successText = el.getAttribute('data-xmd-copy-success') || normalText;
+    if (status && !status.getAttribute('data-normal-text')) {
+      status.setAttribute('data-normal-text', normalText);
+    }
+    if (status) status.textContent = successText;
     el.setAttribute('data-copied', 'true');
     setTimeout(function () {
       el.removeAttribute('data-copied');
+      if (status) status.textContent = status.getAttribute('data-normal-text') || normalText;
     }, 1400);
   }
 
@@ -110,17 +256,13 @@
   var searchItems = [
     { title: '首页', link: '/', group: '入门', desc: '项目概览与核心特性', keywords: 'x-markdown-mini Markdown 小程序 渲染层 AI 流式内容' },
     { title: '在线体验', link: '/playground', group: '入门', desc: '浏览器中编辑 Markdown 并实时预览', keywords: 'Playground 微信 支付宝' },
-    { title: '快速开始', link: '/docs/quickstart', group: '指南', desc: '安装与第一个 renderNodes 调用', keywords: 'Docs 特性 API 示例 DEMO 文档 features renderNodes markdown demo' },
-    { title: '一次性渲染', link: '/docs/oneshot', group: '指南', desc: 'parse / renderNodes 同步路径', keywords: 'renderNodes parse markdown' },
-    { title: '流式渲染', link: '/docs/streaming', group: '指南', desc: 'stableNodes + liveTail 增量更新', keywords: 'streaming stableNodes liveTail 流式' },
-    { title: '打字机模式', link: '/docs/typewriter', group: '指南', desc: '逐字符显示的播放控制', keywords: 'typewriter 打字机 动画' },
-    { title: '动画', link: '/docs/animation', group: '指南', desc: '流式分块进入动画与配置', keywords: 'animation transitions 流式动画' },
-    { title: '能力矩阵', link: '/docs/platforms', group: '平台', desc: '微信 / 支付宝平台能力对照', keywords: '微信 支付宝 平台 能力矩阵' },
-    { title: '适配规则', link: '/docs/adapter-rules', group: '平台', desc: '标签、属性与降级策略', keywords: 'adapter rules 标签 属性 降级' },
-    { title: '自定义平台', link: '/docs/custom-platform', group: '平台', desc: '新增一个平台渲染器', keywords: 'custom platform renderer 自定义平台' },
-    { title: 'API 参考', link: '/docs/api', group: 'API', desc: 'renderNodes / parse / 类型签名', keywords: 'API renderNodes tokens types' },
-    { title: '类型导出', link: '/docs/types', group: 'API', desc: '导出的 TypeScript 类型', keywords: 'TypeScript 类型导出' },
-    { title: 'Changelog', link: '/docs/changelog', group: '其他', desc: '版本更新日志', keywords: '更新日志 版本变化' },
+    { title: '介绍', link: '/docs/introduce', group: '指南', desc: 'x-markdown-mini 的定位、特性、渲染链路与安装方式', keywords: '介绍 特性 安装 MiniNode marked 小程序' },
+    { title: '代码示例', link: '/docs/code-examples', group: '指南', desc: 'renderNodes、实例化、组件接入、GFM 与换行示例', keywords: '示例 renderNodes XMarkdownMini Markdown 组件 GFM breaks' },
+    { title: '流式渲染', link: '/docs/streaming', group: '指南', desc: '稳定块缓存、tail fixup、语义化分块与流式补全', keywords: 'streaming stableNodes liveTail 流式 补全 semantic fixup' },
+    { title: '组件使用', link: '/docs/components', group: '组件', desc: 'Markdown 与 MiniNodeRenderer 组件的使用方法', keywords: '组件 Markdown MiniNodeRenderer components footnote' },
+    { title: '代码高亮', link: '/docs/plugins-code-highlight', group: '插件', desc: 'CodeHighlight 插件与 highlight.js 语言配置', keywords: '插件 代码高亮 CodeHighlight highlight.js' },
+    { title: '公式', link: '/docs/plugins-latex', group: '插件', desc: 'Latex 插件、KaTeX 语法与样式引入', keywords: '插件 公式 Latex KaTeX 数学' },
+    { title: '自定义插件', link: '/docs/plugins-custom', group: '插件', desc: '以脚注为例编写 XMarkdownExtension', keywords: '插件 自定义 extension footnote 脚注 tokenizer miniRenderer' },
   ];
 
   function getSearchModal() {
@@ -337,6 +479,12 @@
   document.addEventListener('click', onSearchModalClick, true);
   document.addEventListener('keydown', onSearchModalKeydown, true);
   document.addEventListener('click', onDocClickForInline, true);
+  window.addEventListener('hashchange', function () {
+    normalizeSidebarActive();
+  });
+  window.addEventListener('popstate', function () {
+    setTimeout(normalizeSidebarActive, 0);
+  });
 
   function setupDevDebug() {
     var params = new URLSearchParams(window.location.search);
@@ -728,11 +876,11 @@
     return en
       ? [
           { label: 'Playground', href: '/playground-en' },
-          { label: 'Docs', href: '/docs/quickstart-en' },
+          { label: 'Docs', href: '/docs/introduce-en' },
         ]
       : [
           { label: '在线演示', href: '/playground' },
-          { label: '文档', href: '/docs/quickstart' },
+          { label: '文档', href: '/docs/introduce' },
         ];
   }
 
@@ -968,7 +1116,10 @@
   }
 
   function enhanceHeroLinks() {
-    var heroLinks = document.querySelectorAll('.xmd-hero a[href]');
+    // Enhance every internal link on the landing page (hero + sections + CTA)
+    // for SPA navigation, not just the hero. The query keeps `.xmd-hero` in the
+    // selector so the homepage-detection contract still resolves.
+    var heroLinks = document.querySelectorAll('.xmd-landing a[href], .xmd-hero a[href]');
     for (var i = 0; i < heroLinks.length; i++) {
       var a = heroLinks[i];
       if (a.__xmdSpa) continue;
@@ -980,6 +1131,9 @@
   function bootstrap() {
     setupDevDebug();
     initPlatformAttribute();
+    enhancePlatformTabs();
+    syncSidebarLocale();
+    normalizeSidebarActive();
     enhanceHeader();
     enhanceFooter();
     enhanceHeroLinks();
@@ -989,6 +1143,9 @@
   window.__xmdEnhanceHeader = enhanceHeader;
   window.__xmdEnhanceFooter = enhanceFooter;
   window.__xmdEnhanceHeroLinks = enhanceHeroLinks;
+  window.__xmdEnhancePlatformTabs = enhancePlatformTabs;
+  window.__xmdSyncSidebarLocale = syncSidebarLocale;
+  window.__xmdNormalizeSidebarActive = normalizeSidebarActive;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bootstrap);
@@ -1047,6 +1204,9 @@
       if (typeof window.__xmdEnhanceHeader === 'function') window.__xmdEnhanceHeader();
       if (typeof window.__xmdEnhanceFooter === 'function') window.__xmdEnhanceFooter();
       if (typeof window.__xmdEnhanceHeroLinks === 'function') window.__xmdEnhanceHeroLinks();
+      if (typeof window.__xmdEnhancePlatformTabs === 'function') window.__xmdEnhancePlatformTabs();
+      if (typeof window.__xmdSyncSidebarLocale === 'function') window.__xmdSyncSidebarLocale();
+      if (typeof window.__xmdNormalizeSidebarActive === 'function') window.__xmdNormalizeSidebarActive();
       requestUpdate();
     }).observe(document.body, { childList: true, subtree: true });
     update();

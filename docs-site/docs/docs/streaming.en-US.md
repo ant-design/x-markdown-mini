@@ -52,6 +52,58 @@ renderNodes({
 });
 ```
 
+## Streaming fixup
+
+Streaming input often stops at incomplete Markdown, for example:
+
+```md
+**still generating
+
+```ts
+const value =
+```
+
+The default `streamingFixup: 'remend'` runs only on the uncommitted tail. It temporarily closes unfinished bold markers, fenced code blocks, formulas, and similar syntax so marked can parse the current fragment stably. When later chunks arrive, the tail is parsed again; already committed stable blocks are not touched.
+
+Disable it when you want to render the raw partial input:
+
+```ts
+const md = new XMarkdownMini({
+  streamingFixup: false,
+});
+```
+
+Or pass a custom function:
+
+```ts
+const md = new XMarkdownMini({
+  streamingFixup: (tail) => tail.endsWith('```') ? tail : `${tail}\n\`\`\``,
+});
+```
+
+## Semantic chunking
+
+`semantic` controls patch cadence. By default it chunks by common punctuation and line breaks, avoiding both token-by-token flicker and over-long delayed updates.
+
+```ts
+renderNodes({
+  content: accumulatedMarkdown,
+  platform: 'alipay',
+  streaming: {
+    hasNextChunk: true,
+    semantic: {
+      delimiters: /[。？！；，、\n]/,
+      maxChunkSize: 80,
+      chunkDelay: 0,
+      charDelay: 0,
+    },
+  },
+  onPatch: (nodes) => this.setData({ nodes }),
+});
+```
+
+When both `chunkDelay` and `charDelay` are 0, the production path bypasses `setTimeout` and fires `onPatch` synchronously.
+
 ## Incremental strategy
 
 On every update, the processor finds positions that are "outside a fenced code block" AND "preceded by two consecutive blank lines" — those are safe block boundaries. The pure-JS path returns marked `Token[]`; the component path then feeds those tokens into the platform renderer. Both paths first run streaming fixup on the tail string before handing it to the marked lexer.
