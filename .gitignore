@@ -49,6 +49,5 @@ benchmark/results.json
 
 # Tool files
 .codegraph/
-.understand-anything/
 .mcp.json
 .claude/
