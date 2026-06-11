@@ -1,6 +1,11 @@
 import React from 'react';
-import { PhonePreview, type PreviewPlatform } from '../PhonePreview';
-import { DemoCode, type PlatformCode } from '../DemoCode';
+import {
+  PhonePreview,
+  type PhoneRenderOptions,
+  type PhoneSection,
+  type PreviewPlatform,
+} from '../PhonePreview';
+import { DemoCode, type DemoFile, type PlatformCode } from '../DemoCode';
 import { useDocPlatform } from '../useDocPlatform';
 import './index.less';
 
@@ -11,20 +16,32 @@ const PLATFORM_LABEL: Record<PreviewPlatform, string> = {
 
 const PLATFORMS: PreviewPlatform[] = ['alipay', 'wechat'];
 
-export interface DemoCardProps {
-  markdown: string;
+export interface DemoCardProps extends PhoneRenderOptions {
+  markdown?: string;
+  /** 多段预览：每段一个标题 + 一段 md */
+  sections?: PhoneSection[];
   animation?: boolean;
   defaultPlatform?: PreviewPlatform;
-  alipay: PlatformCode;
-  wechat: PlatformCode;
+  navTitle?: string;
+  alipay?: PlatformCode;
+  wechat?: PlatformCode;
+  /** 平台无关代码（TS / Markdown 输入），优先于 alipay / wechat */
+  files?: DemoFile[];
 }
 
 export const DemoCard: React.FC<DemoCardProps> = ({
   markdown,
+  sections,
   animation,
-  defaultPlatform = 'alipay',
+  navTitle,
   alipay,
   wechat,
+  files,
+  extensions,
+  components,
+  gfm,
+  breaks,
+  streamingTail,
 }) => {
   const [platform, setPlatform] = useDocPlatform();
 
@@ -47,11 +64,18 @@ export const DemoCard: React.FC<DemoCardProps> = ({
         </div>
         <PhonePreview
           platform={platform}
-          sections={[{ markdown, animation }]}
+          navTitle={navTitle}
+          markdown={sections ? undefined : markdown}
+          sections={sections ?? (markdown ? [{ markdown, animation }] : undefined)}
+          extensions={extensions}
+          components={components}
+          gfm={gfm}
+          breaks={breaks}
+          streamingTail={streamingTail}
         />
       </div>
       <div className="xmd-demo-card-code">
-        <DemoCode alipay={alipay} wechat={wechat} />
+        <DemoCode alipay={alipay} wechat={wechat} files={files} />
       </div>
     </div>
   );

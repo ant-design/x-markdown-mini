@@ -11,26 +11,13 @@ group:
 
 # Component Usage
 
-The component layer contains `Markdown` and `MiniNodeRenderer`. Use `Markdown` for ordinary pages; use `MiniNodeRenderer` when you already own the node tree.
+The `Markdown` component takes a Markdown string; `MiniNodeRenderer` takes a node array. Prefer `Markdown` in business pages, and reach for `MiniNodeRenderer` only when you need full control of the node tree.
 
-## Markdown
+## Markdown component
 
-```json
-{
-  "usingComponents": {
-    "x-markdown": "@ant-design/x-markdown-mini/components/Markdown/index"
-  }
-}
-```
+The component creates an isolated instance internally and resets streaming state at the end of its lifecycle.
 
-```xml
-<x-markdown
-  content="{{content}}"
-  streaming="{{streaming}}"
-  selectable="{{true}}"
-  footnote="{{true}}"
-/>
-```
+<code src="../../src/demos/components/Basic.tsx"></code>
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -42,26 +29,20 @@ The component layer contains `Markdown` and `MiniNodeRenderer`. Use `Markdown` f
 | `components` | `string[]` | `null` | Custom component tag allowlist |
 | `footnote` | `boolean` | `false` | Enable the built-in footnote extension |
 
+Render events: WeChat fires `renderstart` / `renderprogress` / `rendercomplete` via `triggerEvent`; Alipay uses `onRenderStart` / `onRenderProgress` / `onRenderComplete`.
+
 ## Custom component tags
 
-```xml
-<x-markdown
-  content="{{content}}"
-  components="{{['countdown']}}"
-/>
-```
+`components` declares which tags may pass through. Matched tags go down the slot / abstract-node path and are rendered by the page's own components.
 
-```md
-Countdown: <countdown value="3600"></countdown>
-```
+<code src="../../src/demos/components/CustomTag.tsx"></code>
 
-User-registered marked extensions take precedence over auto-generated custom-component tokenizers.
+A user extension with the same name takes precedence over the auto-synthesized custom-component tokenizer.
 
 ## MiniNodeRenderer
 
-```xml
-<mini-node-renderer nodes="{{nodes}}" selectable="{{true}}" />
-```
+When you call `renderNodes` yourself to cache nodes or post-process the tree, hand the result to `MiniNodeRenderer`.
 
-Use it after calling `renderNodes` yourself, caching nodes, or post-processing the node tree.
+<code src="../../src/demos/components/NodesRenderer.tsx"></code>
 
+The component flattens inline nodes first, because mini-program `<text>` cannot nest custom components.

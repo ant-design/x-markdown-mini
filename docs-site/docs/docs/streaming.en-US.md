@@ -11,103 +11,46 @@ group:
 
 # Streaming Rendering
 
-The LLM streams tokens; the UI emits nodes alongside. The library's streaming strategy targets two goals:
+The LLM streams tokens; the UI emits nodes alongside. The streaming strategy targets two goals:
 
-1. **Stability**: blocks that have already rendered do not change structure when later tokens arrive (avoid "jumping")
-2. **Frugality**: don't re-parse the entire string from scratch every time a single token shows up
+1. **Stability**: blocks that have already rendered do not change structure when later tokens arrive (no "jumping")
+2. **Frugality**: don't re-parse the whole string for every incoming token
 
 ## Basic streaming
 
-Each setData call passes the accumulated Markdown in full; setting `hasNextChunk=false` triggers `onRenderComplete`.
+Pass the accumulated Markdown in full on every round; the final round sets `hasNextChunk: false`, which flushes the remainder and triggers `onRenderComplete`.
 
 <code src="../../src/demos/streaming/Basic.tsx"></code>
 
+Without the component, the JS API works the same way:
+
 ```ts
-render({
-  content: accumulatedMarkdown,
+renderNodes({
+  content: accumulatedMarkdown, // everything received so far
+  platform: 'wechat',
   streaming: { hasNextChunk: true },
-  onPatch: (tokens) => {
-    // marked Token[]
-  },
-});
-
-renderNodes({
-  content: accumulatedMarkdown, // all Markdown accumulated so far
-  platform: 'wechat',
-  streaming: {
-    hasNextChunk: true, // more chunks to come
-    semantic: true, // chunk by sentence / punctuation (default)
-    enableAnimation: true, // tag new blocks with md-animate-block; CSS handles fade-in
-  },
   onPatch: (nodes) => this.setData({ nodes }),
-});
-
-// final pass: hasNextChunk=false, flush leftover and trigger onRenderComplete
-renderNodes({
-  content: finalMarkdown,
-  platform: 'wechat',
-  streaming: { hasNextChunk: false },
-  onPatch: (nodes) => this.setData({ nodes }),
-  onRenderComplete: () => console.log('done'),
 });
 ```
 
 ## Streaming fixup
 
-Streaming input often stops at incomplete Markdown, for example:
+Streamed input often stops mid-syntax. The default `streamingFixup: 'remend'` only touches the uncommitted tail: unclosed bold, code fences and formulas are completed temporarily, and the tail is re-parsed when the next chunk arrives. Committed stable blocks are never affected.
 
-```md
-**still generating
+<code src="../../src/demos/streaming/Fixup.tsx"></code>
 
-```ts
-const value =
-```
+## Semantic chunking (typewriter)
 
-The default `streamingFixup: 'remend'` runs only on the uncommitted tail. It temporarily closes unfinished bold markers, fenced code blocks, formulas, and similar syntax so marked can parse the current fragment stably. When later chunks arrive, the tail is parsed again; already committed stable blocks are not touched.
+`semantic` controls the patch rhythm: chunks split on punctuation and newlines, `charDelay` advances characters within a chunk, and overly long sentences fall back to `maxChunkSize`.
 
-Disable it when you want to render the raw partial input:
+<code src="../../src/demos/streaming/Typewriter.tsx"></code>
 
-```ts
-const md = new XMarkdownMini({
-  streamingFixup: false,
-});
-```
-
-Or pass a custom function:
-
-```ts
-const md = new XMarkdownMini({
-  streamingFixup: (tail) => tail.endsWith('```') ? tail : `${tail}\n\`\`\``,
-});
-```
-
-## Semantic chunking
-
-`semantic` controls patch cadence. By default it chunks by common punctuation and line breaks, avoiding both token-by-token flicker and over-long delayed updates.
-
-```ts
-renderNodes({
-  content: accumulatedMarkdown,
-  platform: 'alipay',
-  streaming: {
-    hasNextChunk: true,
-    semantic: {
-      delimiters: /[。？！；，、\n]/,
-      maxChunkSize: 80,
-      chunkDelay: 0,
-      charDelay: 0,
-    },
-  },
-  onPatch: (nodes) => this.setData({ nodes }),
-});
-```
-
-When both `chunkDelay` and `charDelay` are 0, the production path bypasses `setTimeout` and fires `onPatch` synchronously.
+When `chunkDelay` and `charDelay` are both 0, no `setTimeout` is involved and `onPatch` fires synchronously on the production path.
 
 ## Incremental strategy
 
-On every update, the processor finds positions that are "outside a fenced code block" AND "preceded by two consecutive blank lines" — those are safe block boundaries. The pure-JS path returns marked `Token[]`; the component path then feeds those tokens into the platform renderer. Both paths first run streaming fixup on the tail string before handing it to the marked lexer.
+The processor treats "two consecutive blank lines outside a fenced code block" as a safe boundary: blocks before the boundary are committed and never re-parsed; each round only parses the tail.
 
 :::info Why "two consecutive blank lines"?
-A single blank line can still be the continuation of a loose list. Two blank lines + outside a fence is an unambiguous block-terminator in CommonMark semantics. The rule is conservative but stable.
+A single blank line may still continue a loose list; a double blank line outside a fence is an unambiguous block terminator in CommonMark. Conservative, but stable.
 :::

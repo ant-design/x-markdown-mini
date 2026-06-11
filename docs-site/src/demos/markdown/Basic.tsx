@@ -46,7 +46,7 @@ export default () => (
       style: COMMON_STYLE,
       json: `{
   "usingComponents": {
-    "markdown": "@ant-design/x-markdown-mini/alipay/markdown"
+    "markdown": "@ant-design/x-markdown-mini/dist/components/Markdown/index"
   }
 }`,
     }}
@@ -60,7 +60,7 @@ export default () => (
       style: COMMON_STYLE,
       json: `{
   "usingComponents": {
-    "markdown": "@ant-design/x-markdown-mini/wechat/markdown"
+    "markdown": "@ant-design/x-markdown-mini/components/Markdown/index"
   }
 }`,
     }}

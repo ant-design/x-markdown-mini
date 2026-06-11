@@ -4,6 +4,8 @@
   gap: 24px;
   align-items: start;
   margin: 16px 0;
+  min-width: 0;
+  max-width: 100%;
 
   @media (max-width: 960px) {
     grid-template-columns: 1fr;
@@ -16,6 +18,11 @@
   align-items: center;
   gap: 12px;
   order: 2;
+
+  // 文档 demo 里手机矮一些，减少代码侧的留白
+  .xmd-phone {
+    --phone-h: 520px;
+  }
 
   @media (max-width: 960px) {
     order: 1;

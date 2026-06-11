@@ -11,42 +11,25 @@ group:
 
 # Formula
 
-The `Latex` plugin uses KaTeX to convert inline and block formulas into `MiniNode[]`. Import the stylesheet separately in the target mini-program page or component.
+The `Latex` plugin uses KaTeX to convert inline and block formulas into `MiniNode[]`. The plugin only generates nodes; import the stylesheet separately (see the style file in the demo).
 
 ## Usage
 
+Supports the `$...$`, `$$...$$`, `\(...\)` and `\[...\]` delimiters.
+
+<code src="../../src/demos/plugins/LatexDemo.tsx"></code>
+
+## Error handling
+
+With `throwOnError: false`, a broken formula renders as its source text; use `onError` to emit custom error nodes instead:
+
 ```ts
-import { XMarkdownMini } from '@ant-design/x-markdown-mini';
-import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
-
-const md = new XMarkdownMini({
-  extensions: [Latex({ katexOptions: { throwOnError: false } })],
-});
-
-const nodes = md.renderNodes({
-  content: 'Energy: $E=mc^2$',
-  platform: 'alipay',
+Latex({
+  onError: (tex, err) => [
+    {
+      name: 'text',
+      attrs: { value: `[formula error: ${err.message}]` },
+    },
+  ],
 });
 ```
-
-## Syntax
-
-```md
-Inline: $E=mc^2$
-
-Block:
-$$
-\int_0^1 x^2 dx = \frac{1}{3}
-$$
-```
-
-## Styles
-
-```css
-/* WeChat .wxss */
-@import "@ant-design/x-markdown-mini/plugins/Latex/style.wxss";
-
-/* Alipay .acss */
-@import "@ant-design/x-markdown-mini/plugins/Latex/style.acss";
-```
-

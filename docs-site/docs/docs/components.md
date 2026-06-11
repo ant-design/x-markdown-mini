@@ -11,26 +11,13 @@ group:
 
 # 组件使用
 
-组件层由 `Markdown` 和 `MiniNodeRenderer` 组成。推荐业务页面优先使用 `Markdown`，只有需要完全接管节点树时再直接使用 `MiniNodeRenderer`。
+`Markdown` 组件接 Markdown 字符串，`MiniNodeRenderer` 接节点数组。业务页面优先用 `Markdown`，需要完全接管节点树时再用 `MiniNodeRenderer`。
 
 ## Markdown 组件
 
-```json
-{
-  "usingComponents": {
-    "x-markdown": "@ant-design/x-markdown-mini/components/Markdown/index"
-  }
-}
-```
+组件内部创建独立实例，并在生命周期结束时重置流式状态。
 
-```xml
-<x-markdown
-  content="{{content}}"
-  streaming="{{streaming}}"
-  selectable="{{true}}"
-  footnote="{{true}}"
-/>
-```
+<code src="../../src/demos/components/Basic.tsx"></code>
 
 | 属性 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
@@ -42,32 +29,20 @@ group:
 | `components` | `string[]` | `null` | 自定义组件标签白名单 |
 | `footnote` | `boolean` | `false` | 是否启用内置脚注扩展 |
 
-微信组件通过 `triggerEvent` 抛出 `renderstart`、`renderprogress`、`rendercomplete`；支付宝组件对应 `onRenderStart`、`onRenderProgress`、`onRenderComplete`。
+渲染事件：微信为 `renderstart` / `renderprogress` / `rendercomplete`（`triggerEvent`），支付宝为 `onRenderStart` / `onRenderProgress` / `onRenderComplete`。
 
 ## 自定义组件标签
 
-`components` 用来声明允许透传的标签名。命中的自定义标签会进入 slot / 抽象节点渲染路径，适合把业务组件嵌入 Markdown。
+`components` 声明允许透传的标签。命中的标签会进入 slot / 抽象节点渲染路径，由页面自己的组件渲染。
 
-```xml
-<x-markdown
-  content="{{content}}"
-  components="{{['countdown']}}"
-/>
-```
+<code src="../../src/demos/components/CustomTag.tsx"></code>
 
-```md
-活动结束倒计时：<countdown value="3600"></countdown>
-```
-
-用户注册的 marked extension 优先级高于自动合成的自定义组件 tokenizer。
+同名的用户 extension 优先于自动合成的自定义组件 tokenizer。
 
 ## MiniNodeRenderer
 
-`MiniNodeRenderer` 接收已经生成好的 `MiniNode[]`。当你需要自己调用 `renderNodes`、缓存节点、或对节点树做二次处理时使用它。
+需要自己调用 `renderNodes`、缓存节点或做二次处理时，把结果交给 `MiniNodeRenderer`。
 
-```xml
-<mini-node-renderer nodes="{{nodes}}" selectable="{{true}}" />
-```
+<code src="../../src/demos/components/NodesRenderer.tsx"></code>
 
 组件内部会先 flatten inline 节点，因为小程序 `<text>` 不能嵌套自定义组件。
-

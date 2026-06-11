@@ -11,33 +11,13 @@ group:
 
 # Code Highlight
 
-`CodeHighlight` uses `highlight.js` to override fenced code block rendering. Blocks without a language, or with an unknown language, fall back to the built-in code renderer.
+`CodeHighlight` uses `highlight.js` to take over fenced code blocks. Blocks without a language, or with an unknown one, fall back to the built-in plain code renderer.
 
 ## Usage
 
-```ts
-import { XMarkdownMini } from '@ant-design/x-markdown-mini';
-import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
+<code src="../../src/demos/plugins/CodeHighlightDemo.tsx"></code>
 
-const md = new XMarkdownMini({
-  extensions: [CodeHighlight()],
-});
-
-const nodes = md.renderNodes({
-  content: '```ts\nconst answer: number = 42;\n```',
-  platform: 'wechat',
-});
-```
-
-## Styles
-
-```css
-/* WeChat .wxss */
-@import "@ant-design/x-markdown-mini/plugins/CodeHighlight/style.wxss";
-
-/* Alipay .acss */
-@import "@ant-design/x-markdown-mini/plugins/CodeHighlight/style.acss";
-```
+Registered by default: JavaScript, TypeScript, Python, Java, CSS, XML, JSON, SQL, Bash, Shell, C, C++, Go, Rust, YAML, Markdown, Diff, Plaintext.
 
 ## Custom languages
 
@@ -50,4 +30,3 @@ CodeHighlight({
   hljsOptions: { ignoreIllegals: true },
 });
 ```
-

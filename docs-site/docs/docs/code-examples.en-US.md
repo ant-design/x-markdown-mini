@@ -13,75 +13,32 @@ group:
 
 ## Generate nodes directly
 
-```ts
-import { renderNodes } from '@ant-design/x-markdown-mini';
+`renderNodes` is the shortest path: Markdown in, platform-ready `MiniNode[]` out, consumable by `<rich-text>` as-is.
 
-const nodes = renderNodes({
-  content: '# Hello\n\n**x-markdown-mini**',
-  platform: 'auto',
-  selectable: true,
-});
-```
+<code src="../../src/demos/examples/RenderNodes.tsx"></code>
 
-```xml
-<!-- consume nodes in a WeChat / Alipay page -->
-<rich-text nodes="{{nodes}}" />
-```
+## GFM
 
-`renderNodes` is the shortest path: Markdown in, platform-ready `MiniNode[]` out.
+Tables, strikethrough and autolinks are on by default; pass `gfm: false` per call to turn them off.
 
-## Create an isolated instance
+<code src="../../src/demos/examples/Gfm.tsx"></code>
 
-For concurrent streams, create one `XMarkdownMini` instance per view. Reset it when the view is destroyed.
+## Soft line breaks
+
+`breaks: true` renders `\n` inside a paragraph as a line break, which suits short chat messages.
+
+<code src="../../src/demos/examples/Breaks.tsx"></code>
+
+## Concurrent streams: isolated instances
+
+The default singleton shares its streaming state. For concurrent streaming views, create one instance per view and call `reset()` on unmount:
 
 ```ts
 import { XMarkdownMini } from '@ant-design/x-markdown-mini';
 
-const md = new XMarkdownMini({
-  escapeText: false,
-  gfm: true,
-  breaks: false,
-});
+const md = new XMarkdownMini();
 
-const nodes = md.renderNodes({
-  content,
-  platform: 'wechat',
-});
+const nodes = md.renderNodes({ content, platform: 'wechat' });
 
-md.reset();
+md.reset(); // reset streaming state when the view unmounts
 ```
-
-## Mini-program component
-
-```json
-{
-  "usingComponents": {
-    "x-markdown": "@ant-design/x-markdown-mini/components/Markdown/index"
-  }
-}
-```
-
-```xml
-<x-markdown
-  content="{{content}}"
-  selectable="{{true}}"
-  streaming="{{false}}"
-/>
-```
-
-## GFM and line breaks
-
-```ts
-renderNodes({
-  content: '| A | B |\n| - | - |\n| 1 | 2 |',
-  platform: 'alipay',
-  gfm: true,
-});
-
-renderNodes({
-  content: 'line 1\nline 2',
-  platform: 'wechat',
-  breaks: true,
-});
-```
-

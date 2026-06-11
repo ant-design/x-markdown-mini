@@ -11,11 +11,17 @@ group:
 
 # Custom Plugin
 
-Use `XMarkdownExtension` for custom syntax: put the tokenizer and `miniRenderer` in the same extension and emit `MiniNode` directly.
+Use `XMarkdownExtension` for custom syntax: the tokenizer and `miniRenderer` live in the same extension and emit `MiniNode` directly, with no HTML round-trip.
 
-This example implements `Markdown[^1:a lightweight markup language]`.
+## Result
 
-## Extension
+The built-in footnote plugin as an example, using the syntax `Markdown[^1:a lightweight markup language]`. The host page renders the marker and popover; the built-in `Markdown` component just needs its `footnote` prop.
+
+<code src="../../src/demos/plugins/FootnoteDemo.tsx"></code>
+
+## Plugin structure
+
+The full implementation of the footnote plugin above:
 
 ```ts
 import type { MiniNode, Tokens, XMarkdownExtension } from '@ant-design/x-markdown-mini';
@@ -47,7 +53,11 @@ export function Footnote(): XMarkdownExtension {
           return {
             name: 'footnote',
             tag: 'footnote',
-            attrs: { label: t.label, content: t.content, class: 'md-footnote' },
+            attrs: {
+              label: t.label,
+              content: t.content,
+              class: 'md-footnote',
+            },
           };
         },
       },
@@ -56,25 +66,9 @@ export function Footnote(): XMarkdownExtension {
 }
 ```
 
-## Usage
+## Rules
 
-```ts
-import { XMarkdownMini } from '@ant-design/x-markdown-mini';
-import Footnote from '@ant-design/x-markdown-mini/plugins/Footnote';
-
-const md = new XMarkdownMini({
-  extensions: [Footnote()],
-});
-
-const nodes = md.renderNodes({
-  content: 'Markdown[^1:a lightweight markup language] works well for docs.',
-  platform: 'wechat',
-});
-```
-
-The bundled `Markdown` component also exposes a `footnote` prop:
-
-```xml
-<x-markdown content="{{content}}" footnote="{{true}}" />
-```
-
+- The tokenizer decides how source text becomes a token.
+- `miniRenderer` decides how a token becomes a `MiniNode`.
+- Tokens not handled by a plugin continue through the platform renderer.
+- A user extension with the same name takes precedence over the auto-synthesized custom-component tokenizer.
