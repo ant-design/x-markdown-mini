@@ -1,85 +1,163 @@
 .xmd-phone {
-  --phone-w: 320px;
-  --phone-h: 620px;
-  --phone-radius: 38px;
+  --phone-w: 292px;
+  --phone-h: 633px;
+  --phone-radius: 40px;
   --phone-bg: #ffffff;
-  --phone-frame-bg: #fafafa;
-  --phone-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-  --phone-border: #e5e5e5;
+  --phone-frame-bg: #ffffff;
   --phone-text: #171717;
+  --phone-shell: url(https://mdn.alipayobjects.com/huamei_2jrq4g/afts/img/A*vJX0SK7L5g0AAAAAAAAAAAAADtF8AQ/original);
 
+  position: relative;
   width: var(--phone-w);
-  align-self: flex-start;
+  height: var(--phone-h);
+  align-self: center;
+  border-radius: var(--phone-radius);
+  background: #f9fafb;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+
+  &::before {
+    position: absolute;
+    z-index: 3;
+    top: -5px;
+    left: -12px;
+    display: block;
+    width: calc(100% + 24px);
+    height: calc(100% + 10px);
+    background: var(--phone-shell) no-repeat;
+    background-size: 100% 100%;
+    content: '';
+    pointer-events: none;
+  }
 }
 
 .xmd-phone-bezel {
   position: relative;
-  background: #171717;
-  border-radius: calc(var(--phone-radius) + 4px);
-  padding: 10px;
-  box-shadow: var(--phone-shadow);
+  width: 100%;
+  height: 100%;
+  background: var(--phone-bg);
+  border-radius: var(--phone-radius);
+  overflow: hidden;
 }
 
 .xmd-phone-notch {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 110px;
-  height: 22px;
-  background: #0a0a0a;
-  border-radius: 16px;
-  z-index: 2;
+  display: none;
 }
 
 .xmd-phone-frame {
   background: var(--phone-bg);
   border-radius: var(--phone-radius);
   overflow: hidden;
-  height: var(--phone-h);
+  height: 100%;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--phone-border);
+  border: 0;
 }
 
 .xmd-phone-statusbar {
-  height: 38px;
+  position: relative;
+  z-index: 2;
+  height: 44px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 0 24px 6px;
+  padding: 0 24px 8px;
   font-size: 12px;
   color: var(--phone-text);
   background: var(--phone-frame-bg);
 }
 
+.xmd-sb-time {
+  font-weight: 600;
+  line-height: 1;
+}
+
 .xmd-sb-icons {
   display: inline-flex;
-  gap: 4px;
-  align-items: center;
+  gap: 5px;
+  align-items: flex-end;
+  height: 12px;
+  color: #171717;
 }
 
-.xmd-sb-signal,
-.xmd-sb-wifi,
-.xmd-sb-battery {
-  display: inline-block;
+.xmd-sb-signal {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1.5px;
   width: 16px;
-  height: 10px;
+  height: 11px;
+  padding-bottom: 1px;
+}
+
+.xmd-sb-signal i {
+  display: block;
+  width: 3px;
   background: currentColor;
-  border-radius: 2px;
-  opacity: 0.75;
+  border-radius: 1.5px;
+}
+
+.xmd-sb-signal i:nth-child(1) {
+  height: 4px;
+}
+
+.xmd-sb-signal i:nth-child(2) {
+  height: 6px;
+}
+
+.xmd-sb-signal i:nth-child(3) {
+  height: 8px;
+}
+
+.xmd-sb-signal i:nth-child(4) {
+  height: 10px;
+}
+
+.xmd-sb-wifi {
+  width: 16px;
+  height: 12px;
+  color: currentColor;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .xmd-sb-battery {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
   width: 22px;
+  height: 11px;
+  padding: 1.5px;
+  border: 1.5px solid currentColor;
   border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.xmd-sb-battery::after {
+  position: absolute;
+  top: 3px;
+  right: -3.5px;
+  width: 2px;
+  height: 5px;
+  background: currentColor;
+  border-radius: 0 1px 1px 0;
+  content: '';
+}
+
+.xmd-sb-battery-level {
+  display: block;
+  width: 15px;
+  height: 100%;
+  background: currentColor;
+  border-radius: 1.2px;
 }
 
 .xmd-phone-navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 44px;
   padding: 8px 14px;
   background: var(--phone-frame-bg);
   border-bottom: 1px solid #f0f0f0;
@@ -112,7 +190,7 @@
 .xmd-phone-screen {
   flex: 1;
   overflow: auto;
-  padding: 14px 16px 24px;
+  padding: 16px 16px 28px;
   background: var(--phone-bg);
   color: var(--phone-text);
   font-size: 14px;
@@ -261,11 +339,7 @@
 }
 
 .xmd-phone-home-indicator {
-  width: 120px;
-  height: 4px;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.2);
-  margin: 8px auto 8px;
+  display: none;
 }
 
 .xmd-phone-section + .xmd-phone-section {

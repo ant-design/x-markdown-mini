@@ -467,11 +467,24 @@
     }
   }
 
+  function closeVersionDropdowns() {
+    var menus = document.querySelectorAll('.xmd-version-dropdown[data-open="true"]');
+    for (var i = 0; i < menus.length; i++) {
+      var wrap = menus[i];
+      var trigger = wrap.querySelector('.xmd-version-trigger');
+      wrap.removeAttribute('data-open');
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    }
+  }
+
   function onDocClickForInline(ev) {
     var cluster = getNavCluster();
-    if (!cluster || cluster.getAttribute('data-search-state') !== 'open') return;
-    if (cluster.contains(ev.target)) return;
-    closeInlineSearch();
+    if (cluster && cluster.getAttribute('data-search-state') === 'open' && !cluster.contains(ev.target)) {
+      closeInlineSearch();
+    }
+
+    var version = ev.target.closest && ev.target.closest('.xmd-version-dropdown');
+    if (!version) closeVersionDropdowns();
   }
 
   document.addEventListener('keydown', forceSearchModal, true);
@@ -496,11 +509,12 @@
 
     if (isLocal) {
       document.body.setAttribute('data-xmd-dev', 'true');
+    }
+
+    if (isLocal && debug) {
       var badge = document.createElement('div');
       badge.className = 'xmd-dev-badge';
-      badge.textContent = debug
-        ? 'dev · layout debug on'
-        : 'dev · add ?xmd-debug=1 for layout outlines';
+      badge.textContent = 'dev · layout debug on';
       document.body.appendChild(badge);
     }
 
@@ -943,12 +957,9 @@
   }
 
   function buildVersionSelect() {
+    var isEn = isEnPathname(window.location.pathname);
     var wrap = document.createElement('span');
-    wrap.className = 'xmd-version-select-wrap';
-
-    var select = document.createElement('select');
-    select.className = 'xmd-version-select';
-    select.setAttribute('aria-label', isEnPathname(window.location.pathname) ? 'Version' : '版本');
+    wrap.className = 'xmd-version-dropdown';
 
     var options = {};
     options[CURRENT_VERSION] = '';
@@ -956,21 +967,88 @@
       options[label] = VERSION_MIRRORS[label];
     });
 
+    var trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'xmd-version-trigger';
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-label', isEn ? 'Version' : '版本');
+    trigger.innerHTML =
+      '<span class="xmd-version-label">v' +
+      CURRENT_VERSION +
+      '</span>' +
+      '<span class="xmd-version-arrow" aria-hidden="true"></span>';
+
+    var menu = document.createElement('div');
+    menu.className = 'xmd-version-menu';
+    menu.setAttribute('role', 'listbox');
+    menu.setAttribute('aria-label', isEn ? 'Version' : '版本');
+
     Object.keys(options).forEach(function (label) {
-      var opt = document.createElement('option');
-      opt.value = options[label];
-      opt.textContent = 'v' + label;
-      if (label === CURRENT_VERSION) opt.selected = true;
-      select.appendChild(opt);
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'xmd-version-option';
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', label === CURRENT_VERSION ? 'true' : 'false');
+      item.dataset.url = options[label];
+      item.innerHTML =
+        '<span>v' +
+        label +
+        '</span>' +
+        (label === CURRENT_VERSION ? '<span class="xmd-version-check" aria-hidden="true">✓</span>' : '');
+      item.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var url = item.dataset.url;
+        closeVersionDropdowns();
+        if (url) window.location.href = url;
+      });
+      menu.appendChild(item);
     });
 
-    select.addEventListener('change', function () {
-      var url = select.value;
-      if (!url) return;
-      window.location.href = url;
+    trigger.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      var open = wrap.getAttribute('data-open') === 'true';
+      closeInlineSearch();
+      closeVersionDropdowns();
+      if (!open) {
+        wrap.setAttribute('data-open', 'true');
+        trigger.setAttribute('aria-expanded', 'true');
+      }
     });
 
-    wrap.appendChild(select);
+    trigger.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape') {
+        closeVersionDropdowns();
+        trigger.focus();
+      }
+      if (ev.key === 'ArrowDown' || ev.key === 'Enter' || ev.key === ' ') {
+        ev.preventDefault();
+        wrap.setAttribute('data-open', 'true');
+        trigger.setAttribute('aria-expanded', 'true');
+        var active = menu.querySelector('[aria-selected="true"]') || menu.querySelector('.xmd-version-option');
+        if (active) active.focus();
+      }
+    });
+
+    menu.addEventListener('keydown', function (ev) {
+      var items = Array.prototype.slice.call(menu.querySelectorAll('.xmd-version-option'));
+      var idx = items.indexOf(document.activeElement);
+      if (ev.key === 'Escape') {
+        closeVersionDropdowns();
+        trigger.focus();
+      } else if (ev.key === 'ArrowDown' && items.length) {
+        ev.preventDefault();
+        items[(idx + 1 + items.length) % items.length].focus();
+      } else if (ev.key === 'ArrowUp' && items.length) {
+        ev.preventDefault();
+        items[(idx - 1 + items.length) % items.length].focus();
+      }
+    });
+
+    wrap.appendChild(trigger);
+    wrap.appendChild(menu);
     return wrap;
   }
 
@@ -1178,8 +1256,8 @@
       var hero = document.querySelector('.xmd-hero');
       var hasHero = !!hero;
       if (!hasHero) {
-        header.classList.remove('xmd-mini');
         document.body.classList.remove('xmd-homepage', 'xmd-over-hero');
+        header.classList.toggle('xmd-mini', window.scrollY > 24);
         return;
       }
       document.body.classList.add('xmd-homepage');

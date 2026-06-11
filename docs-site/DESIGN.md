@@ -204,7 +204,7 @@ Flat by default. The system conveys structure through 1px borders and the zinc r
 - **Anti-pattern:** Never an identical icon+heading+text grid repeated endlessly, and never a colored left-border stripe.
 
 ### Navigation
-- **Header:** 80px tall, transparent (sits on the page's own grid background), no border or shadow. Logo in Inter 700 at 15px. Dumi defaults are stripped; nav and search are rebuilt as quiet 36px icon buttons that fill `#f4f4f5` on hover.
+- **Header:** 80px tall with no bottom rule. The page chrome stays quiet at rest, and on scroll it hides the logo plus right-side utilities, leaving only the center navigation capsule. The brand wordmark uses 20px text; the center navigation capsule is 48px tall with 16px links. Right-side utilities use Ant Design-style trigger + popup controls instead of browser-native widgets.
 - **Sidebar:** 228px. Group titles in soft gray (`#9a9a9a`, 22px). Items at 18px; active item is Electric Blue on an 8% blue tint (`#2563eb14`), 600 weight.
 - **TOC:** Right rail, 13px, `#737373`. Active item is Electric Blue with a blue left rule (the only place a left-border accent is permitted, at 1px).
 

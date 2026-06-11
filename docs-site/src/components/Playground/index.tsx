@@ -434,9 +434,20 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
               <div className="xmd-phone-statusbar" aria-hidden>
                 <span className="xmd-sb-time">9:41</span>
                 <span className="xmd-sb-icons">
-                  <span className="xmd-sb-signal" />
-                  <span className="xmd-sb-wifi" />
-                  <span className="xmd-sb-battery" />
+                  <span className="xmd-sb-signal">
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <svg className="xmd-sb-wifi" viewBox="0 0 16 12" focusable="false">
+                    <path d="M2 4.6a8.5 8.5 0 0 1 12 0" />
+                    <path d="M4.7 7.1a4.7 4.7 0 0 1 6.6 0" />
+                    <path d="M7.1 9.6a1.3 1.3 0 0 1 1.8 0" />
+                  </svg>
+                  <span className="xmd-sb-battery">
+                    <span className="xmd-sb-battery-level" />
+                  </span>
                 </span>
               </div>
               <div className="xmd-phone-navbar">
