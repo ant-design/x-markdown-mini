@@ -132,6 +132,39 @@ describe('renderTokensToMiniNodes', () => {
     expect(copyButton('hello')).toEqual({ name: 'copy-button', attrs: { 'data-copy': 'hello', class: 'md-copy-icon' } });
   });
 
+  it('omits the code/table header when configured false', () => {
+    const codeNodes = renderTokensToMiniNodes(Lexer.lex('```ts\nx\n```'), headerAdapter, { codeHeader: false });
+    expect(find(codeNodes, 'pre')!.header).toBeUndefined();
+    const tableNodes = renderTokensToMiniNodes(Lexer.lex('| a |\n| - |\n| 1 |'), headerAdapter, { tableHeader: false });
+    expect(find(tableNodes, 'table')!.header).toBeUndefined();
+  });
+
+  it('uses a custom code header function and passes lang/text', () => {
+    let seen: { lang: string; text: string } | undefined;
+    const nodes = renderTokensToMiniNodes(Lexer.lex('```py\nprint(1)\n```'), headerAdapter, {
+      escapeText: false,
+      codeHeader: ({ lang, text }) => {
+        seen = { lang, text };
+        return { name: 'text', attrs: { class: 'custom-head', value: lang.toUpperCase() } };
+      },
+    });
+    expect(seen).toEqual({ lang: 'py', text: 'print(1)' });
+    expect(find(nodes, 'pre')!.header).toEqual([{ name: 'text', attrs: { class: 'custom-head', value: 'PY' } }]);
+  });
+
+  it('uses a custom table header function and passes markdown source', () => {
+    const src = '| a |\n| - |\n| 1 |';
+    const nodes = renderTokensToMiniNodes(Lexer.lex(src), headerAdapter, {
+      tableHeader: ({ markdown }) => [
+        { name: 'text', attrs: { value: 'My Table' } },
+        copyButton(markdown),
+      ],
+    });
+    const header = find(nodes, 'table')!.header!;
+    expect(header[0]).toEqual({ name: 'text', attrs: { value: 'My Table' } });
+    expect(String(header[1].attrs?.['data-copy'])).toContain('| a |');
+  });
+
   it('lets adapters rewrite final nodes without changing markdown semantics', () => {
     const adapter: MiniNodePlatformAdapter = {
       linkAttrs: (href) => ({ href }),
