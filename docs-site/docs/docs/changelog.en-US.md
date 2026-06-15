@@ -11,6 +11,26 @@ group:
 
 # Changelog
 
+User-facing API, build-output, and behavior changes are tracked here. Migration notes stay under the affected version so upgrades can be checked version by version.
+
+## Introduce
+
+```bash
+npm install @ant-design/x-markdown-mini@latest
+```
+
+## Code sample
+
+```ts
+import { XMarkdownMini } from '@ant-design/x-markdown-mini';
+import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
+import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
+
+const md = new XMarkdownMini({
+  extensions: [Latex(), CodeHighlight()],
+});
+```
+
 ## 0.1.0 _(unreleased)_
 
 - **Breaking**: `XMarkdownMiniOptions` collapsed. `lexerOptions` / top-level `extensions` / `plugins` are gone, replaced by a single `options: { gfm?, breaks?, extensions? }` bag. The `Plugin` type is removed.

@@ -11,6 +11,26 @@ group:
 
 # Changelog
 
+记录面向使用者的 API、构建产物和行为变化。迁移说明优先写在对应版本下，方便升级时直接按版本核对。
+
+## 引入
+
+```bash
+npm install @ant-design/x-markdown-mini@latest
+```
+
+## 代码示例
+
+```ts
+import { XMarkdownMini } from '@ant-design/x-markdown-mini';
+import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
+import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
+
+const md = new XMarkdownMini({
+  extensions: [Latex(), CodeHighlight()],
+});
+```
+
 ## 0.1.0 _（未发布）_
 
 - **Breaking**：`XMarkdownMiniOptions` 重整。`lexerOptions` / 顶层 `extensions` / `plugins` 三个字段合并为单一的 `options: { gfm?, breaks?, extensions? }`；同步移除 `Plugin` 类型导出。

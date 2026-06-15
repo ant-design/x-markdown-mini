@@ -67,6 +67,15 @@ export function nodesToHTML(nodes: MiniNode[]): string {
       return value;
     }
 
+    if (tag === 'pre') {
+      const lang = attrs?.lang ? String(attrs.lang) : 'code';
+      const inner = children && children.length > 0 ? children.map(one).join('') : '';
+      return `<div class="md-codeblock">
+        <div class="md-codeblock-bar"><span class="md-codeblock-lang">${escapeHtml(lang)}</span></div>
+        <pre class="md-code-block">${inner}</pre>
+      </div>`;
+    }
+
     // Build the class string: merge TAG_CLASS with any existing class attr
     const extraCls: string[] = [];
     if (TAG_CLASS[tag]) extraCls.push(TAG_CLASS[tag]);

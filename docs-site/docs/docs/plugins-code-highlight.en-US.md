@@ -11,9 +11,16 @@ group:
 
 # Code Highlight
 
-`CodeHighlight` uses `highlight.js` to take over fenced code blocks. Blocks without a language, or with an unknown one, fall back to the built-in plain code renderer.
+`CodeHighlight` uses `highlight.js` to take over fenced code blocks. Blocks without a language, or with an unknown one, fall back to the built-in plain code renderer. The plugin is opt-in, so pages that do not register it keep the lean default path.
 
-## Usage
+## Introduce
+
+```ts
+import { XMarkdownMini } from '@ant-design/x-markdown-mini';
+import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
+```
+
+## Code sample
 
 <code src="../../src/demos/plugins/CodeHighlightDemo.tsx"></code>
 

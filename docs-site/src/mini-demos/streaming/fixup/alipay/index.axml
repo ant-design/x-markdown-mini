@@ -1,0 +1,6 @@
+<view class="page">
+  <markdown
+    content="{{content}}"
+    streaming="{{streaming}}"
+  />
+</view>

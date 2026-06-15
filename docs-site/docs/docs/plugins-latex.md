@@ -13,7 +13,14 @@ group:
 
 `Latex` 插件基于 KaTeX，把行内公式和块级公式转换成 `MiniNode[]`。插件只负责节点生成，页面样式需要额外引入（见 demo 的 style 文件）。
 
-## 使用
+## 引入
+
+```ts
+import { XMarkdownMini } from '@ant-design/x-markdown-mini';
+import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
+```
+
+## 代码示例
 
 支持 `$...$`、`$$...$$`、`\(...\)`、`\[...\]` 四种定界符。
 

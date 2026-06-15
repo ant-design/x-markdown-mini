@@ -13,7 +13,14 @@ group:
 
 Use `XMarkdownExtension` for custom syntax: the tokenizer and `miniRenderer` live in the same extension and emit `MiniNode` directly, with no HTML round-trip.
 
-## Result
+## Introduce
+
+```ts
+import type { XMarkdownExtension } from '@ant-design/x-markdown-mini';
+import { XMarkdownMini } from '@ant-design/x-markdown-mini';
+```
+
+## Code sample
 
 The built-in footnote plugin as an example, using the syntax `Markdown[^1:a lightweight markup language]`. The host page renders the marker and popover; the built-in `Markdown` component just needs its `footnote` prop.
 

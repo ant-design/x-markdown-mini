@@ -1,10 +1,29 @@
-/* highlight.js GitHub-style light theme for Alipay mini-program.
- * Based on highlight.js/styles/github.css. Adapted for mini-program CSS compat. */
+/* Dark syntax theme for mini-program code blocks. */
+.md-codeblock {
+  background: #111827;
+  border: 1px solid #263244;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.md-codeblock-bar {
+  background: #172033;
+  border-bottom: 1px solid #263244;
+}
+
+.md-codeblock-lang {
+  color: #93c5fd;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.md-code-block {
+  background: #111827;
+  color: #dbeafe;
+}
 
 .hljs {
-  color: #24292e;
-  /* No background: code runs are flattened into the .md-code-block container,
-     so a per-run background would paint stray boxes inside the code block. */
+  color: #dbeafe;
   background: transparent;
 }
 
@@ -15,14 +34,14 @@
 .hljs-template-variable,
 .hljs-type,
 .hljs-variable.language_ {
-  color: #d73a49;
+  color: #f472b6;
 }
 
 .hljs-title,
 .hljs-title.class_,
 .hljs-title.class_.inherited__,
 .hljs-title.function_ {
-  color: #6f42c1;
+  color: #93c5fd;
 }
 
 .hljs-attr,
@@ -35,73 +54,62 @@
 .hljs-selector-attr,
 .hljs-selector-class,
 .hljs-selector-id {
-  color: #005cc5;
+  color: #67e8f9;
 }
 
 .hljs-regexp,
 .hljs-string,
 .hljs-meta .hljs-string {
-  color: #032f62;
+  color: #86efac;
 }
 
 .hljs-built_in,
 .hljs-symbol {
-  color: #e36209;
+  color: #fbbf24;
 }
 
 .hljs-comment,
 .hljs-code,
 .hljs-formula {
-  color: #6a737d;
+  color: #94a3b8;
 }
 
 .hljs-name,
 .hljs-quote,
 .hljs-selector-tag,
 .hljs-selector-pseudo {
-  color: #22863a;
+  color: #c4b5fd;
 }
 
 .hljs-subst {
-  color: #24292e;
+  color: #dbeafe;
 }
 
 .hljs-section {
-  color: #005cc5;
+  color: #60a5fa;
   font-weight: bold;
 }
 
 .hljs-bullet {
-  color: #e36209;
+  color: #fbbf24;
 }
 
 .hljs-emphasis {
-  color: #24292e;
+  color: #dbeafe;
   font-style: italic;
 }
 
 .hljs-strong {
-  color: #24292e;
+  color: #eff6ff;
   font-weight: bold;
 }
 
 .hljs-addition {
-  color: #22863a;
-  background-color: #f0fff4;
+  color: #86efac;
+  background-color: #052e16;
 }
 
 .hljs-deletion {
-  color: #b31d28;
-  background-color: #ffeef0;
-}
-
-/* Code block wrapper */
-pre .hljs {
-  display: block;
-  overflow-x: auto;
-  padding: 1em;
-}
-
-code .hljs {
-  padding: 3px 5px;
+  color: #fca5a5;
+  background-color: #450a0a;
 }

@@ -1,0 +1,3 @@
+<view class="page">
+  <mini-node-renderer nodes="{{nodes}}" selectable="{{true}}" />
+</view>

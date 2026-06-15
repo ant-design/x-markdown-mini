@@ -1,0 +1,6 @@
+{
+  "defaultTitle": "软换行",
+  "usingComponents": {
+    "mini-node-renderer": "@ant-design/x-markdown-mini/dist/components/MiniNodeRenderer/index"
+  }
+}

@@ -11,9 +11,16 @@ group:
 
 # 代码高亮
 
-`CodeHighlight` 基于 `highlight.js` 接管围栏代码块；没有语言或语言未知时回退到内置普通代码块。
+`CodeHighlight` 基于 `highlight.js` 接管围栏代码块；没有语言或语言未知时回退到内置普通代码块。插件按需注册，不会影响未启用高亮的页面路径。
 
-## 使用
+## 引入
+
+```ts
+import { XMarkdownMini } from '@ant-design/x-markdown-mini';
+import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
+```
+
+## 代码示例
 
 <code src="../../src/demos/plugins/CodeHighlightDemo.tsx"></code>
 

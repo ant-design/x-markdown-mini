@@ -13,7 +13,14 @@ group:
 
 自定义插件推荐使用 `XMarkdownExtension`：tokenizer 和 `miniRenderer` 写在同一个 extension 里，直接产出 `MiniNode`，不需要先转 HTML。
 
-## 效果
+## 引入
+
+```ts
+import type { XMarkdownExtension } from '@ant-design/x-markdown-mini';
+import { XMarkdownMini } from '@ant-design/x-markdown-mini';
+```
+
+## 代码示例
 
 以内置脚注插件为例，语法 `Markdown[^1:一种轻量标记语言]`。脚注节点由宿主页面渲染 marker 和弹层；内置 `Markdown` 组件直接开 `footnote` 属性即可。
 

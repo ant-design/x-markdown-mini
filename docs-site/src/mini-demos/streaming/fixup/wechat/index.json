@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "流式补全",
+  "usingComponents": {
+    "markdown": "@ant-design/x-markdown-mini/components/Markdown/index"
+  }
+}

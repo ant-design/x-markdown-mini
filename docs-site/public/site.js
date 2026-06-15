@@ -20,6 +20,16 @@
     }
     document.documentElement.setAttribute('data-xmd-doc-platform', platform);
     syncPlatformTabs();
+    // Notify the React demos (DocDemo/DemoCode/PhonePreview via useDocPlatform),
+    // which listen for this event. Without it the sidebar toggle and the embedded
+    // code/preview disagree and the code never swaps to .wxml/.axml.
+    try {
+      window.dispatchEvent(
+        new CustomEvent('xmd-platform-change', { detail: { platform: platform } }),
+      );
+    } catch (_) {
+      /* CustomEvent constructor may be unavailable in very old engines. */
+    }
   }
 
   function syncPlatformTabs() {

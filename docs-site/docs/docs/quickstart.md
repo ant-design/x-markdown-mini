@@ -13,6 +13,24 @@ group:
 
 面向微信、支付宝等小程序的 Markdown 渲染库。核心路径很短：输入 Markdown，解析成 `Token[]`，再按平台输出 `rich-text` 可消费的 `MiniNode[]`。
 
+<h2 id="introduce">引入</h2>
+
+```bash
+npm install @ant-design/x-markdown-mini
+```
+
+<h2 id="code-sample">代码示例</h2>
+
+```ts
+import { renderNodes } from '@ant-design/x-markdown-mini';
+
+const nodes = renderNodes({
+  content: '# Hello\n\n**x-markdown-mini**',
+  platform: 'auto',
+  selectable: true,
+});
+```
+
 <div class="xmd-doc-brief">
   <a href="#features">
     <span>01</span>
@@ -57,12 +75,6 @@ group:
 </div>
 
 <h2 id="api">API 说明</h2>
-
-### 安装
-
-```bash
-npm install @ant-design/x-markdown-mini
-```
 
 ### 一次性渲染
 

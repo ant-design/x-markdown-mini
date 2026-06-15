@@ -11,34 +11,24 @@ group:
 
 # 代码示例
 
-## 直接生成节点
+代码示例展示真实的小程序页面文件。切到微信时会显示 `index.wxml` / `index.wxss` 和微信组件路径；切到支付宝时会显示 `index.axml` / `index.acss` 和支付宝组件路径。
 
-`renderNodes` 是最短路径：输入 Markdown，输出当前平台可渲染的 `MiniNode[]`，`<rich-text>` 可以直接消费。
+推荐路径是先生成 `MiniNode[]`，再交给 `MiniNodeRenderer` 或内置 `Markdown` 组件渲染。`rich-text` 是小程序生态里的历史背景，不是这里的首选接入方式。
 
-<code src="../../src/demos/examples/RenderNodes.tsx"></code>
+<code src="../../src/demos/examples/CodeExamplesShowcase.tsx" inline></code>
 
-## GFM
+## API
 
-表格、删除线、自动链接默认开启，按调用传 `gfm: false` 可关闭。
+`renderNodes(props)` 与内置 `Markdown` 组件共享下列渲染参数：
 
-<code src="../../src/demos/examples/Gfm.tsx"></code>
-
-## 软换行
-
-`breaks: true` 把段落内的 `\n` 渲染成换行，适合聊天消息这类短文本。
-
-<code src="../../src/demos/examples/Breaks.tsx"></code>
-
-## 并发流式：隔离实例
-
-默认单例的流式状态是共享的。并发流式渲染时，每个视图创建自己的实例，卸载时调用 `reset()`：
-
-```ts
-import { XMarkdownMini } from '@ant-design/x-markdown-mini';
-
-const md = new XMarkdownMini();
-
-const nodes = md.renderNodes({ content, platform: 'wechat' });
-
-md.reset(); // 视图卸载时重置流式状态
-```
+| 参数 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `content` | `string` | `''` | Markdown 文本（全量或累计流式内容） |
+| `platform` | `'auto' \| 'wechat' \| 'alipay'` | `'auto'` | 目标平台，`auto` 自动识别 |
+| `streaming` | `false \| true \| StreamingConfig` | `false` | 流式渲染，详见[流式渲染](/docs/streaming) |
+| `selectable` | `boolean` | `true` | 文本是否可选择 |
+| `gfm` | `boolean` | `true` | GFM 表格 / 删除线 / 自动链接 |
+| `breaks` | `boolean` | `false` | 软换行 `\n` 转 `<br>` |
+| `extensions` | `(XMarkdownExtension \| MarkedExtension)[]` | `[]` | 扩展（LaTeX / 代码高亮 / 自定义语法） |
+| `onRenderStart` / `onRenderProgress` / `onRenderComplete` | `() => void` | - | 渲染生命周期回调 |
+| `onPatch` | `(nodes: MiniNode[]) => void` | - | 流式时每轮解析完成回调，用于 `setData` |

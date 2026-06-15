@@ -11,6 +11,23 @@ group:
 
 # API 参考
 
+API 分成解析入口、节点渲染入口和流式配置三层。常规业务优先使用 `renderNodes(props)` 或内置组件；只有需要接管 marked token、平台 renderer 或流式调度时才下探到低层 API。
+
+## 引入
+
+```ts
+import { XMarkdownMini, render, renderNodes } from '@ant-design/x-markdown-mini';
+```
+
+## 代码示例
+
+```ts
+const nodes = renderNodes({
+  content: '# Hello\n\n**x-markdown-mini**',
+  platform: 'auto',
+});
+```
+
 ## `render(markdown): Token[]`
 
 JS 解析入口。返回 marked 原生 `Token[]`，不做平台渲染。

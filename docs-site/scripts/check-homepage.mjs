@@ -6,24 +6,34 @@ const read = (path) => readFileSync(join(root.pathname, path), 'utf8');
 
 const indexCn = read('docs/index.md');
 const indexEn = read('docs/index.en-US.md');
+const homeCn = read('src/demos/home/HomePage.tsx');
+const homeEn = read('src/demos/home/HomePage.en-US.tsx');
+const heroPhoneCn = read('src/demos/home/HeroPhonePreview.tsx');
+const heroPhoneEn = read('src/demos/home/HeroPhonePreview.en-US.tsx');
+const installPanel = read('src/demos/home/InstallPanel.tsx');
+const phonePreview = read('src/components/PhonePreview/index.tsx');
 const css = read('public/site.css');
+const heroLess = read('src/demos/home/HeroPhonePreview.less');
+const phoneLess = read('src/components/PhonePreview/index.less');
 const js = read('public/site.js');
 const dumiConfig = read('.dumirc.ts');
+const zhHomeSource = [indexCn, homeCn, heroPhoneCn, installPanel, phonePreview].join('\n');
+const enHomeSource = [indexEn, homeEn, heroPhoneEn, installPanel, phonePreview].join('\n');
+const styleSource = [css, heroLess, phoneLess].join('\n');
 
 // Markup the rebuilt homepage must keep. site.js keys homepage detection and
 // SPA link enhancement off `.xmd-hero`; the copy button + status hooks drive
 // the clipboard flash; the streaming phone demo is the hero's proof.
 const sharedHeroMarkup = [
-  'class="xmd-landing"',
-  'class="xmd-hero"',
+  'xmd-landing',
+  'xmd-hero',
   'xmd-hero-copy',
   'xmd-hero-media',
   'xmd-hero-facts',
   'xmd-phone',
   'xmd-phone-screen',
-  'xmd-stream-block',
-  'xmd-stream-caret',
-  'data-xmd-copy="npm i @ant-design/x-markdown-mini"',
+  'data-xmd-copy',
+  'npm i @ant-design/x-markdown-mini',
   'data-xmd-copy-status',
   'xmd-architecture',
   'xmd-arch-board',
@@ -57,15 +67,13 @@ const requiredEnCopy = [
 const requiredCss = [
   '.markdown .xmd-hero',
   '.markdown .xmd-hero-facts',
-  '.markdown .xmd-phone',
-  '.markdown .xmd-phone-screen',
-  '.markdown .xmd-stream-block',
-  '.markdown .xmd-stream-caret',
+  '.xmd-phone',
+  '.xmd-phone-screen',
+  '.markdown .xmd-install-command',
+  '.markdown .xmd-playground-link',
   '.markdown .xmd-arch-board',
   '.markdown .xmd-arch-svg',
   '.markdown .xmd-arch-proof',
-  '@keyframes xmd-stream-rise',
-  'prefers-reduced-motion',
   'body.xmd-homepage',
   'body.xmd-over-hero',
   '.xmd-mini',
@@ -146,17 +154,21 @@ const forbiddenInCss = [
 const missing = [];
 
 for (const item of sharedHeroMarkup) {
-  if (!indexCn.includes(item)) missing.push(`docs/index.md: ${item}`);
-  if (!indexEn.includes(item)) missing.push(`docs/index.en-US.md: ${item}`);
+  if (!zhHomeSource.includes(item)) {
+    missing.push(`home zh source: ${item}`);
+  }
+  if (!enHomeSource.includes(item)) {
+    missing.push(`home en source: ${item}`);
+  }
 }
 for (const item of requiredCnCopy) {
-  if (!indexCn.includes(item)) missing.push(`docs/index.md: ${item}`);
+  if (!zhHomeSource.includes(item)) missing.push(`home zh source: ${item}`);
 }
 for (const item of requiredEnCopy) {
-  if (!indexEn.includes(item)) missing.push(`docs/index.en-US.md: ${item}`);
+  if (!enHomeSource.includes(item)) missing.push(`home en source: ${item}`);
 }
 for (const item of requiredCss) {
-  if (!css.includes(item)) missing.push(`public/site.css: ${item}`);
+  if (!styleSource.includes(item)) missing.push(`style source: ${item}`);
 }
 for (const item of requiredJs) {
   if (!js.includes(item)) missing.push(`public/site.js: ${item}`);

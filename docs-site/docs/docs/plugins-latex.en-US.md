@@ -13,7 +13,14 @@ group:
 
 The `Latex` plugin uses KaTeX to convert inline and block formulas into `MiniNode[]`. The plugin only generates nodes; import the stylesheet separately (see the style file in the demo).
 
-## Usage
+## Introduce
+
+```ts
+import { XMarkdownMini } from '@ant-design/x-markdown-mini';
+import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
+```
+
+## Code sample
 
 Supports the `$...$`, `$$...$$`, `\(...\)` and `\[...\]` delimiters.
 

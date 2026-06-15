@@ -11,6 +11,24 @@ group:
 
 # 能力矩阵
 
+能力矩阵说明 renderer 会保留哪些节点能力、会降级哪些平台差异。业务侧优先使用统一组件路径，由包根和 `package.json#miniprogram` 负责选择对应产物。
+
+## 引入
+
+```json
+{
+  "usingComponents": {
+    "x-markdown": "@ant-design/x-markdown-mini/components/Markdown/index"
+  }
+}
+```
+
+## 代码示例
+
+```xml
+<x-markdown content="{{content}}" />
+```
+
 | 平台   | `<pre>` | `<table>` | `<blockquote>` | `<ol start>` | https-only 图片 | `<video>` |
 | ------ | :-----: | :-------: | :------------: | :----------: | :-------------: | :-------: |
 | 微信   |   ✅    |    ✅     |       ✅       |      ✅      |        —        |     —     |

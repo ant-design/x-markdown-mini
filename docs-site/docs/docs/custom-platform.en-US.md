@@ -11,7 +11,16 @@ group:
 
 # Custom Platform
 
-The built-in platforms today are WeChat and Alipay only. To add a new platform, provide a renderer, component assets, and matching tests:
+Custom platforms map the same Markdown tokens to a new mini-program node capability set. The built-in platforms today are WeChat and Alipay only; adding another platform requires a renderer, component assets, and matching tests.
+
+## Introduce
+
+```ts
+import type { PlatformRenderer } from '@ant-design/x-markdown-mini';
+import { tokensToWechatNodes } from '@ant-design/x-markdown-mini';
+```
+
+## Code sample
 
 ```ts
 import type { PlatformRenderer } from '@ant-design/x-markdown-mini';

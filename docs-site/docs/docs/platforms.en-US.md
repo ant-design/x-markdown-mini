@@ -11,6 +11,24 @@ group:
 
 # Capability Matrix
 
+The matrix documents which node capabilities each renderer preserves, and which platform differences it degrades. Application code should prefer the unified component path; the package root and `package.json#miniprogram` choose the right build.
+
+## Introduce
+
+```json
+{
+  "usingComponents": {
+    "x-markdown": "@ant-design/x-markdown-mini/components/Markdown/index"
+  }
+}
+```
+
+## Code sample
+
+```xml
+<x-markdown content="{{content}}" />
+```
+
 | Platform | `<pre>` | `<table>` | `<blockquote>` | `<ol start>` | https-only image | `<video>` |
 | -------- | :-----: | :-------: | :------------: | :----------: | :--------------: | :-------: |
 | WeChat   |   ✅    |    ✅     |       ✅       |      ✅      |        —         |     —     |

@@ -393,17 +393,26 @@ a.dumi-default-icon:hover,
 }
 
 .dumi-default-doc-layout > main {
-  max-width: 1200px;
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
   padding: 52px 32px 0;
   gap: 44px;
 }
 
+/* Match ant-design-mini's docs shell: the sidebar rail starts almost flush with
+   the viewport, while the content column keeps its own internal reading gutter. */
+.dumi-default-doc-layout > main {
+  padding-left: 6px !important;
+}
+
 .dumi-default-content:not([data-no-sidebar]) {
-  padding: 42px 56px 0;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
+  padding: 42px 48px 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 .dumi-default-content[data-no-sidebar] {
@@ -423,11 +432,11 @@ a.dumi-default-icon:hover,
 /* ----- sidebar ----- */
 
 .dumi-default-sidebar {
-  flex: 0 0 238px !important;
-  width: 238px !important;
-  min-width: 238px !important;
-  max-width: 238px !important;
-  padding: 6px 10px 32px !important;
+  flex: 0 0 260px !important;
+  width: 260px !important;
+  min-width: 260px !important;
+  max-width: 260px !important;
+  padding: 6px 8px 32px 0 !important;
   box-sizing: border-box !important;
   overflow-x: hidden !important;
 }
@@ -436,7 +445,7 @@ a.dumi-default-icon:hover,
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 2px;
-  margin: 0 0 22px;
+  margin: 0 8px 22px 0;
   padding: 3px;
   background: #f4f4f5;
   border: 1px solid #ececec;
@@ -495,7 +504,7 @@ html[data-xmd-doc-platform='wechat'] .xmd-platform-tab[data-platform='wechat'] {
   align-items: center !important;
   height: 22px !important;
   margin: 0 0 6px !important;
-  padding: 0 12px !important;
+  padding: 0 36px !important;
   color: #8a8a8a !important;
   font-size: 12px !important;
   font-weight: 650 !important;
@@ -524,7 +533,7 @@ html[data-xmd-doc-platform='wechat'] .xmd-platform-tab[data-platform='wechat'] {
   height: 34px !important;
   min-height: 34px !important;
   margin: 0 !important;
-  padding: 0 12px !important;
+  padding: 0 36px !important;
   color: #4b4b4b !important;
   font-size: 14px !important;
   font-weight: 500 !important;
@@ -558,7 +567,7 @@ html[data-xmd-doc-platform='wechat'] .xmd-platform-tab[data-platform='wechat'] {
   flex-direction: column !important;
   gap: 2px !important;
   margin: 8px 0 12px !important;
-  padding: 0 0 0 10px !important;
+  padding: 0 0 0 28px !important;
   list-style: none !important;
   border-inline-start: 1px solid #ececec !important;
   box-sizing: border-box !important;
@@ -577,7 +586,7 @@ html[data-xmd-doc-platform='wechat'] .xmd-platform-tab[data-platform='wechat'] {
   height: 28px !important;
   min-height: 28px !important;
   margin: 0 !important;
-  padding: 0 10px !important;
+  padding: 0 28px !important;
   color: #737373 !important;
   font-size: 13px !important;
   font-weight: 450 !important;
@@ -607,6 +616,13 @@ html[data-xmd-doc-platform='wechat'] .xmd-platform-tab[data-platform='wechat'] {
 .dumi-default-doc-layout > main > .dumi-default-doc-layout-toc-wrapper {
   width: 200px;
   margin-inline-start: 0;
+}
+
+/* Demo pages host a code + sticky-phone two-column block; reclaim the right TOC
+   rail so the code column keeps a comfortable width (like ant-design-mini's
+   component pages, which drop the TOC in favour of the device preview). */
+.dumi-default-doc-layout > main:has(.xmd-doc-demo) > .dumi-default-doc-layout-toc-wrapper {
+  display: none;
 }
 
 .dumi-default-toc {
@@ -693,13 +709,24 @@ html[data-xmd-doc-platform='wechat'] .xmd-platform-tab[data-platform='wechat'] {
   font-size: 0.9em;
 }
 
-.markdown table {
-  font-size: 14px;
-}
-
+/* The rounded .dumi-default-table-content wrapper (dumi already sets overflow:auto,
+   which clips to the radius) is the only outer frame. dumi's own `.markdown table`
+   adds `margin-block-end: 24px` (an empty band below the last row) and a `1px #ccc`
+   border (doubled corners); override both with a higher-specificity selector. */
 .dumi-default-table-content {
   border: 1px solid #e5e5e5;
   border-radius: 8px;
+}
+
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.markdown .dumi-default-table-content > table {
+  margin: 0;
+  border: 0;
 }
 
 .markdown th {
@@ -709,6 +736,10 @@ html[data-xmd-doc-platform='wechat'] .xmd-platform-tab[data-platform='wechat'] {
 .markdown th,
 .markdown td {
   border-color: #f0f0f0;
+}
+
+.markdown .dumi-default-table-content > table tr:last-child td {
+  border-bottom: 0;
 }
 
 .markdown .xmd-doc-brief,
@@ -1943,7 +1974,7 @@ body.xmd-over-hero .dumi-default-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
   margin-top: 30px;
 }
 
@@ -1953,9 +1984,9 @@ body.xmd-over-hero .dumi-default-header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 44px;
+  height: 42px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
@@ -1963,11 +1994,13 @@ body.xmd-over-hero .dumi-default-header {
 }
 
 .markdown .xmd-install-command {
-  flex: 0 0 100%;
+  flex: 0 0 auto;
   justify-content: flex-start;
-  width: min(440px, 100%);
-  gap: 10px;
-  padding: 0 8px 0 14px;
+  width: fit-content;
+  max-width: 100%;
+  gap: 8px;
+  padding: 0 8px 0 15px;
+  border-radius: 6px;
   color: var(--xmd-text);
   background: var(--xmd-bg);
   border: 1px solid var(--xmd-border);
@@ -1976,7 +2009,7 @@ body.xmd-over-hero .dumi-default-header {
 
 .markdown .xmd-install-command:hover {
   border-color: var(--xmd-border-strong);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(23, 23, 23, 0.06);
 }
 
 .markdown .xmd-install-command:focus-visible {
@@ -1986,7 +2019,7 @@ body.xmd-over-hero .dumi-default-header {
 
 .markdown .xmd-install-prompt {
   flex: 0 0 auto;
-  color: var(--xmd-text-tertiary);
+  color: #737373;
   user-select: none;
 }
 
@@ -1999,26 +2032,34 @@ body.xmd-over-hero .dumi-default-header {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13.5px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .markdown .xmd-copy-control {
-  flex: 0 0 auto;
+  flex: 0 0 28px;
   margin-left: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  min-width: 72px;
-  height: 32px;
-  padding: 0 10px;
+  min-width: 0;
+  height: 28px;
+  padding: 0;
   color: var(--xmd-text-tertiary);
-  background: var(--xmd-bg-muted);
+  background: var(--xmd-bg);
   border-radius: 6px;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
-  font-size: 12px;
+  font-size: 0;
   font-weight: 650;
   transition: color 0.15s, background-color 0.15s;
+}
+
+.markdown .xmd-copy-control [data-xmd-copy-status] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }
 
 .markdown .xmd-install-command:hover .xmd-copy-control {
@@ -2064,10 +2105,31 @@ body.xmd-over-hero .dumi-default-header {
 }
 
 .markdown .xmd-secondary-link {
-  padding: 0 18px;
+  padding: 0 17px;
   color: var(--xmd-text);
-  background: transparent;
+  background: var(--xmd-bg);
   border: 1px solid var(--xmd-border-strong);
+}
+
+.markdown .xmd-playground-link {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  .markdown .xmd-primary-link,
+  .markdown .xmd-secondary-link,
+  .markdown .xmd-install-command {
+    width: 100%;
+  }
+
+  .markdown .xmd-primary-link,
+  .markdown .xmd-secondary-link {
+    flex: 1 1 0;
+  }
+
+  .markdown .xmd-install-command code {
+    font-size: 14px;
+  }
 }
 
 .markdown .xmd-secondary-link:hover {
@@ -2505,18 +2567,20 @@ body.xmd-over-hero .dumi-default-header {
 .markdown .xmd-install-command,
 .markdown .xmd-primary-link,
 .markdown .xmd-secondary-link {
-  height: 40px;
-  font-size: 13px;
+  height: 42px;
+  font-size: 15px;
 }
 
 .markdown .xmd-install-command {
-  width: min(392px, 100%);
+  width: fit-content;
+  max-width: 100%;
 }
 
 .markdown .xmd-copy-control {
+  flex-basis: 28px;
   height: 28px;
-  min-width: 64px;
-  font-size: 11.5px;
+  min-width: 0;
+  font-size: 0;
 }
 
 .markdown .xmd-hero-facts {

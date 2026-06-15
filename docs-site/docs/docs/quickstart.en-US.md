@@ -13,6 +13,24 @@ group:
 
 A Markdown rendering library for WeChat / Alipay mini programs. The core path is short: feed in Markdown, parse it into `Token[]`, then emit `MiniNode[]` consumable by `rich-text` per platform.
 
+<h2 id="introduce">Introduce</h2>
+
+```bash
+npm install @ant-design/x-markdown-mini
+```
+
+<h2 id="code-sample">Code sample</h2>
+
+```ts
+import { renderNodes } from '@ant-design/x-markdown-mini';
+
+const nodes = renderNodes({
+  content: '# Hello\n\n**x-markdown-mini**',
+  platform: 'auto',
+  selectable: true,
+});
+```
+
 <div class="xmd-doc-brief">
   <a href="#features">
     <span>01</span>
@@ -57,12 +75,6 @@ A Markdown rendering library for WeChat / Alipay mini programs. The core path is
 </div>
 
 <h2 id="api">API</h2>
-
-### Install
-
-```bash
-npm install @ant-design/x-markdown-mini
-```
 
 ### One-shot render
 

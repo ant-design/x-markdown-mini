@@ -11,6 +11,23 @@ group:
 
 # API Reference
 
+The API is split into parsing, node rendering, and streaming configuration. Application pages should start with `renderNodes(props)` or the bundled components; use the lower-level APIs only when you need direct control over marked tokens, platform renderers, or streaming scheduling.
+
+## Introduce
+
+```ts
+import { XMarkdownMini, render, renderNodes } from '@ant-design/x-markdown-mini';
+```
+
+## Code sample
+
+```ts
+const nodes = renderNodes({
+  content: '# Hello\n\n**x-markdown-mini**',
+  platform: 'auto',
+});
+```
+
 ## `render(markdown): Token[]`
 
 JS parser entry point. Returns the raw marked `Token[]` — no platform rendering.

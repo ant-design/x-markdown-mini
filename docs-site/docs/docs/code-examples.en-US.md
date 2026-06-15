@@ -11,34 +11,24 @@ group:
 
 # Code Examples
 
-## Generate nodes directly
+These examples are backed by real mini-program page files. Switching to WeChat shows `index.wxml` / `index.wxss` and WeChat component paths; switching to Alipay shows `index.axml` / `index.acss` and Alipay component paths.
 
-`renderNodes` is the shortest path: Markdown in, platform-ready `MiniNode[]` out, consumable by `<rich-text>` as-is.
+The recommended path is generating `MiniNode[]` first, then rendering through `MiniNodeRenderer` or the bundled `Markdown` component. `rich-text` is ecosystem context, not the preferred integration path here.
 
-<code src="../../src/demos/examples/RenderNodes.tsx"></code>
+<code src="../../src/demos/examples/CodeExamplesShowcase.tsx" inline></code>
 
-## GFM
+## API
 
-Tables, strikethrough and autolinks are on by default; pass `gfm: false` per call to turn them off.
+`renderNodes(props)` and the bundled `Markdown` component share these render options:
 
-<code src="../../src/demos/examples/Gfm.tsx"></code>
-
-## Soft line breaks
-
-`breaks: true` renders `\n` inside a paragraph as a line break, which suits short chat messages.
-
-<code src="../../src/demos/examples/Breaks.tsx"></code>
-
-## Concurrent streams: isolated instances
-
-The default singleton shares its streaming state. For concurrent streaming views, create one instance per view and call `reset()` on unmount:
-
-```ts
-import { XMarkdownMini } from '@ant-design/x-markdown-mini';
-
-const md = new XMarkdownMini();
-
-const nodes = md.renderNodes({ content, platform: 'wechat' });
-
-md.reset(); // reset streaming state when the view unmounts
-```
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `content` | `string` | `''` | Markdown text (full or accumulated streaming content) |
+| `platform` | `'auto' \| 'wechat' \| 'alipay'` | `'auto'` | Target platform; `auto` detects at runtime |
+| `streaming` | `false \| true \| StreamingConfig` | `false` | Streaming rendering, see [Streaming](/docs/streaming-en) |
+| `selectable` | `boolean` | `true` | Whether text is selectable |
+| `gfm` | `boolean` | `true` | GFM tables / strikethrough / autolinks |
+| `breaks` | `boolean` | `false` | Convert soft `\n` to `<br>` |
+| `extensions` | `(XMarkdownExtension \| MarkedExtension)[]` | `[]` | Extensions (LaTeX / code highlight / custom syntax) |
+| `onRenderStart` / `onRenderProgress` / `onRenderComplete` | `() => void` | - | Render lifecycle callbacks |
+| `onPatch` | `(nodes: MiniNode[]) => void` | - | Per-round callback during streaming, for `setData` |

@@ -11,9 +11,21 @@ group:
 
 # 动画
 
-`enableAnimation: true` 时，每个块级节点的 `class` 会拼上 `md-animate-block`。在小程序 WXSS / ACSS 写：
+流式动画只标记新出现的块级节点，用于 AI 输出时的轻量淡入。它不重排已提交内容，也不会在稳定块复用时重复播放。
+
+## 引入
+
+在渲染配置里开启 `enableAnimation`，再在小程序样式文件中定义 `md-animate-block`：
+
+```ts
+streaming: { hasNextChunk: true, enableAnimation: true }
+```
+
+## 代码示例
 
 <code src="../../src/demos/streaming/Animation.tsx"></code>
+
+`enableAnimation: true` 时，每个块级节点的 `class` 会拼上 `md-animate-block`。在小程序 WXSS / ACSS 写：
 
 ```css
 .md-animate-block {

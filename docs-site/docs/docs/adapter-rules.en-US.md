@@ -11,6 +11,25 @@ group:
 
 # Adapter Rules
 
+Adapter rules keep platform differences inside the renderer, so application code receives nodes that the current mini-program runtime can consume. WeChat / Alipay differences for links, images, lists, and unsupported tags do not leak into page code.
+
+## Introduce
+
+Adaptation is called automatically by `renderNodes` and the platform renderer. Most pages only need to pass the target platform:
+
+```ts
+import { renderNodes } from '@ant-design/x-markdown-mini';
+```
+
+## Code sample
+
+```ts
+const nodes = renderNodes({
+  content: '[Website](https://example.com)',
+  platform: 'wechat',
+});
+```
+
 All platforms share a single `adaptNodes(nodes, config)`. The rules:
 
 - Always strip `selectable` from inner nodes (it's a `rich-text` component-level attribute)

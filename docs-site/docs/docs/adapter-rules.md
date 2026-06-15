@@ -11,6 +11,25 @@ group:
 
 # 适配规则
 
+适配规则把平台能力差异压在 renderer 内部，让业务侧拿到的是可被当前小程序消费的节点树。微信、支付宝的链接、图片、列表和不支持标签差异不会泄漏到页面代码。
+
+## 引入
+
+适配逻辑由 `renderNodes` 和平台 renderer 自动调用；业务侧通常只需要传入目标平台：
+
+```ts
+import { renderNodes } from '@ant-design/x-markdown-mini';
+```
+
+## 代码示例
+
+```ts
+const nodes = renderNodes({
+  content: '[官网](https://example.com)',
+  platform: 'wechat',
+});
+```
+
 所有平台共享一份 `adaptNodes(nodes, config)`，规则：
 
 - 始终移除内部节点的 `selectable`（属于 `rich-text` 组件级属性）

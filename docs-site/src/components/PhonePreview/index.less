@@ -221,15 +221,58 @@
     font-size: 12px;
     font-family: ui-monospace, Menlo, monospace;
   }
-  .md-code-block {
-    background: #f5f5f5;
+  .md-codeblock {
+    margin: 10px 0;
+    overflow: hidden;
+    border: 1px solid #263244;
     border-radius: 8px;
-    padding: 8px 10px;
+    background: #111827;
+  }
+  .md-codeblock-bar {
+    display: flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 10px;
+    border-bottom: 1px solid #263244;
+    background: #172033;
+  }
+  .md-codeblock-lang {
+    color: #93c5fd;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .md-code-block {
+    display: block;
+    margin: 0;
+    background: #111827;
+    color: #dbeafe;
+    padding: 10px 12px;
     font-family: ui-monospace, Menlo, monospace;
     font-size: 12px;
     white-space: pre;
     overflow-x: auto;
-    margin: 8px 0;
+    border-radius: 0;
+  }
+  .hljs-keyword,
+  .hljs-type {
+    color: #f472b6;
+  }
+  .hljs-title,
+  .hljs-title.function_ {
+    color: #93c5fd;
+  }
+  .hljs-string {
+    color: #86efac;
+  }
+  .hljs-number,
+  .hljs-literal,
+  .hljs-attr {
+    color: #67e8f9;
+  }
+  .hljs-comment {
+    color: #94a3b8;
   }
   .md-blockquote {
     border-left: 3px solid #d4d4d4;
