@@ -38,3 +38,25 @@ A user extension with the same name takes precedence over the auto-synthesized c
 When you call `renderNodes` yourself to cache nodes or post-process the tree, hand the result to `MiniNodeRenderer`.
 
 The component flattens inline nodes first, because mini-program `<text>` cannot nest custom components.
+
+## Code block / table header
+
+Code blocks and tables ship with a header bar by default: a code block shows its language on the left and a copy button (copies the raw code) on the right; a table shows "表格" on the left and a copy button (copies the Markdown source) on the right.
+
+Disable or customize:
+
+```ts
+import { XMarkdownMini, copyButton } from '@ant-design/x-markdown-mini';
+
+const md = new XMarkdownMini({
+  codeBlock: { header: false },                 // no code-block header
+  table: {
+    header: ({ markdown }) => [                  // custom table header
+      { name: 'text', attrs: { class: 'md-tableblock-title', value: 'Table' } },
+      copyButton(markdown),                      // copy button (copies the markdown source)
+    ],
+  },
+});
+```
+
+`header` accepts `true` (default header) / `false` (no header) / a function returning custom `MiniNode`s. The function runs during `renderNodes` and returns static nodes; use `copyButton(payload)` to build a button the component recognizes as copyable. The code header function receives `{ lang, text, token }`; the table header function receives `{ markdown, token }`.

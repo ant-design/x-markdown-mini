@@ -47,10 +47,13 @@ const BUDGETS = [
   // mjs raw 118→119：htmlToMiniNodes 改用 sticky 正则按 lastIndex 匹配（消除遍历
   //   KaTeX/hljs HTML 时每个 `<` 的子串分配）+ StreamingProcessor 复用 match.index。
   //   实测 mjs raw ~118.14 KB / gzip 不变 ~29 KB；index.js 仍在 120 内。
-  { file: 'index.mjs', rawMax: 119 * KB, gzipMax: 30 * KB },
-  { file: 'index.js', rawMax: 120 * KB, gzipMax: 30 * KB },
+  // raw +~1.2 KB：代码块/表格 header 改为数据驱动（renderer 产出默认 header +
+  //   copyButton 帮助函数 + buildCodeHeader/buildTableHeader）。实测 mjs raw
+  //   ~119.62 KB、index.js ~121.17 KB；预算上调留 ~1 KB headroom。
+  { file: 'index.mjs', rawMax: 121 * KB, gzipMax: 30 * KB },
+  { file: 'index.js', rawMax: 122 * KB, gzipMax: 30 * KB },
   // 微信专用主库副本（通过 package.json#miniprogram 进入）
-  { file: 'miniprogram_dist/index.js', rawMax: 120 * KB, gzipMax: 30 * KB },
+  { file: 'miniprogram_dist/index.js', rawMax: 122 * KB, gzipMax: 30 * KB },
   // 共享 helper（alipay 包根 + wechat 包根 各一份）
   { file: 'shared/flattenInline.js', rawMax: 5 * KB },
   { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 5 * KB },

@@ -38,3 +38,25 @@ group:
 需要自己调用 `renderNodes`、缓存节点或做二次处理时，把结果交给 `MiniNodeRenderer`。
 
 组件内部会先 flatten inline 节点，因为小程序 `<text>` 不能嵌套自定义组件。
+
+## 代码块 / 表格 header
+
+代码块与表格默认带一个 header 栏：代码块左侧显示语言名、右侧是复制按钮（复制原始代码）；表格左侧显示“表格”、右侧复制按钮（复制 Markdown 源）。
+
+关闭或自定义：
+
+```ts
+import { XMarkdownMini, copyButton } from '@ant-design/x-markdown-mini';
+
+const md = new XMarkdownMini({
+  codeBlock: { header: false },                 // 关闭代码块 header
+  table: {
+    header: ({ markdown }) => [                  // 自定义表格 header
+      { name: 'text', attrs: { class: 'md-tableblock-title', value: 'Table' } },
+      copyButton(markdown),                      // 复制按钮（点击复制 markdown 源）
+    ],
+  },
+});
+```
+
+`header` 取值：`true`（默认 header）/ `false`（无 header）/ 函数（返回自定义 `MiniNode` 节点）。自定义函数在 `renderNodes` 阶段执行、返回静态节点；用 `copyButton(payload)` 拼一个会被组件识别为可复制的按钮。代码 header 函数收到 `{ lang, text, token }`，表格 header 函数收到 `{ markdown, token }`。
