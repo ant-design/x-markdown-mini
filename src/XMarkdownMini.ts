@@ -9,6 +9,8 @@ import {
 import type {
   MiniNode,
   RenderContext,
+  CodeHeaderRenderer,
+  TableHeaderRenderer,
   XMarkdownExtension,
   XMarkdownMiniProps,
   XMarkdownMiniTokenProps,
@@ -62,6 +64,10 @@ export interface XMarkdownMiniOptions {
    * `</x>` and will not produce a nested structure.
    */
   components?: string[];
+  /** 代码块 header。true=默认（语言名+复制按钮）；false=无；函数=自定义。默认 true。 */
+  codeBlock?: { header?: boolean | CodeHeaderRenderer };
+  /** 表格 header。true=默认（“表格”+复制按钮）；false=无；函数=自定义。默认 true。 */
+  table?: { header?: boolean | TableHeaderRenderer };
 }
 
 // --- Attribute parsing for `components: string[]` sugar ---------------------
@@ -168,6 +174,8 @@ export class XMarkdownMini {
   private readonly fixup: ((text: string) => string) | undefined;
   private readonly gfm: boolean | undefined;
   private readonly breaks: boolean | undefined;
+  private readonly codeHeader: boolean | CodeHeaderRenderer | undefined;
+  private readonly tableHeader: boolean | TableHeaderRenderer | undefined;
   private readonly marked: Marked;
   private activeTokenStreamDefaults: MarkedOptions | null = null;
   private activeNodeStreamDefaults: MarkedOptions | null = null;
@@ -182,6 +190,8 @@ export class XMarkdownMini {
     this.fixup = resolveStreamingFixup(opts.streamingFixup ?? 'remend');
     this.gfm = opts.gfm;
     this.breaks = opts.breaks;
+    this.codeHeader = opts.codeBlock?.header;
+    this.tableHeader = opts.table?.header;
 
     // Extensions can be either XMarkdownExtension (colocated miniRenderer)
     // or plain MarkedExtension. Both shapes share the same `extensions: [...]`
@@ -367,6 +377,8 @@ export class XMarkdownMini {
           selectable,
           escapeText: this.escapeText,
           extensions: ctxExtensions,
+          codeHeader: this.codeHeader,
+          tableHeader: this.tableHeader,
         };
         const tokens = this.lex(content, markedOpts);
         const nodes = renderer.renderTokens(tokens, ctx);
@@ -386,6 +398,8 @@ export class XMarkdownMini {
         selectable,
         escapeText: this.escapeText,
         extensions: ctxExtensions,
+        codeHeader: this.codeHeader,
+        tableHeader: this.tableHeader,
       };
       const transform = (md: string): MiniNode[] =>
         renderer.renderTokens(this.lex(md, markedOpts), ctx);

@@ -10,6 +10,7 @@ import {
   tokensToAlipay,
   getPlatformRenderer,
   registerPlatformRenderer,
+  copyButton,
 } from '../index.js';
 import type { MiniNode } from '../index.js';
 
@@ -419,5 +420,32 @@ describe('XMarkdownMini — multi-instance isolation', () => {
       onPatch: (n) => patches.push(n),
     });
     expect(onRenderStart).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('code/table header options', () => {
+  function findDeep(nodes: any[], name: string): any {
+    const q = [...nodes];
+    while (q.length) {
+      const n = q.shift();
+      if (n.name === name) return n;
+      if (n.children) q.push(...n.children);
+    }
+    return undefined;
+  }
+
+  it('renders default headers and disables them via options', () => {
+    const on = new XMarkdownMini().renderNodes({ content: '```ts\nx\n```', platform: 'alipay' });
+    expect(findDeep(on, 'pre').header).toBeDefined();
+
+    const off = new XMarkdownMini({ codeBlock: { header: false }, table: { header: false } });
+    const codeNodes = off.renderNodes({ content: '```ts\nx\n```', platform: 'alipay' });
+    expect(findDeep(codeNodes, 'pre').header).toBeUndefined();
+    const tableNodes = off.renderNodes({ content: '| a |\n| - |\n| 1 |', platform: 'alipay' });
+    expect(findDeep(tableNodes, 'table').header).toBeUndefined();
+  });
+
+  it('exports copyButton from the package root', () => {
+    expect(copyButton('z')).toEqual({ name: 'copy-button', attrs: { 'data-copy': 'z', class: 'md-copy-icon' } });
   });
 });

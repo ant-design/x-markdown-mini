@@ -57,6 +57,7 @@ export type {
   PlatformRenderer,
 } from './platforms/index.js';
 export { StreamingProcessor } from './streaming/index.js';
+export { copyButton } from './platforms/shared/miniNodeRenderer.js';
 export { default as Footnote, type FootnoteOptions } from './plugins/Footnote/index.js';
 export {
   flattenInlineTokens,
@@ -68,6 +69,10 @@ export type {
   MarkedExtension,
   MiniNode,
   RenderContext,
+  CodeHeaderContext,
+  TableHeaderContext,
+  CodeHeaderRenderer,
+  TableHeaderRenderer,
   SemanticStreamingConfig,
   StreamingConfig,
   Token,
