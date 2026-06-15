@@ -176,6 +176,25 @@ export interface XMarkdownExtension {
 
 // --- 小程序渲染节点（平台 renderer 的统一中间输出）---
 
+/** Context passed to a code-block header renderer. */
+export interface CodeHeaderContext {
+  /** Resolved language id ('' when the fence has no language). */
+  lang: string;
+  /** Raw code text — the clipboard payload. */
+  text: string;
+  token: Tokens.Code;
+}
+
+/** Context passed to a table header renderer. */
+export interface TableHeaderContext {
+  /** Raw markdown source of the table — the clipboard payload. */
+  markdown: string;
+  token: Tokens.Table;
+}
+
+export type CodeHeaderRenderer = (ctx: CodeHeaderContext) => MiniNode | MiniNode[] | null;
+export type TableHeaderRenderer = (ctx: TableHeaderContext) => MiniNode | MiniNode[] | null;
+
 /** 渲染上下文：transformer 共用的公共配置。 */
 export interface RenderContext {
   /** 是否启用块级动画 */
@@ -192,6 +211,13 @@ export interface RenderContext {
    * Colocated tokenizer+renderer extensions registered on the instance.
    */
   extensions?: readonly XMarkdownExtension[];
+  /**
+   * Code-block header config. `true`/undefined = default (language + copy
+   * button); `false` = no header; function = custom header nodes.
+   */
+  codeHeader?: boolean | CodeHeaderRenderer;
+  /** Table header config. Same semantics as `codeHeader`. */
+  tableHeader?: boolean | TableHeaderRenderer;
   /**
    * Recursively render an inline token array to MiniNode[]. Provided by the
    * platform transformer; used by custom extension miniRenderers that emit
@@ -212,6 +238,8 @@ export interface MiniNode {
   attrs?: Record<string, string | number | boolean>;
   /** 子节点 */
   children?: MiniNode[];
+  /** 代码块/表格顶部 header 栏（语言/标题 + 复制按钮）。 */
+  header?: MiniNode[];
   /** 是否开启动画 */
   animate?: boolean;
 }

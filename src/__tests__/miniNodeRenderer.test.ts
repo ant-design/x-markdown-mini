@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Lexer } from 'marked';
 import {
   renderTokensToMiniNodes,
+  copyButton,
   type MiniNodePlatformAdapter,
 } from '../platforms/shared/miniNodeRenderer.js';
 import type { MiniNode } from '../types.js';
@@ -95,6 +96,40 @@ describe('renderTokensToMiniNodes', () => {
     expect(find(nodes, 'table')?.attrs?.class).toBe('md-table');
     expect(find(nodes, 'th')?.attrs?.class).toBe('md-th');
     expect(find(nodes, 'td')?.attrs?.class).toBe('md-td');
+  });
+
+  const headerAdapter: MiniNodePlatformAdapter = {
+    linkAttrs: (href) => ({ 'data-url': href }),
+    imageSrc: (src) => src,
+    olAttrs: () => ({}),
+    capabilities: { supportsPre: true, supportsTable: true },
+  };
+
+  it('adds a default code-block header (language label + copy button with raw text)', () => {
+    const tokens = Lexer.lex('```ts\nconst a = 1\n```');
+    const nodes = renderTokensToMiniNodes(tokens, headerAdapter, { escapeText: false });
+    const pre = find(nodes, 'pre')!;
+    expect(pre.header).toBeDefined();
+    expect(pre.header![0]).toEqual({ name: 'text', attrs: { class: 'md-codeblock-lang', value: 'ts' } });
+    expect(pre.header![1]).toEqual({ name: 'copy-button', attrs: { 'data-copy': 'const a = 1', class: 'md-copy-icon' } });
+  });
+
+  it('defaults the code-block header label to "code" when no language', () => {
+    const nodes = renderTokensToMiniNodes(Lexer.lex('```\nplain\n```'), headerAdapter, { escapeText: false });
+    expect(find(nodes, 'pre')!.header![0].attrs?.value).toBe('code');
+  });
+
+  it('adds a default table header ("表格" + copy button with markdown source)', () => {
+    const src = '| a | b |\n| - | - |\n| 1 | 2 |';
+    const nodes = renderTokensToMiniNodes(Lexer.lex(src), headerAdapter, { escapeText: false });
+    const table = find(nodes, 'table')!;
+    expect(table.header![0]).toEqual({ name: 'text', attrs: { class: 'md-tableblock-title', value: '表格' } });
+    expect(table.header![1].name).toBe('copy-button');
+    expect(String(table.header![1].attrs?.['data-copy'])).toContain('| a | b |');
+  });
+
+  it('copyButton() builds a copy-button node carrying the payload', () => {
+    expect(copyButton('hello')).toEqual({ name: 'copy-button', attrs: { 'data-copy': 'hello', class: 'md-copy-icon' } });
   });
 
   it('lets adapters rewrite final nodes without changing markdown semantics', () => {

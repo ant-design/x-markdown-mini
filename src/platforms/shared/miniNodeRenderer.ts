@@ -1,5 +1,5 @@
 import { type Token, type Tokens } from 'marked';
-import type { MiniNode, RenderContext } from '../../types.js';
+import type { MiniNode, RenderContext, CodeHeaderRenderer, TableHeaderRenderer } from '../../types.js';
 import type { PlatformCapabilities } from '../types.js';
 import { renderCustomToken } from './customTokenRenderer.js';
 
@@ -92,6 +92,42 @@ function collectText(nodes: MiniNode[]): string {
   return out;
 }
 
+/** Build a copy-button MiniNode carrying the raw clipboard payload. */
+export function copyButton(text: string): MiniNode {
+  return { name: 'copy-button', attrs: { 'data-copy': text, class: 'md-copy-icon' } };
+}
+
+function asNodeArray(x: MiniNode | MiniNode[] | null | undefined): MiniNode[] {
+  if (!x) return [];
+  return Array.isArray(x) ? x : [x];
+}
+
+function buildCodeHeader(ctx: RenderContext, lang: string, text: string, token: Tokens.Code): MiniNode[] {
+  const cfg = ctx.codeHeader;
+  if (cfg === false) return [];
+  if (typeof cfg === 'function') return asNodeArray((cfg as CodeHeaderRenderer)({ lang, text, token }));
+  return [
+    { name: 'text', attrs: { class: 'md-codeblock-lang', value: lang || 'code' } },
+    copyButton(text),
+  ];
+}
+
+function buildTableHeader(ctx: RenderContext, token: Tokens.Table): MiniNode[] {
+  const cfg = ctx.tableHeader;
+  if (cfg === false) return [];
+  const markdown = token.raw ?? '';
+  if (typeof cfg === 'function') return asNodeArray((cfg as TableHeaderRenderer)({ markdown, token }));
+  return [
+    { name: 'text', attrs: { class: 'md-tableblock-title', value: '表格' } },
+    copyButton(markdown),
+  ];
+}
+
+function withHeader(node: MiniNode, header: MiniNode[]): MiniNode {
+  if (header.length) node.header = header;
+  return node;
+}
+
 export function renderTokensToMiniNodes(
   tokens: Token[],
   adapter: MiniNodePlatformAdapter,
@@ -142,13 +178,14 @@ function blockTok(
       return block('p', inlineTokens(t.tokens ?? [], adapter, enc, ctx), animate, adapter, tok);
     }
     case 'code': {
-      const lang = ((tok as Tokens.Code).lang ?? '').trim().split(/\s+/)[0] ?? '';
+      const t = tok as Tokens.Code;
+      const lang = ((t.lang ?? '').trim().split(/\s+/)[0]) ?? '';
       const preAttrs: MiniNodeAttrs = lang
         ? { class: 'md-code-block', lang }
         : { class: 'md-code-block' };
+      const header = buildCodeHeader(ctx, lang, t.text ?? '', t);
       const custom = renderCustomToken(tok, ctx);
-      if (custom.length) return block('pre', custom, animate, adapter, tok, preAttrs);
-      const t = tok as Tokens.Code;
+      if (custom.length) return withHeader(block('pre', custom, animate, adapter, tok, preAttrs), header);
       if (!supports(adapter, 'supportsPre')) {
         return textBlock(enc(t.text ?? ''), animate, adapter, tok);
       }
@@ -156,7 +193,7 @@ function blockTok(
         name: 'code',
         children: [{ name: 'text', attrs: { value: enc(t.text ?? '') } }],
       };
-      return block('pre', [codeChild], animate, adapter, tok, preAttrs);
+      return withHeader(block('pre', [codeChild], animate, adapter, tok, preAttrs), header);
     }
     case 'hr':
       return block('hr', [], animate, adapter, tok);
@@ -211,7 +248,10 @@ function blockTok(
       // reliably on <view>, which breaks column alignment. Putting <tr> rows
       // directly under the CSS table is the cross-platform-robust structure.
       const headerRow: MiniNode = { name: 'tr', attrs: { class: 'md-tr' }, children: headCells };
-      return block('table', [headerRow, ...rowNodes], animate, adapter, tok, { class: 'md-table' });
+      return withHeader(
+        block('table', [headerRow, ...rowNodes], animate, adapter, tok, { class: 'md-table' }),
+        buildTableHeader(ctx, t),
+      );
     }
     case 'text': {
       const t = tok as Tokens.Text;
