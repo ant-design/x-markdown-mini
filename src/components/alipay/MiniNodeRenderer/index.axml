@@ -45,14 +45,29 @@
     a:elif="{{u.isPre(node.name)}}"
     class="md-codeblock {{node.animate ? 'md-animate-block' : ''}}"
   >
-    <view class="md-codeblock-bar">
-      <text class="md-codeblock-lang">{{u.langOf(node) || 'code'}}</text>
-      <image
-        class="md-copy-icon"
-        src="https://mdn.alipayobjects.com/huamei_y8xg5f/afts/img/JXzqSoHDzm4AAAAAHpAAAAgADuJhAQFr/original"
-        data-data="{{node}}"
-        catchTap="_copyCode"
-      />
+    <view a:if="{{node.header}}" class="md-codeblock-bar">
+      <block a:for="{{node.header}}" a:for-item="h" a:for-index="hi" a:key="hi">
+        <text a:if="{{u.isText(h.name)}}" class="{{u.classOf(h)}}">{{u.valueOf(h)}}</text>
+        <image
+          a:elif="{{u.isCopy(h.name)}}"
+          class="{{u.classOf(h) || 'md-copy-icon'}}"
+          src="https://mdn.alipayobjects.com/huamei_y8xg5f/afts/img/JXzqSoHDzm4AAAAAHpAAAAgADuJhAQFr/original"
+          data-copy="{{u.copyOf(h)}}"
+          catchTap="_copy"
+        />
+        <view a:else class="{{u.classOf(h)}}" style="{{u.styleOf(h)}}">
+          <mini-node-renderer
+            a:if="{{h.children}}"
+            nodes="{{h.children}}"
+            selectable="{{selectable}}"
+            animation="{{false}}"
+            slotComponents="{{slotComponents}}"
+            onTap="onTap"
+          >
+            <slot slot-scope="prop" data="{{prop.data}}" />
+          </mini-node-renderer>
+        </view>
+      </block>
     </view>
     <scroll-view scroll-x class="md-code-block">
       <mini-node-renderer
@@ -74,14 +89,29 @@
     a:elif="{{u.isTable(node.name)}}"
     class="md-tableblock {{node.animate ? 'md-animate-block' : ''}}"
   >
-    <view class="md-tableblock-bar">
-      <text class="md-tableblock-title">表格</text>
-      <image
-        class="md-copy-icon"
-        src="https://mdn.alipayobjects.com/huamei_y8xg5f/afts/img/JXzqSoHDzm4AAAAAHpAAAAgADuJhAQFr/original"
-        data-data="{{node}}"
-        catchTap="_copyTable"
-      />
+    <view a:if="{{node.header}}" class="md-tableblock-bar">
+      <block a:for="{{node.header}}" a:for-item="h" a:for-index="hi" a:key="hi">
+        <text a:if="{{u.isText(h.name)}}" class="{{u.classOf(h)}}">{{u.valueOf(h)}}</text>
+        <image
+          a:elif="{{u.isCopy(h.name)}}"
+          class="{{u.classOf(h) || 'md-copy-icon'}}"
+          src="https://mdn.alipayobjects.com/huamei_y8xg5f/afts/img/JXzqSoHDzm4AAAAAHpAAAAgADuJhAQFr/original"
+          data-copy="{{u.copyOf(h)}}"
+          catchTap="_copy"
+        />
+        <view a:else class="{{u.classOf(h)}}" style="{{u.styleOf(h)}}">
+          <mini-node-renderer
+            a:if="{{h.children}}"
+            nodes="{{h.children}}"
+            selectable="{{selectable}}"
+            animation="{{false}}"
+            slotComponents="{{slotComponents}}"
+            onTap="onTap"
+          >
+            <slot slot-scope="prop" data="{{prop.data}}" />
+          </mini-node-renderer>
+        </view>
+      </block>
     </view>
     <scroll-view scroll-x class="md-table-scroll">
       <view class="md-table">

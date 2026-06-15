@@ -14,6 +14,11 @@ function isImg(name) { return name === 'img'; }
 function isHr(name) { return name === 'hr'; }
 function isPre(name) { return name === 'pre'; }
 function isTable(name) { return name === 'table'; }
+function isCopy(name) { return name === 'copy-button'; }
+function copyOf(node) {
+  var attrs = node.attrs || {};
+  return attrs['data-copy'] || '';
+}
 // 富内联节点（如 KaTeX 公式容器）含有元素子节点，必须走递归 <view> 路径
 // 渲染，保留嵌套结构与 style；普通已扁平化的内联只有 text/br 子节点。
 function isRich(node) {
@@ -92,6 +97,8 @@ export default {
   isHr: isHr,
   isPre: isPre,
   isTable: isTable,
+  isCopy: isCopy,
+  copyOf: copyOf,
   isRich: isRich,
   isSlot: isSlot,
   classOf: classOf,
