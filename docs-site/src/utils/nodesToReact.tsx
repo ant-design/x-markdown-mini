@@ -161,6 +161,17 @@ function renderNode(node: MiniNode, key: React.Key, animateText: boolean): React
     return React.createElement(tag, elProps);
   }
 
+  // Per-char typewriter fade only survives on leaves that persist across
+  // re-parses (flowing text). Re-rendered embeds rebuild their whole subtree
+  // every streaming tick — code highlighting (`cons` → `const`+` x` → …) and
+  // KaTeX (`$E=mc^` → a fresh .katex span tree) — remounting any AnimationText
+  // inside, which replays its fade on every tick (constant flicker). Stop
+  // per-char animation at those embed boundaries; they still fade in once via
+  // the block-level `md-animate-block` (their container key stays stable).
+  const rawClass = attrs && typeof attrs.class === 'string' ? attrs.class : '';
+  const isReRenderedEmbed = tag === 'pre' || /(^|\s)katex/.test(rawClass);
+  const childAnimateText = animateText && !isReRenderedEmbed;
+
   // Tables: the MiniNode tree puts <tr> directly under <table> (valid for the
   // mini-program renderer, but the browser/React expects a section element).
   // Wrap each run of <tr> children in a <tbody> so React doesn't warn and
@@ -176,17 +187,17 @@ function renderNode(node: MiniNode, key: React.Key, animateText: boolean): React
     };
     children.forEach((child, i) => {
       if ((child.name || '').toLowerCase() === 'tr') {
-        rows.push(renderNode(child, `tr-${i}`, animateText));
+        rows.push(renderNode(child, `tr-${i}`, childAnimateText));
       } else {
         flush(`tb-${i}`);
-        out.push(renderNode(child, i, animateText));
+        out.push(renderNode(child, i, childAnimateText));
       }
     });
     flush('tb-last');
     return React.createElement(tag, elProps, ...out);
   }
 
-  const childNodes = children?.map((child, i) => renderNode(child, i, animateText));
+  const childNodes = children?.map((child, i) => renderNode(child, i, childAnimateText));
   if (childNodes && childNodes.length > 0) {
     return React.createElement(tag, elProps, ...childNodes);
   }

@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { advanceSegments, initSegmentState, type SegmentState } from './animationSegments';
 
 /**
  * 打字机逐字渐显（文档站预览专用）。
@@ -10,12 +11,11 @@ import React, { useRef } from 'react';
  *
  * 解码 HTML 实体后再做 diff：库在 escapeText=true 时把文本转义成实体（如 `&amp;`），
  * 在解码后的纯文本上切分可避免把单个实体劈成两段。
+ *
+ * 分段对账（含「标记吸收」修复）见 {@link advanceSegments}：流式中间态把未闭合的
+ * Markdown 标记当字面文本临时追加，闭合后又吸收掉使文本叶子缩短，这里用最长公共
+ * 前缀复用已显示片段，避免整段重新淡入。
  */
-
-interface Segment {
-  id: number;
-  text: string;
-}
 
 function decodeEntities(s: string): string {
   if (typeof document === 'undefined') return s;
@@ -26,27 +26,15 @@ function decodeEntities(s: string): string {
 
 export const AnimationText: React.FC<{ value: string }> = ({ value }) => {
   const decoded = decodeEntities(value);
-  const prevRef = useRef('');
-  const segmentsRef = useRef<Segment[]>([]);
-  const idRef = useRef(0);
+  const stateRef = useRef<SegmentState>(initSegmentState());
 
   // 在 render 期同步派生新片段（幂等：相同 value 二次 render 不重复追加，
   // 因此 StrictMode 的双调用安全）。
-  const prev = prevRef.current;
-  if (decoded !== prev) {
-    if (prev && decoded.startsWith(prev)) {
-      const diff = decoded.slice(prev.length);
-      if (diff) segmentsRef.current = [...segmentsRef.current, { id: idRef.current++, text: diff }];
-    } else {
-      // 非追加（全新内容 / 流式重排）：整体重置，作为单一片段淡入。
-      segmentsRef.current = decoded ? [{ id: idRef.current++, text: decoded }] : [];
-    }
-    prevRef.current = decoded;
-  }
+  stateRef.current = advanceSegments(stateRef.current, decoded);
 
   return (
     <>
-      {segmentsRef.current.map((seg) => (
+      {stateRef.current.segments.map((seg) => (
         <span key={seg.id} className="animation-text-char">
           {seg.text}
         </span>
