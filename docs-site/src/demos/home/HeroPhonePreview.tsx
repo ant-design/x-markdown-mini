@@ -5,31 +5,11 @@ import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
 import { PhoneShell } from '../../components/PhonePreview';
 import { useDocPlatform } from '../../components/useDocPlatform';
 import { renderMiniNodes } from '../../utils/nodesToReact';
+import { STREAM_DEMO } from '../../components/Playground';
 import './HeroPhonePreview.less';
 
-const MARKDOWN = `### 原生节点输出
-
-同一份 Markdown 直接渲染为端侧 \`MiniNode[]\`，不依赖 WebView，也不把 HTML 交给 \`rich-text\` 猜。
-
-| 能力 | 输出 |
-| --- | --- |
-| 链接 | \`data-href\` |
-| 图片 | HTTPS guard |
-| 列表 | 平台节点 |
-
-\`\`\`ts
-renderNodes({
-  platform: 'alipay',
-  streaming: true,
-})
-\`\`\`
-
-公式也走插件节点：$E=mc^2$
-
-- CommonMark / GFM
-- 稳定块缓存，只重跑尾部
-- 微信 / 支付宝双端直出
-`;
+// 与 Playground 共用同一份演示内容，保持首页模拟器与在线演示展示一致。
+const MARKDOWN = STREAM_DEMO;
 
 // 变速打字机节奏（与 Playground 一致）：随已渲染块序号加速。
 const RAMP_CHAR_DELAYS = [50, 30, 20, 10, 50];

@@ -26,7 +26,8 @@ const PLATFORMS: DemoPlatform[] = ['alipay', 'wechat'];
 const RAMP_CHAR_DELAYS = [50, 30, 20, 10, 50];
 const RAMP_CHUNK_DELAYS = [300, 200, 100, 0];
 
-const STREAM_DEMO = `你好！我是 AI 助手，下面为你演示 x-markdown-mini 的流式渲染能力。
+// 首页 hero 模拟器与 Playground 共用同一份演示内容，保持展示一致。
+export const STREAM_DEMO = `你好！我是 AI 助手，下面为你演示 x-markdown-mini 的流式渲染能力。
 
 ## 流式补全
 

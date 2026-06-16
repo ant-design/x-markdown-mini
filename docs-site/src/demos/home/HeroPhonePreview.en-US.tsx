@@ -5,31 +5,11 @@ import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
 import { PhoneShell } from '../../components/PhonePreview';
 import { useDocPlatform } from '../../components/useDocPlatform';
 import { renderMiniNodes } from '../../utils/nodesToReact';
+import { STREAM_DEMO } from '../../components/Playground';
 import './HeroPhonePreview.less';
 
-const MARKDOWN = `### Native node output
-
-The same Markdown renders directly to mini-program \`MiniNode[]\`, without WebView and without asking \`rich-text\` to guess.
-
-| Feature | Output |
-| --- | --- |
-| Links | \`data-href\` |
-| Images | HTTPS guard |
-| Lists | Platform nodes |
-
-\`\`\`ts
-renderNodes({
-  platform: 'alipay',
-  streaming: true,
-})
-\`\`\`
-
-Math stays in the node pipeline: $E=mc^2$
-
-- CommonMark / GFM
-- Stable-block cache, rerendering only the tail
-- WeChat / Alipay native node output
-`;
+// Shares the Playground demo content so the hero simulator matches the Playground.
+const MARKDOWN = STREAM_DEMO;
 
 // Variable typewriter cadence (same as Playground): speeds up per committed block.
 const RAMP_CHAR_DELAYS = [50, 30, 20, 10, 50];
