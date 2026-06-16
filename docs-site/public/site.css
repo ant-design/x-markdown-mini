@@ -1990,7 +1990,8 @@ body:not(.xmd-homepage) .dumi-default-header.xmd-mini {
   grid-template-columns: minmax(0, 1.04fr) minmax(330px, 0.78fr);
   gap: 64px;
   align-items: center;
-  min-height: min(600px, calc(100vh - 150px));
+  /* Fill the first screen: viewport minus the 80px header (+ a little breathing). */
+  min-height: calc(100vh - 92px);
   padding: 40px 0 64px;
 }
 
@@ -2254,7 +2255,6 @@ body:not(.xmd-homepage) .dumi-default-header.xmd-mini {
 
 .markdown .xmd-landing-section {
   padding: 56px 0;
-  border-top: 1px solid var(--xmd-border);
 }
 
 .markdown .xmd-section-copy {
@@ -2667,10 +2667,7 @@ body:not(.xmd-homepage) .dumi-default-header.xmd-mini {
 }
 
 .markdown .xmd-architecture {
-  display: grid;
-  grid-template-columns: minmax(280px, 0.38fr) minmax(0, 0.62fr);
-  gap: clamp(28px, 4vw, 54px);
-  align-items: center;
+  display: block;
 }
 
 .markdown .xmd-section-copy {
@@ -2721,7 +2718,6 @@ body:not(.xmd-homepage) .dumi-default-header.xmd-mini {
   background-size: 28px 28px;
   border: 1px solid var(--xmd-border);
   border-radius: 12px;
-  box-shadow: 0 24px 60px -38px rgba(23, 23, 23, 0.34);
 }
 
 .markdown .xmd-arch-box,
@@ -2750,6 +2746,14 @@ body:not(.xmd-homepage) .dumi-default-header.xmd-mini {
   fill: none;
   stroke: var(--xmd-accent);
   stroke-width: 1.8;
+}
+
+/* Main pipeline connectors: neutral gray so the one blue accent stays rare
+   (it marks only the PlatformRenderer node and the streaming reuse curve). */
+.markdown .xmd-arch-flow {
+  fill: none;
+  stroke: var(--xmd-text-quaternary, #a3a3a3);
+  stroke-width: 1.6;
 }
 
 .markdown .xmd-arch-line-soft {
@@ -2791,14 +2795,34 @@ body:not(.xmd-homepage) .dumi-default-header.xmd-mini {
 
 .markdown .xmd-arch-proof div {
   min-width: 0;
-  padding: 14px 12px;
+  padding: 14px 13px;
   background: #ffffff;
   border: 1px solid var(--xmd-border);
   border-radius: 8px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+/* Flat at rest; hover firms the border toward the accent and lays a faint
+   blue wash. No shadow (keeps the whiteboard flat-by-default). */
+.markdown .xmd-arch-proof div:hover {
+  border-color: #2563eb3d;
+  background: #2563eb08;
+}
+
+.markdown .xmd-arch-proof-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.markdown .xmd-arch-proof-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--xmd-accent);
 }
 
 .markdown .xmd-arch-proof strong {
-  display: block;
   color: var(--xmd-text);
   font-size: 13px;
   font-weight: 720;

@@ -29,7 +29,6 @@ const sharedHeroMarkup = [
   'xmd-hero',
   'xmd-hero-copy',
   'xmd-hero-media',
-  'xmd-hero-facts',
   'xmd-phone',
   'xmd-phone-screen',
   'data-xmd-copy',
@@ -39,34 +38,26 @@ const sharedHeroMarkup = [
   'xmd-arch-board',
   'xmd-arch-svg',
   'xmd-arch-proof',
-  'one-shot render',
-  'streaming render',
-  'extension points',
+  'PlatformRenderer',
+  'StreamingProcessor',
 ];
 
 const requiredCnCopy = [
   '多端，流式友好，高性能的小程序 Markdown 渲染器',
-  '为 AI 对话和内容场景设计',
-  '一条短链路，直接到平台节点',
-  '微信 / 支付宝原生节点直出',
+  '原生的微信、支付宝渲染',
   '自定义拓展',
   '100% CommonMark',
-  '~28 KB',
 ];
 
 const requiredEnCopy = [
   'Multi-platform, streaming-friendly, high-performance mini-program Markdown renderer',
-  'Built for AI chat and content surfaces',
-  'One short path, straight to platform nodes',
-  'WeChat / Alipay native node output',
+  'Native WeChat and Alipay rendering',
   'Custom extensions',
   '100% CommonMark',
-  '~28 KB',
 ];
 
 const requiredCss = [
   '.markdown .xmd-hero',
-  '.markdown .xmd-hero-facts',
   '.xmd-phone',
   '.xmd-phone-screen',
   '.markdown .xmd-install-command',
