@@ -195,6 +195,9 @@
   color: var(--phone-text);
   font-size: 14px;
   line-height: 1.6;
+  // Hero/card ancestors set `text-align: center`; markdown content (and
+  // especially the <pre> code block) must read left-aligned, not inherit it.
+  text-align: left;
 
   .md-h1 {
     font-size: 20px;
@@ -231,8 +234,9 @@
   .md-codeblock-bar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     min-height: 30px;
-    padding: 0 10px;
+    padding: 0 6px 0 10px;
     border-bottom: 1px solid #263244;
     background: #172033;
   }
@@ -242,6 +246,60 @@
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
+  }
+  // Table header card: light bar above the table, mirrors the code bar layout.
+  .md-tableblock {
+    margin: 10px 0;
+    overflow: hidden;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+  }
+  .md-tableblock-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 30px;
+    padding: 0 6px 0 10px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+  }
+  .md-tableblock-title {
+    color: #525252;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .md-tableblock .md-table {
+    margin: 0;
+    border: 0;
+  }
+  // Header copy button (web preview): inherits color from its bar.
+  .md-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.15s ease, background 0.15s ease;
+  }
+  .md-copy-btn:hover {
+    opacity: 1;
+    background: rgba(127, 127, 127, 0.16);
+  }
+  .md-copy-btn[data-copied] {
+    opacity: 1;
+    color: #16a34a;
+  }
+  .md-codeblock-bar .md-copy-btn {
+    color: #93c5fd;
+  }
+  .md-tableblock-bar .md-copy-btn {
+    color: #737373;
   }
   .md-code-block {
     display: block;
@@ -255,24 +313,90 @@
     overflow-x: auto;
     border-radius: 0;
   }
+  // Neutralize two leak sources on the inner <code> so the .md-code-block
+  // frame (#111827 bg + 10/12 padding) owns the look:
+  //   1. dumi's global `.markdown pre`/`.markdown *:not(pre) code` rules paint
+  //      a light #fafafa/#f0f0f0 box + black text onto our injected code.
+  //   2. highlight.js themes set their own bg/padding on `code.hljs`.
+  // Covers both highlighted (code.hljs) and plain (code) blocks.
+  .md-code-block code,
+  .md-code-block code.hljs,
+  .hljs {
+    display: block;
+    background: transparent;
+    padding: 0;
+    color: #dbeafe;
+    font-size: inherit;
+    border-radius: 0;
+  }
+
+  // Self-contained dark palette tuned for the #111827 frame. Covers the full
+  // set of token classes highlight.js emits so no class falls back to a
+  // second theme.
   .hljs-keyword,
-  .hljs-type {
-    color: #f472b6;
+  .hljs-type,
+  .hljs-tag,
+  .hljs-name,
+  .hljs-selector-tag {
+    color: #f472b6; // pink — control flow / tags
   }
   .hljs-title,
-  .hljs-title.function_ {
-    color: #93c5fd;
+  .hljs-title.function_,
+  .hljs-title.class_,
+  .hljs-section {
+    color: #93c5fd; // blue — declarations
   }
-  .hljs-string {
-    color: #86efac;
+  .hljs-built_in,
+  .hljs-class .hljs-title {
+    color: #c4b5fd; // violet — built-ins
+  }
+  .hljs-string,
+  .hljs-regexp,
+  .hljs-char.escape_,
+  .hljs-meta .hljs-string {
+    color: #86efac; // green — strings
   }
   .hljs-number,
   .hljs-literal,
-  .hljs-attr {
-    color: #67e8f9;
+  .hljs-attr,
+  .hljs-symbol,
+  .hljs-bullet {
+    color: #67e8f9; // cyan — values
   }
-  .hljs-comment {
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-property,
+  .hljs-params,
+  .hljs-selector-attr,
+  .hljs-selector-class,
+  .hljs-selector-id {
+    color: #e9d5ff; // light violet — identifiers
+  }
+  .hljs-operator,
+  .hljs-punctuation,
+  .hljs-subst {
+    color: #cbd5e1; // slate — operators / punctuation
+  }
+  .hljs-meta,
+  .hljs-doctag {
+    color: #fbbf24; // amber — annotations / decorators
+  }
+  .hljs-comment,
+  .hljs-quote {
     color: #94a3b8;
+    font-style: italic;
+  }
+  .hljs-deletion {
+    color: #fca5a5;
+  }
+  .hljs-addition {
+    color: #86efac;
+  }
+  .hljs-emphasis {
+    font-style: italic;
+  }
+  .hljs-strong {
+    font-weight: 700;
   }
   .md-blockquote {
     border-left: 3px solid #d4d4d4;

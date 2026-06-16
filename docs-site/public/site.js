@@ -1216,6 +1216,62 @@
     }
   }
 
+  /* ---- Table copy button -------------------------------------------------
+     dumi wraps every markdown table in `.dumi-default-table-content`. We inject
+     a hover-reveal copy button that serializes the table to tab-separated text
+     (one row per line) so it pastes cleanly into Excel / sheets. */
+  function tableToTSV(table) {
+    var rows = table.querySelectorAll('tr');
+    var lines = [];
+    for (var r = 0; r < rows.length; r++) {
+      var cells = rows[r].querySelectorAll('th, td');
+      var cols = [];
+      for (var c = 0; c < cells.length; c++) {
+        cols.push((cells[c].textContent || '').trim().replace(/\s+/g, ' '));
+      }
+      lines.push(cols.join('\t'));
+    }
+    return lines.join('\n');
+  }
+
+  function enhanceTables() {
+    var wraps = document.querySelectorAll('.markdown .dumi-default-table-content');
+    for (var i = 0; i < wraps.length; i++) {
+      var wrap = wraps[i];
+      if (wrap.getAttribute('data-xmd-table-copy') === 'true') continue;
+      var table = wrap.querySelector('table');
+      if (!table) continue;
+      wrap.setAttribute('data-xmd-table-copy', 'true');
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'xmd-table-copy';
+      btn.setAttribute('aria-label', isEnglishPage() ? 'Copy table' : '复制表格');
+      btn.innerHTML =
+        '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">' +
+        '<path d="M5 5.5c0-.83.67-1.5 1.5-1.5h6c.83 0 1.5.67 1.5 1.5v6c0 .83-.67 1.5-1.5 1.5h-6c-.83 0-1.5-.67-1.5-1.5v-6Z" stroke="currentColor" stroke-width="1.4"/>' +
+        '<path d="M3 10H2.5C1.67 10 1 9.33 1 8.5v-6C1 1.67 1.67 1 2.5 1h6C9.33 1 10 1.67 10 2.5V3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' +
+        '</svg>';
+
+      (function (tbl, button) {
+        button.addEventListener('click', function () {
+          copyText(tableToTSV(tbl))
+            .then(function () {
+              button.setAttribute('data-copied', 'true');
+              setTimeout(function () {
+                button.removeAttribute('data-copied');
+              }, 1400);
+            })
+            .catch(function () {
+              /* Clipboard can be blocked in embedded browsers. */
+            });
+        });
+      })(table, btn);
+
+      wrap.appendChild(btn);
+    }
+  }
+
   function bootstrap() {
     setupDevDebug();
     initPlatformAttribute();
@@ -1225,6 +1281,7 @@
     enhanceHeader();
     enhanceFooter();
     enhanceHeroLinks();
+    enhanceTables();
   }
 
   // Expose so the scroll-shrink IIFE's MutationObserver can re-run it on route changes.
@@ -1234,6 +1291,7 @@
   window.__xmdEnhancePlatformTabs = enhancePlatformTabs;
   window.__xmdSyncSidebarLocale = syncSidebarLocale;
   window.__xmdNormalizeSidebarActive = normalizeSidebarActive;
+  window.__xmdEnhanceTables = enhanceTables;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bootstrap);
@@ -1295,6 +1353,7 @@
       if (typeof window.__xmdEnhancePlatformTabs === 'function') window.__xmdEnhancePlatformTabs();
       if (typeof window.__xmdSyncSidebarLocale === 'function') window.__xmdSyncSidebarLocale();
       if (typeof window.__xmdNormalizeSidebarActive === 'function') window.__xmdNormalizeSidebarActive();
+      if (typeof window.__xmdEnhanceTables === 'function') window.__xmdEnhanceTables();
       requestUpdate();
     }).observe(document.body, { childList: true, subtree: true });
     update();

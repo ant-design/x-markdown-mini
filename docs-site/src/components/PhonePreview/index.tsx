@@ -134,6 +134,22 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
     return '';
   }, [platform, markdown, sections, extensions, components, gfm, breaks, streamingTail]);
 
+  // The screen is injected via dangerouslySetInnerHTML, so the copy buttons in
+  // node.header have no React handler — delegate clicks here and copy data-copy.
+  const handleCopyClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const btn = (e.target as HTMLElement).closest('.md-copy-btn');
+    if (!btn) return;
+    const payload = btn.getAttribute('data-copy') || '';
+    if (!payload) return;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(payload).catch(() => {
+        /* clipboard can be blocked in embedded previews */
+      });
+    }
+    btn.setAttribute('data-copied', 'true');
+    window.setTimeout(() => btn.removeAttribute('data-copied'), 1200);
+  };
+
   return (
     <div className={`xmd-phone xmd-phone--${platform} ${className ?? ''}`} data-platform={platform}>
       <div className="xmd-phone-bezel">
@@ -169,6 +185,7 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
           </div>
           <div
             className="xmd-phone-screen"
+            onClick={handleCopyClick}
             dangerouslySetInnerHTML={{ __html: innerHTML }}
           />
           <div className="xmd-phone-home-indicator" aria-hidden />

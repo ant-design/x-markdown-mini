@@ -7,8 +7,16 @@ export interface MiniNode {
   name: string;
   attrs?: Record<string, string | number | boolean>;
   children?: MiniNode[];
+  header?: MiniNode[];
   animate?: boolean;
 }
+
+/** Inline copy glyph (currentColor) used for the header copy button. */
+const COPY_SVG =
+  '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">' +
+  '<path d="M5 5.5c0-.83.67-1.5 1.5-1.5h6c.83 0 1.5.67 1.5 1.5v6c0 .83-.67 1.5-1.5 1.5h-6c-.83 0-1.5-.67-1.5-1.5v-6Z" stroke="currentColor" stroke-width="1.4"/>' +
+  '<path d="M3 10H2.5C1.67 10 1 9.33 1 8.5v-6C1 1.67 1.67 1 2.5 1h6C9.33 1 10 1.67 10 2.5V3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' +
+  '</svg>';
 
 /** Map MiniNode tag names to semantic CSS classes for the phone preview. */
 const TAG_CLASS: Record<string, string> = {
@@ -68,12 +76,15 @@ export function nodesToHTML(nodes: MiniNode[]): string {
     }
 
     if (tag === 'pre') {
-      const lang = attrs?.lang ? String(attrs.lang) : 'code';
+      const bar = node.header ? headerBar(node.header, 'md-codeblock-bar') : '';
       const inner = children && children.length > 0 ? children.map(one).join('') : '';
-      return `<div class="md-codeblock">
-        <div class="md-codeblock-bar"><span class="md-codeblock-lang">${escapeHtml(lang)}</span></div>
-        <pre class="md-code-block">${inner}</pre>
-      </div>`;
+      return `<div class="md-codeblock">${bar}<pre class="md-code-block">${inner}</pre></div>`;
+    }
+
+    if (tag === 'table' && node.header) {
+      const bar = headerBar(node.header, 'md-tableblock-bar');
+      const inner = children && children.length > 0 ? children.map(one).join('') : '';
+      return `<div class="md-tableblock">${bar}<table class="md-table">${inner}</table></div>`;
     }
 
     // Build the class string: merge TAG_CLASS with any existing class attr
@@ -98,6 +109,28 @@ export function nodesToHTML(nodes: MiniNode[]): string {
     }
 
     return `${open}</${tag}>`;
+  }
+
+  // Render a code/table header bar from `node.header`. Text items keep their
+  // class (lang label / title); `copy-button` becomes a clickable button whose
+  // `data-copy` payload PhonePreview reads via a delegated click handler.
+  function headerBar(header: MiniNode[], barClass: string): string {
+    const items = header
+      .map((h) => {
+        if (h.name === 'copy-button') {
+          const payload = h.attrs?.['data-copy'] != null ? String(h.attrs['data-copy']) : '';
+          return `<button type="button" class="md-copy-btn" data-copy="${escapeHtml(payload)}" aria-label="复制">${COPY_SVG}</button>`;
+        }
+        if (h.name === 'text') {
+          const cls = h.attrs?.class ? String(h.attrs.class) : '';
+          const val = h.attrs?.value != null ? String(h.attrs.value) : '';
+          const safe = /<|>|"|'/.test(val) ? escapeHtml(val) : val;
+          return `<span class="${escapeHtml(cls)}">${safe}</span>`;
+        }
+        return one(h);
+      })
+      .join('');
+    return `<div class="${barClass}">${items}</div>`;
   }
 
   return nodes.map(one).join('');

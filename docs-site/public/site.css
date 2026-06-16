@@ -698,7 +698,6 @@ html[data-xmd-doc-platform='wechat'] .xmd-platform-tab[data-platform='wechat'] {
   margin: 16px 0 24px;
   padding: 16px 18px;
   background: #fafafa;
-  border: 1px solid #f0f0f0;
   border-radius: 8px;
 }
 
@@ -716,6 +715,44 @@ html[data-xmd-doc-platform='wechat'] .xmd-platform-tab[data-platform='wechat'] {
 .dumi-default-table-content {
   border: 1px solid #e5e5e5;
   border-radius: 8px;
+  position: relative;
+}
+
+/* Hover-reveal copy button injected by site.js (copies the table as TSV). */
+.xmd-table-copy {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #525252;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.dumi-default-table-content:hover .xmd-table-copy,
+.xmd-table-copy:focus-visible {
+  opacity: 1;
+}
+
+.xmd-table-copy:hover {
+  color: #2563eb;
+  border-color: #bfdbfe;
+}
+
+.xmd-table-copy[data-copied] {
+  opacity: 1;
+  color: #16a34a;
+  border-color: #bbf7d0;
 }
 
 .markdown table {

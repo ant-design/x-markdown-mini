@@ -1,6 +1,16 @@
 import React, { useMemo, useState } from 'react';
+import Highlight, { defaultProps, type Language } from 'prism-react-renderer';
+import theme from 'prism-react-renderer/themes/github';
 import { useDocPlatform } from '../useDocPlatform';
 import './index.less';
+
+/** Map our file-language tags to the language ids prism-react-renderer bundles. */
+const PRISM_LANG: Record<string, Language> = {
+  js: 'javascript',
+  ts: 'typescript',
+  xml: 'markup',
+  md: 'markdown',
+};
 
 export type DemoPlatform = 'alipay' | 'wechat';
 
@@ -180,9 +190,33 @@ export const DemoCode: React.FC<DemoCodeProps> = ({
               <span className="xmd-demo-code-copy-label">{copied ? '已复制' : copyLabel}</span>
             </button>
           </div>
-          <pre className={`language-${file.lang ?? 'text'}`}>
-            <code>{file.code}</code>
-          </pre>
+          <Highlight
+            {...defaultProps}
+            theme={theme}
+            code={file.code}
+            language={(PRISM_LANG[file.lang ?? ''] ?? (file.lang as Language)) || ('text' as Language)}
+          >
+            {({ tokens, getLineProps, getTokenProps }) => (
+              // Keep our own container styling (.xmd-demo-code pre); only the
+              // token spans carry the github theme's inline colors, so we don't
+              // depend on a globally-scoped prism stylesheet.
+              <pre className={`language-${file.lang ?? 'text'}`}>
+                <code>
+                  {tokens.map((line, i) => {
+                    const lineProps = getLineProps({ line, key: i });
+                    return (
+                      <span {...lineProps} key={i} style={{ ...lineProps.style, display: 'block' }}>
+                        {line.map((token, key) => {
+                          const tokenProps = getTokenProps({ token, key });
+                          return <span {...tokenProps} key={key} />;
+                        })}
+                      </span>
+                    );
+                  })}
+                </code>
+              </pre>
+            )}
+          </Highlight>
         </div>
       ) : null}
     </div>
