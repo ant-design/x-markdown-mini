@@ -1412,12 +1412,26 @@ body.xmd-over-hero .dumi-default-header {
   background: transparent !important;
 }
 
-.dumi-default-header.xmd-mini .dumi-default-header-left,
-.dumi-default-header.xmd-mini .xmd-header-support {
+/* The scroll-collapse that hides the brand + utilities (leaving only the floating
+   capsule) is a HOMEPAGE-only move: over the hero the brand reads loud, then
+   recedes to the capsule on scroll. On docs / playground the brand must stay on
+   the left as the persistent "back to home" affordance (mirrors ant-design-mini),
+   so the hide is scoped to body.xmd-homepage and never applies elsewhere. */
+body.xmd-homepage .dumi-default-header.xmd-mini .dumi-default-header-left,
+body.xmd-homepage .dumi-default-header.xmd-mini .xmd-header-support {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transform: translateY(-6px);
+}
+
+/* On docs / playground the brand stays put, so the header needs a solid surface
+   once content scrolls beneath it — otherwise text bleeds through the transparent
+   bar. Pure white + a hairline keeps the Whiteboard register (no glass blur). The
+   homepage is exempt: there the header collapses to the floating capsule. */
+body:not(.xmd-homepage) .dumi-default-header.xmd-mini {
+  background: #ffffff !important;
+  border-bottom: 1px solid #f0f0f0 !important;
 }
 
 .dumi-default-header-right-aside {

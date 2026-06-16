@@ -13,7 +13,10 @@
   align-self: center;
   border-radius: var(--phone-radius);
   background: #f9fafb;
-  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  // Match Ant Design Mini's simulator: the light system stack (renders thinner
+  // than the previous -apple-system/Helvetica Neue pairing).
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   &::before {
     position: absolute;
@@ -53,80 +56,53 @@
   border: 0;
 }
 
+// Status bar sits in the notch "ears": content vertically centered in the band
+// between the frame's inner top (~4px) and the notch bottom (~26px), with the
+// icon cluster hugging the right edge so it clears the notch's right edge (~219px
+// of the 292px bezel). Measured against the iPhone shell PNG.
 .xmd-phone-statusbar {
   position: relative;
   z-index: 2;
-  height: 44px;
+  height: 30px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  padding: 0 24px 8px;
+  align-items: center;
+  // Asymmetric: left inset clears the rounded corner; right inset keeps the icon
+  // cluster (~60px) clear of the notch's right edge while hugging the screen edge.
+  padding: 0 12px 0 20px;
   font-size: 12px;
   color: var(--phone-text);
   background: var(--phone-frame-bg);
 }
 
 .xmd-sb-time {
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 500;
   line-height: 1;
 }
 
+// Right cluster mirrors Ant Design Mini's simulator: only the battery percentage
+// + battery icon (no signal/wifi).
 .xmd-sb-icons {
   display: inline-flex;
-  gap: 5px;
-  align-items: flex-end;
+  gap: 4px;
+  align-items: center;
   height: 12px;
   color: #171717;
 }
 
-.xmd-sb-signal {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 1.5px;
-  width: 16px;
-  height: 11px;
-  padding-bottom: 1px;
-}
-
-.xmd-sb-signal i {
-  display: block;
-  width: 3px;
-  background: currentColor;
-  border-radius: 1.5px;
-}
-
-.xmd-sb-signal i:nth-child(1) {
-  height: 4px;
-}
-
-.xmd-sb-signal i:nth-child(2) {
-  height: 6px;
-}
-
-.xmd-sb-signal i:nth-child(3) {
-  height: 8px;
-}
-
-.xmd-sb-signal i:nth-child(4) {
-  height: 10px;
-}
-
-.xmd-sb-wifi {
-  width: 16px;
-  height: 12px;
-  color: currentColor;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.xmd-sb-battery-pct {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.01em;
 }
 
 .xmd-sb-battery {
   position: relative;
   display: inline-flex;
   align-items: center;
-  width: 22px;
+  width: 17px;
   height: 11px;
   padding: 1.5px;
   border: 1.5px solid currentColor;
@@ -137,8 +113,8 @@
 .xmd-sb-battery::after {
   position: absolute;
   top: 3px;
-  right: -3.5px;
-  width: 2px;
+  right: -2.5px;
+  width: 1.5px;
   height: 5px;
   background: currentColor;
   border-radius: 0 1px 1px 0;
@@ -147,7 +123,7 @@
 
 .xmd-sb-battery-level {
   display: block;
-  width: 15px;
+  width: 100%;
   height: 100%;
   background: currentColor;
   border-radius: 1.2px;
@@ -156,9 +132,16 @@
 .xmd-phone-navbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  min-height: 44px;
-  padding: 8px 14px;
+  // Title sits left, next to the back affordance (mirrors Ant Design Mini's
+  // simulator); the ··· menu is pushed to the right edge by the title's auto margin.
+  justify-content: flex-start;
+  gap: 6px;
+  // border-box so `min-height` includes the padding: the dumi demo wrapper resets
+  // box-sizing to content-box, which otherwise inflated this bar to ~61px on the
+  // Playground while the homepage rendered it at 44px.
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 12px;
   background: var(--phone-frame-bg);
   border-bottom: 1px solid #f0f0f0;
   font-size: 13px;
@@ -168,23 +151,64 @@
 
 .xmd-nav-back,
 .xmd-nav-more {
-  width: 24px;
   flex-shrink: 0;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
   font-size: 18px;
-  color: rgba(23, 23, 23, 0.5);
+  line-height: 1;
+  color: rgba(23, 23, 23, 0.55);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+// When wired with backHref / moreHref they render as real links.
+a.xmd-nav-back,
+a.xmd-nav-more {
+  cursor: pointer;
+}
+
+a.xmd-nav-back:hover,
+a.xmd-nav-more:hover {
+  color: rgba(23, 23, 23, 0.9);
 }
 
 .xmd-nav-title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 5px;
+  // push the trailing ··· to the right edge, keeping the title left-aligned
+  margin-right: auto;
   font-weight: 600;
   font-size: 14px;
   white-space: nowrap;
+}
+
+// Brand logo before the title (首页 hero) replaces the platform badge.
+.xmd-nav-logo {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.xmd-nav-title--logo::before {
+  content: none !important;
+}
+
+// Centered title variant (首页 hero): brand sits centered, ‹/··· flank it.
+.xmd-phone-navbar.is-center {
+  justify-content: space-between;
+}
+
+.xmd-phone-navbar.is-center .xmd-nav-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-right: 0;
 }
 
 .xmd-phone-screen {

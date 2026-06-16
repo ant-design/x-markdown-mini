@@ -48,6 +48,105 @@ export interface PhonePreviewProps extends PhoneRenderOptions {
   className?: string;
 }
 
+export interface PhoneShellProps {
+  platform: PreviewPlatform;
+  /** 顶部导航标题，默认显示当前平台名 */
+  navTitle?: string;
+  className?: string;
+  /** 屏幕区域的 React 内容（Playground / 首页自动播放走这条路径） */
+  children?: React.ReactNode;
+  /** 屏幕区域的原始 HTML（PhonePreview 注入渲染结果走这条路径）。children 存在时忽略。 */
+  screenHTML?: string;
+  onScreenClick?: React.MouseEventHandler<HTMLDivElement>;
+  /** 左上「‹」返回的链接；传入后渲染为可点击链接（回到首页），否则为装饰。 */
+  backHref?: string;
+  /** 右上「···」的链接；传入后渲染为可点击链接（查看其他文档 demo），否则为装饰。 */
+  moreHref?: string;
+  /** 标题居中展示（首页用）；默认左对齐（Playground / 文档内嵌 demo 用）。 */
+  centerTitle?: boolean;
+  /** 标题前的图标图片地址；传入后用该 logo 取代默认的平台徽标（支/微）。 */
+  titleLogo?: string;
+}
+
+/**
+ * 纯展示型「手机外壳」：iPhone 刘海机型边框 + 状态栏 + 导航栏 + 可滚动屏幕。
+ * PhonePreview（注入 HTML）、Playground 与首页自动播放（注入 React 节点）共用同一套外壳，
+ * 状态栏对齐刘海「耳朵」的几何也只在这里维护一次。
+ */
+export const PhoneShell: React.FC<PhoneShellProps> = ({
+  platform,
+  navTitle,
+  className,
+  backHref,
+  moreHref,
+  centerTitle,
+  titleLogo,
+  children,
+  screenHTML,
+  onScreenClick,
+}) => {
+  const useHTML = screenHTML != null && children == null;
+  return (
+    <div className={`xmd-phone xmd-phone--${platform} ${className ?? ''}`} data-platform={platform}>
+      <div className="xmd-phone-bezel">
+        <div className="xmd-phone-notch" aria-hidden />
+        <div className="xmd-phone-frame">
+          <div className="xmd-phone-statusbar" aria-hidden>
+            <span className="xmd-sb-time">9:41</span>
+            <span className="xmd-sb-icons">
+              <span className="xmd-sb-battery-pct">100%</span>
+              <span className="xmd-sb-battery">
+                <span className="xmd-sb-battery-level" />
+              </span>
+            </span>
+          </div>
+          <div className={`xmd-phone-navbar${centerTitle ? ' is-center' : ''}`}>
+            {/* 首页（centerTitle）是纯品牌头，去掉左 ‹ / 右 ··· 装饰图标 */}
+            {!centerTitle &&
+              (backHref ? (
+                <a className="xmd-nav-back" href={backHref} aria-label="返回首页">
+                  ‹
+                </a>
+              ) : (
+                <span className="xmd-nav-back" aria-hidden>
+                  ‹
+                </span>
+              ))}
+            <span className={`xmd-nav-title${titleLogo ? ' xmd-nav-title--logo' : ''}`}>
+              {titleLogo ? (
+                <img className="xmd-nav-logo" src={titleLogo} alt="" aria-hidden />
+              ) : null}
+              {navTitle ?? PLATFORM_LABEL[platform]}
+            </span>
+            {!centerTitle &&
+              (moreHref ? (
+                <a className="xmd-nav-more" href={moreHref} aria-label="查看更多示例">
+                  ···
+                </a>
+              ) : (
+                <span className="xmd-nav-more" aria-hidden>
+                  ···
+                </span>
+              ))}
+          </div>
+          {useHTML ? (
+            <div
+              className="xmd-phone-screen"
+              onClick={onScreenClick}
+              dangerouslySetInnerHTML={{ __html: screenHTML as string }}
+            />
+          ) : (
+            <div className="xmd-phone-screen" onClick={onScreenClick}>
+              {children}
+            </div>
+          )}
+          <div className="xmd-phone-home-indicator" aria-hidden />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function renderMarkdown(
   markdown: string,
   platform: PreviewPlatform,
@@ -151,47 +250,13 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
   };
 
   return (
-    <div className={`xmd-phone xmd-phone--${platform} ${className ?? ''}`} data-platform={platform}>
-      <div className="xmd-phone-bezel">
-        <div className="xmd-phone-notch" aria-hidden />
-        <div className="xmd-phone-frame">
-          <div className="xmd-phone-statusbar" aria-hidden>
-            <span className="xmd-sb-time">9:41</span>
-            <span className="xmd-sb-icons">
-              <span className="xmd-sb-signal">
-                <i />
-                <i />
-                <i />
-                <i />
-              </span>
-              <svg className="xmd-sb-wifi" viewBox="0 0 16 12" focusable="false">
-                <path d="M2 4.6a8.5 8.5 0 0 1 12 0" />
-                <path d="M4.7 7.1a4.7 4.7 0 0 1 6.6 0" />
-                <path d="M7.1 9.6a1.3 1.3 0 0 1 1.8 0" />
-              </svg>
-              <span className="xmd-sb-battery">
-                <span className="xmd-sb-battery-level" />
-              </span>
-            </span>
-          </div>
-          <div className="xmd-phone-navbar">
-            <span className="xmd-nav-back" aria-hidden>
-              ‹
-            </span>
-            <span className="xmd-nav-title">{navTitle ?? PLATFORM_LABEL[platform]}</span>
-            <span className="xmd-nav-more" aria-hidden>
-              ···
-            </span>
-          </div>
-          <div
-            className="xmd-phone-screen"
-            onClick={handleCopyClick}
-            dangerouslySetInnerHTML={{ __html: innerHTML }}
-          />
-          <div className="xmd-phone-home-indicator" aria-hidden />
-        </div>
-      </div>
-    </div>
+    <PhoneShell
+      platform={platform}
+      navTitle={navTitle ?? PLATFORM_LABEL[platform]}
+      className={className}
+      screenHTML={innerHTML}
+      onScreenClick={handleCopyClick}
+    />
   );
 };
 

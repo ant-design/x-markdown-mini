@@ -161,6 +161,31 @@ function renderNode(node: MiniNode, key: React.Key, animateText: boolean): React
     return React.createElement(tag, elProps);
   }
 
+  // Tables: the MiniNode tree puts <tr> directly under <table> (valid for the
+  // mini-program renderer, but the browser/React expects a section element).
+  // Wrap each run of <tr> children in a <tbody> so React doesn't warn and
+  // auto-restructure the DOM (which would desync keys during streaming).
+  if (tag === 'table' && children && children.length > 0) {
+    const out: React.ReactNode[] = [];
+    let rows: React.ReactNode[] = [];
+    const flush = (key: string) => {
+      if (rows.length) {
+        out.push(React.createElement('tbody', { key }, ...rows));
+        rows = [];
+      }
+    };
+    children.forEach((child, i) => {
+      if ((child.name || '').toLowerCase() === 'tr') {
+        rows.push(renderNode(child, `tr-${i}`, animateText));
+      } else {
+        flush(`tb-${i}`);
+        out.push(renderNode(child, i, animateText));
+      }
+    });
+    flush('tb-last');
+    return React.createElement(tag, elProps, ...out);
+  }
+
   const childNodes = children?.map((child, i) => renderNode(child, i, animateText));
   if (childNodes && childNodes.length > 0) {
     return React.createElement(tag, elProps, ...childNodes);

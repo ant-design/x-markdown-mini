@@ -9,6 +9,7 @@ import {
 import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
 import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
 import { renderMiniNodes } from '../../utils/nodesToReact';
+import { PhoneShell } from '../PhonePreview';
 import { useDocPlatform } from '../useDocPlatform';
 import './index.less';
 
@@ -272,6 +273,16 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
     instanceRef.current?.reset();
   }, []);
 
+  // Locale-aware simulator nav: title "在线演示" + back→home + more→examples,
+  // resolved per locale (dumi appends the `-en` suffix to EN routes).
+  const [isEn, setIsEn] = useState(false);
+  useEffect(() => {
+    if (typeof window !== 'undefined') setIsEn(window.location.pathname.includes('-en'));
+  }, []);
+  const navTitle = isEn ? 'Playground' : '在线演示';
+  const backHref = isEn ? '/-en' : '/';
+  const moreHref = isEn ? '/docs/code-examples-en' : '/docs/code-examples';
+
   return (
     <div className="xmd-pg">
       <section className="xmd-pg-editor-wrap" aria-label="Markdown 输入">
@@ -427,41 +438,9 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
           ))}
         </div>
 
-        <div className={`xmd-phone xmd-phone--${platform}`} data-platform={platform}>
-          <div className="xmd-phone-bezel">
-            <div className="xmd-phone-notch" aria-hidden />
-            <div className="xmd-phone-frame">
-              <div className="xmd-phone-statusbar" aria-hidden>
-                <span className="xmd-sb-time">9:41</span>
-                <span className="xmd-sb-icons">
-                  <span className="xmd-sb-signal">
-                    <i />
-                    <i />
-                    <i />
-                    <i />
-                  </span>
-                  <svg className="xmd-sb-wifi" viewBox="0 0 16 12" focusable="false">
-                    <path d="M2 4.6a8.5 8.5 0 0 1 12 0" />
-                    <path d="M4.7 7.1a4.7 4.7 0 0 1 6.6 0" />
-                    <path d="M7.1 9.6a1.3 1.3 0 0 1 1.8 0" />
-                  </svg>
-                  <span className="xmd-sb-battery">
-                    <span className="xmd-sb-battery-level" />
-                  </span>
-                </span>
-              </div>
-              <div className="xmd-phone-navbar">
-                <span className="xmd-nav-back" aria-hidden>‹</span>
-                <span className="xmd-nav-title">{PLATFORM_LABEL[platform]}</span>
-                <span className="xmd-nav-more" aria-hidden>···</span>
-              </div>
-              <div className="xmd-phone-screen">
-                {reactNodes}
-              </div>
-              <div className="xmd-phone-home-indicator" aria-hidden />
-            </div>
-          </div>
-        </div>
+        <PhoneShell platform={platform} navTitle={navTitle} backHref={backHref} moreHref={moreHref}>
+          {reactNodes}
+        </PhoneShell>
 
         {issues.length > 0 && (
           <div className="xmd-pg-degrade">
