@@ -251,9 +251,9 @@ a.xmd-nav-more:hover {
   .md-codeblock {
     margin: 10px 0;
     overflow: hidden;
-    border: 1px solid #263244;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
-    background: #111827;
+    background: #fafafa;
   }
   .md-codeblock-bar {
     display: flex;
@@ -261,11 +261,11 @@ a.xmd-nav-more:hover {
     justify-content: space-between;
     min-height: 30px;
     padding: 0 6px 0 10px;
-    border-bottom: 1px solid #263244;
-    background: #172033;
+    border-bottom: 1px solid #f0f0f0;
+    background: #f6f8fa;
   }
   .md-codeblock-lang {
-    color: #93c5fd;
+    color: #737373;
     font-family: ui-monospace, Menlo, monospace;
     font-size: 10px;
     font-weight: 700;
@@ -320,7 +320,7 @@ a.xmd-nav-more:hover {
     color: #16a34a;
   }
   .md-codeblock-bar .md-copy-btn {
-    color: #93c5fd;
+    color: #737373;
   }
   .md-tableblock-bar .md-copy-btn {
     color: #737373;
@@ -328,8 +328,8 @@ a.xmd-nav-more:hover {
   .md-code-block {
     display: block;
     margin: 0;
-    background: #111827;
-    color: #dbeafe;
+    background: #fafafa;
+    color: #24292f;
     padding: 10px 12px;
     font-family: ui-monospace, Menlo, monospace;
     font-size: 12px;
@@ -338,9 +338,9 @@ a.xmd-nav-more:hover {
     border-radius: 0;
   }
   // Neutralize two leak sources on the inner <code> so the .md-code-block
-  // frame (#111827 bg + 10/12 padding) owns the look:
+  // frame (#fafafa bg + 10/12 padding) owns the look:
   //   1. dumi's global `.markdown pre`/`.markdown *:not(pre) code` rules paint
-  //      a light #fafafa/#f0f0f0 box + black text onto our injected code.
+  //      a #f0f0f0 box + their own text color onto our injected code.
   //   2. highlight.js themes set their own bg/padding on `code.hljs`.
   // Covers both highlighted (code.hljs) and plain (code) blocks.
   .md-code-block code,
@@ -349,43 +349,43 @@ a.xmd-nav-more:hover {
     display: block;
     background: transparent;
     padding: 0;
-    color: #dbeafe;
+    color: #24292f;
     font-size: inherit;
     border-radius: 0;
   }
 
-  // Self-contained dark palette tuned for the #111827 frame. Covers the full
-  // set of token classes highlight.js emits so no class falls back to a
-  // second theme.
+  // Self-contained light palette (GitHub-light flavored) tuned for the #fafafa
+  // frame. Covers the full set of token classes highlight.js emits so no class
+  // falls back to a second theme.
   .hljs-keyword,
   .hljs-type,
   .hljs-tag,
   .hljs-name,
   .hljs-selector-tag {
-    color: #f472b6; // pink — control flow / tags
+    color: #cf222e; // red — control flow / tags
   }
   .hljs-title,
   .hljs-title.function_,
   .hljs-title.class_,
   .hljs-section {
-    color: #93c5fd; // blue — declarations
+    color: #8250df; // purple — declarations
   }
   .hljs-built_in,
   .hljs-class .hljs-title {
-    color: #c4b5fd; // violet — built-ins
+    color: #0550ae; // blue — built-ins
   }
   .hljs-string,
   .hljs-regexp,
   .hljs-char.escape_,
   .hljs-meta .hljs-string {
-    color: #86efac; // green — strings
+    color: #116329; // green — strings
   }
   .hljs-number,
   .hljs-literal,
   .hljs-attr,
   .hljs-symbol,
   .hljs-bullet {
-    color: #67e8f9; // cyan — values
+    color: #0550ae; // blue — values
   }
   .hljs-variable,
   .hljs-template-variable,
@@ -394,27 +394,27 @@ a.xmd-nav-more:hover {
   .hljs-selector-attr,
   .hljs-selector-class,
   .hljs-selector-id {
-    color: #e9d5ff; // light violet — identifiers
+    color: #953800; // orange — identifiers
   }
   .hljs-operator,
   .hljs-punctuation,
   .hljs-subst {
-    color: #cbd5e1; // slate — operators / punctuation
+    color: #24292f; // ink — operators / punctuation
   }
   .hljs-meta,
   .hljs-doctag {
-    color: #fbbf24; // amber — annotations / decorators
+    color: #953800; // orange — annotations / decorators
   }
   .hljs-comment,
   .hljs-quote {
-    color: #94a3b8;
+    color: #6e7781;
     font-style: italic;
   }
   .hljs-deletion {
-    color: #fca5a5;
+    color: #82071e;
   }
   .hljs-addition {
-    color: #86efac;
+    color: #116329;
   }
   .hljs-emphasis {
     font-style: italic;
@@ -549,18 +549,13 @@ a.xmd-nav-more:hover {
 }
 
 .xmd-phone--alipay .xmd-nav-title::before {
-  content: '支';
+  content: '';
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  background: #171717;
-  color: #ffffff;
   width: 18px;
   height: 18px;
   border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
+  background: url('/brand/alipay-icon.png') center / cover no-repeat;
 }
 
 .xmd-phone--wechat .xmd-nav-title::before {
