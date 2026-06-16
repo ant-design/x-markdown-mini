@@ -61,29 +61,27 @@ function inlineStart(src: string): number | undefined {
 // --- Renderers ---
 
 function renderKatex(tex: string, displayMode: boolean, options: LatexOptions): MiniNode[] {
+  let html: string;
   try {
-    const html = katex.renderToString(tex, {
+    html = katex.renderToString(tex, {
       displayMode,
-      throwOnError: false,
       output: 'html',
       ...options.katexOptions,
+      // The plugin owns error handling: force KaTeX to throw on invalid input
+      // so we never emit its red `.katex-error` markup. This is intentionally
+      // set after the spread so a caller's `throwOnError: false` cannot re-enable
+      // the broken-formula output (common during streaming of partial formulas).
+      throwOnError: true,
     });
-    const nodes = htmlToMiniNodes(html, false);
-    const wrapper = displayMode ? 'div' : 'span';
-    const className = displayMode ? 'katex-display' : 'katex-inline';
-    return [{ name: wrapper, attrs: { class: className }, children: nodes }];
   } catch (err) {
-    if (options.onError) {
-      return options.onError(tex, err as Error);
-    }
-    return [
-      {
-        name: 'span',
-        attrs: { class: 'katex-error' },
-        children: [{ name: 'text', attrs: { value: (err as Error).message } }],
-      },
-    ];
+    // On a parse error don't render anything by default; `onError` can supply a
+    // custom fallback (e.g. show the raw source) if a caller wants one.
+    return options.onError ? options.onError(tex, err as Error) : [];
   }
+  const nodes = htmlToMiniNodes(html, false);
+  const wrapper = displayMode ? 'div' : 'span';
+  const className = displayMode ? 'katex-display' : 'katex-inline';
+  return [{ name: wrapper, attrs: { class: className }, children: nodes }];
 }
 
 export default function Latex(options: LatexOptions = {}): XMarkdownExtension {

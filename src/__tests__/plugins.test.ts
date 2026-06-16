@@ -137,6 +137,28 @@ describe('Latex — tokenizer', () => {
     const json = JSON.stringify(nodes);
     expect(json).toContain('katex-display');
   });
+
+  it('renders nothing when a formula fails to parse', async () => {
+    const { default: Latex } = await import('../plugins/Latex/index.js');
+    const md = new XMarkdownMini({ extensions: [Latex()] });
+    // \frac needs two arguments → KaTeX cannot parse it.
+    const nodes = md.renderNodes({ content: 'before $\\frac{1}$ after', platform: 'alipay' });
+    const json = JSON.stringify(nodes);
+    // No broken/red error markup and no katex node at all for the bad formula.
+    expect(json).not.toContain('katex');
+    // surrounding text is untouched
+    expect(json).toContain('before');
+    expect(json).toContain('after');
+  });
+
+  it('uses the onError fallback when a formula fails to parse', async () => {
+    const { default: Latex } = await import('../plugins/Latex/index.js');
+    const md = new XMarkdownMini({
+      extensions: [Latex({ onError: () => [{ name: 'text', attrs: { value: '⚠formula' } }] })],
+    });
+    const nodes = md.renderNodes({ content: '$\\frac{1}$', platform: 'alipay' });
+    expect(JSON.stringify(nodes)).toContain('⚠formula');
+  });
 });
 
 // ---------------------------------------------------------------------------
