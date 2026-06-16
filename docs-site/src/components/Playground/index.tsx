@@ -443,14 +443,14 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
           {reactNodes}
         </PhoneShell>
 
-        {issues.length > 0 && (
+        {/* {issues.length > 0 && (
           <div className="xmd-pg-degrade">
             <span className="xmd-pg-degrade-title">真机降级</span>
             {issues.map((it) => (
               <span key={it.kind} className="xmd-pg-degrade-chip">{it.label}</span>
             ))}
           </div>
-        )}
+        )} */}
       </section>
     </div>
   );
