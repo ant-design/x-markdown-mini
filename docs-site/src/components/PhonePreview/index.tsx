@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   XMarkdownMini,
   renderNodes,
@@ -66,6 +66,13 @@ export interface PhoneShellProps {
   centerTitle?: boolean;
   /** 标题前的图标图片地址；传入后用该 logo 取代默认的平台徽标（支/微）。 */
   titleLogo?: string;
+  /**
+   * LLM 流式期间开启「跟随到底部」：内容增长时自动滚到底部；用户一旦向上滚动就停住，
+   * 并在底部浮出「滚动到底部」按钮，点按后重新跟随。非流式（一次性渲染）保持从顶部展示。
+   */
+  autoScroll?: boolean;
+  /** 渲染在顶部导航栏右侧的额外控件（与标题同处一行），如首页的播放/暂停按钮。 */
+  navRight?: React.ReactNode;
 }
 
 /**
@@ -73,6 +80,10 @@ export interface PhoneShellProps {
  * PhonePreview（注入 HTML）、Playground 与首页自动播放（注入 React 节点）共用同一套外壳，
  * 状态栏对齐刘海「耳朵」的几何也只在这里维护一次。
  */
+const NEAR_BOTTOM_PX = 28;
+const isNearBottom = (el: HTMLDivElement) =>
+  el.scrollHeight - el.scrollTop - el.clientHeight <= NEAR_BOTTOM_PX;
+
 export const PhoneShell: React.FC<PhoneShellProps> = ({
   platform,
   navTitle,
@@ -84,8 +95,60 @@ export const PhoneShell: React.FC<PhoneShellProps> = ({
   children,
   screenHTML,
   onScreenClick,
+  autoScroll,
+  navRight,
 }) => {
   const useHTML = screenHTML != null && children == null;
+
+  // ---- streaming auto-scroll ("跟随到底部" / jump-to-bottom) ----
+  const screenRef = useRef<HTMLDivElement>(null);
+  // pinned = currently following the streaming tail. Kept in a ref so the
+  // MutationObserver callback always reads the latest value (no stale closure).
+  const pinnedRef = useRef(true);
+  const [showJump, setShowJump] = useState(false);
+
+  const scrollToBottom = useCallback(() => {
+    const el = screenRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+    pinnedRef.current = true;
+    setShowJump(false);
+  }, []);
+
+  // While streaming, content arrives as DOM mutations (React children re-render
+  // or injected HTML). Follow the tail only while pinned; otherwise surface the
+  // jump button so the user knows there's newer content below.
+  useEffect(() => {
+    if (!autoScroll) {
+      pinnedRef.current = true;
+      setShowJump(false);
+      return;
+    }
+    const el = screenRef.current;
+    if (!el) return;
+    pinnedRef.current = true;
+    setShowJump(false);
+    el.scrollTop = el.scrollHeight;
+
+    const obs = new MutationObserver(() => {
+      if (pinnedRef.current) el.scrollTop = el.scrollHeight;
+      else if (!isNearBottom(el)) setShowJump(true);
+    });
+    obs.observe(el, { childList: true, subtree: true, characterData: true });
+    return () => obs.disconnect();
+  }, [autoScroll]);
+
+  // User scroll decides whether we keep following. Our own programmatic scroll
+  // lands at the bottom, so it just re-affirms pinned — no source detection needed.
+  const onScroll = useCallback(() => {
+    if (!autoScroll) return;
+    const el = screenRef.current;
+    if (!el) return;
+    const near = isNearBottom(el);
+    pinnedRef.current = near;
+    setShowJump(!near);
+  }, [autoScroll]);
+
   return (
     <div className={`xmd-phone xmd-phone--${platform} ${className ?? ''}`} data-platform={platform}>
       <div className="xmd-phone-bezel">
@@ -128,18 +191,48 @@ export const PhoneShell: React.FC<PhoneShellProps> = ({
                   ···
                 </span>
               ))}
+            {navRight}
           </div>
           {useHTML ? (
             <div
+              ref={screenRef}
               className="xmd-phone-screen"
               onClick={onScreenClick}
+              onScroll={onScroll}
               dangerouslySetInnerHTML={{ __html: screenHTML as string }}
             />
           ) : (
-            <div className="xmd-phone-screen" onClick={onScreenClick}>
+            <div
+              ref={screenRef}
+              className="xmd-phone-screen"
+              onClick={onScreenClick}
+              onScroll={onScroll}
+            >
               {children}
             </div>
           )}
+          {autoScroll && showJump ? (
+            <button
+              type="button"
+              className="xmd-phone-jump"
+              aria-label="滚动到底部"
+              onClick={scrollToBottom}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 5v14M19 12l-7 7-7-7" />
+              </svg>
+            </button>
+          ) : null}
           <div className="xmd-phone-home-indicator" aria-hidden />
         </div>
       </div>

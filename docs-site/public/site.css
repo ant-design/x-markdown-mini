@@ -420,7 +420,7 @@ a.dumi-default-icon:hover,
 .dumi-default-content[data-no-sidebar] {
   max-width: 1080px;
   margin: 0 auto;
-  padding: 80px 24px 56px;
+  padding: 40px 24px 56px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -3092,7 +3092,7 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
   grid-template-columns: minmax(0, 1fr) minmax(300px, 0.74fr);
   gap: clamp(40px, 6vw, 88px);
   min-height: min(720px, calc(100vh - 98px));
-  padding: clamp(26px, 5vw, 72px) 0 64px;
+  padding: clamp(26px, 5vw, 72px) 0 80px;
   align-items: center;
 }
 

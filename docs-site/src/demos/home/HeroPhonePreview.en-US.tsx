@@ -57,6 +57,9 @@ export default function HeroPhonePreviewEn() {
 
   const [nodes, setNodes] = useState<MiniNode[]>(staticNodes);
   const [animating, setAnimating] = useState(false);
+  // Play/pause control over the auto-loop: paused freezes the full static render,
+  // play restarts the typewriter from the top.
+  const [paused, setPaused] = useState(false);
   const runId = useRef(0);
   const loopTimer = useRef<ReturnType<typeof setTimeout>>();
   const startTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -101,7 +104,9 @@ export default function HeroPhonePreviewEn() {
   }, [platform, getInstance, staticNodes]);
 
   useEffect(() => {
-    if (prefersReducedMotion()) {
+    // reduced-motion or user-paused: keep the full static render, no animation.
+    // (On pause, the prior run's cleanup already stopped the timers + instance.)
+    if (prefersReducedMotion() || paused) {
       setNodes(staticNodes);
       setAnimating(false);
       return;
@@ -115,9 +120,31 @@ export default function HeroPhonePreviewEn() {
       if (loopTimer.current) clearTimeout(loopTimer.current);
       instanceRef.current?.reset();
     };
-  }, [platform, play, staticNodes]);
+  }, [platform, play, staticNodes, paused]);
 
   const reactNodes = useMemo(() => renderMiniNodes(nodes, animating), [nodes, animating]);
+
+  const playButton = (
+    <button
+      type="button"
+      className="xmd-hero-play"
+      aria-pressed={!paused}
+      aria-label={paused ? 'Play streaming demo' : 'Pause streaming demo'}
+      title={paused ? 'Play' : 'Pause'}
+      onClick={() => setPaused((p) => !p)}
+    >
+      {paused ? (
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <rect x="6" y="5" width="4" height="14" rx="1" />
+          <rect x="14" y="5" width="4" height="14" rx="1" />
+        </svg>
+      )}
+    </button>
+  );
 
   return (
     <figure className="xmd-hero-media xmd-hero-phone-preview">
@@ -127,6 +154,7 @@ export default function HeroPhonePreviewEn() {
         titleLogo="/brand/x-markdown-mark.png"
         centerTitle
         className="xmd-hero-phone"
+        navRight={playButton}
       >
         {reactNodes}
       </PhoneShell>

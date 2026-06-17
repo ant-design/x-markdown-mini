@@ -47,6 +47,7 @@
 }
 
 .xmd-phone-frame {
+  position: relative;
   background: var(--phone-bg);
   border-radius: var(--phone-radius);
   overflow: hidden;
@@ -54,6 +55,62 @@
   display: flex;
   flex-direction: column;
   border: 0;
+}
+
+// Streaming "jump to bottom" affordance: floats above the screen, clears the
+// home indicator, only shown while autoScroll is on and the user scrolled up.
+.xmd-phone-jump {
+  position: absolute;
+  left: 50%;
+  bottom: 52px;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: #171717;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #e5e5e5;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(23, 23, 23, 0.14);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: xmd-phone-jump-in 0.16s ease both;
+  transition: background 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+
+  &:hover {
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(23, 23, 23, 0.18);
+    transform: translateX(-50%) translateY(-1px);
+  }
+
+  &:active {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  svg {
+    display: block;
+  }
+}
+
+@keyframes xmd-phone-jump-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xmd-phone-jump {
+    animation: none;
+    transition: none;
+  }
 }
 
 // Status bar sits in the notch "ears": content vertically centered in the band
@@ -295,6 +352,21 @@ a.xmd-nav-more:hover {
   .md-tableblock .md-table {
     margin: 0;
     border: 0;
+  }
+  // Inside the card, cells draw only inner grid lines (right + bottom). The
+  // .md-tableblock border and the bar's border-bottom form the outer frame, so
+  // the cells' own outer edges are dropped to avoid a doubled border line.
+  .md-tableblock .md-table th,
+  .md-tableblock .md-table td {
+    border-width: 0 1px 1px 0;
+  }
+  .md-tableblock .md-table th:last-child,
+  .md-tableblock .md-table td:last-child {
+    border-right-width: 0;
+  }
+  .md-tableblock .md-table tr:last-child th,
+  .md-tableblock .md-table tr:last-child td {
+    border-bottom-width: 0;
   }
   // Header copy button (web preview): inherits color from its bar.
   .md-copy-btn {

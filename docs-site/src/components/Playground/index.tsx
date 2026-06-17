@@ -439,7 +439,13 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
           ))}
         </div>
 
-        <PhoneShell platform={platform} navTitle={navTitle} backHref={backHref} moreHref={moreHref}>
+        <PhoneShell
+          platform={platform}
+          navTitle={navTitle}
+          backHref={backHref}
+          moreHref={moreHref}
+          autoScroll={isStreaming}
+        >
           {reactNodes}
         </PhoneShell>
 

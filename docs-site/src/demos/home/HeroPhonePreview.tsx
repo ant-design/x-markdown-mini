@@ -57,6 +57,8 @@ export default function HeroPhonePreview() {
 
   const [nodes, setNodes] = useState<MiniNode[]>(staticNodes);
   const [animating, setAnimating] = useState(false);
+  // 用户用播放/暂停按钮控制自动循环：暂停时定格为完整静态渲染，播放时重头逐字播放。
+  const [paused, setPaused] = useState(false);
   const runId = useRef(0);
   const loopTimer = useRef<ReturnType<typeof setTimeout>>();
   const startTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -101,8 +103,9 @@ export default function HeroPhonePreview() {
   }, [platform, getInstance, staticNodes]);
 
   useEffect(() => {
-    // reduced-motion：保持静态完整渲染，不播放动画。
-    if (prefersReducedMotion()) {
+    // reduced-motion 或用户暂停：保持静态完整渲染，不播放动画。
+    // （切到暂停时，上一轮的 cleanup 已停掉计时器并 reset 了流式实例。）
+    if (prefersReducedMotion() || paused) {
       setNodes(staticNodes);
       setAnimating(false);
       return;
@@ -117,9 +120,31 @@ export default function HeroPhonePreview() {
       if (loopTimer.current) clearTimeout(loopTimer.current);
       instanceRef.current?.reset();
     };
-  }, [platform, play, staticNodes]);
+  }, [platform, play, staticNodes, paused]);
 
   const reactNodes = useMemo(() => renderMiniNodes(nodes, animating), [nodes, animating]);
+
+  const playButton = (
+    <button
+      type="button"
+      className="xmd-hero-play"
+      aria-pressed={!paused}
+      aria-label={paused ? '播放流式演示' : '暂停流式演示'}
+      title={paused ? '播放' : '暂停'}
+      onClick={() => setPaused((p) => !p)}
+    >
+      {paused ? (
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <rect x="6" y="5" width="4" height="14" rx="1" />
+          <rect x="14" y="5" width="4" height="14" rx="1" />
+        </svg>
+      )}
+    </button>
+  );
 
   return (
     <figure className="xmd-hero-media xmd-hero-phone-preview">
@@ -129,6 +154,7 @@ export default function HeroPhonePreview() {
         titleLogo="/brand/x-markdown-mark.png"
         centerTitle
         className="xmd-hero-phone"
+        navRight={playButton}
       >
         {reactNodes}
       </PhoneShell>
