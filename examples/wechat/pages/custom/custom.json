@@ -1,7 +1,7 @@
 {
   "navigationBarTitleText": "自定义组件 · WeChat",
   "usingComponents": {
-    "markdown": "../../dist/components/Markdown/index",
+    "markdown": "@ant-design/x-markdown-mini/components/Markdown/index",
     "custom-renderer": "../../components/custom-renderer/index"
   }
 }

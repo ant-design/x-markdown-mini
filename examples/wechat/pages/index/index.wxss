@@ -1,5 +1,5 @@
-@import "../../dist/plugins/CodeHighlight/style.wxss";
-@import "../../dist/plugins/Latex/style.wxss";
+@import "@ant-design/x-markdown-mini/plugins/CodeHighlight/style.wxss";
+@import "@ant-design/x-markdown-mini/plugins/Latex/style.wxss";
 
 .page {
   display: flex;

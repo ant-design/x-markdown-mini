@@ -1,8 +1,8 @@
 // 支付宝端对话 Agent：用 setTimeout 模拟模型流式返回，渲染 Markdown 回复。
 const { streamChat } = require('./llm.js');
-const { Footnote } = require('../../dist/index.js');
-const CodeHighlight = require('../../dist/plugins/CodeHighlight/index.js').default;
-const Latex = require('../../dist/plugins/Latex/index.js').default;
+const { Footnote } = require('@ant-design/x-markdown-mini/dist/index.js');
+const CodeHighlight = require('@ant-design/x-markdown-mini/dist/plugins/CodeHighlight/index.js').default;
+const Latex = require('@ant-design/x-markdown-mini/dist/plugins/Latex/index.js').default;
 
 const markdownExtensions = [
   Footnote(),

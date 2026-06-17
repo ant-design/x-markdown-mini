@@ -2,9 +2,9 @@
   "component": true,
   "styleIsolation": "shared",
   "usingComponents": {
-    "mini-node-renderer": "../../dist/components/MiniNodeRenderer/index"
+    "mini-node-renderer": "@ant-design/x-markdown-mini/components/MiniNodeRenderer/index"
   },
   "componentGenerics": {
-    "custom-slot": { "default": "../../dist/components/MiniNodeRenderer/index" }
+    "custom-slot": { "default": "@ant-design/x-markdown-mini/components/MiniNodeRenderer/index" }
   }
 }

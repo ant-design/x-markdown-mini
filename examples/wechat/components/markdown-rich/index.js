@@ -1,10 +1,10 @@
 // 示例本地包装组件：在组件内部 require 并 bake 插件（代码高亮 + KaTeX）。
 // 插件返回的扩展对象带有 tokenizer / miniRenderer 函数，mini-program 的
 // 属性绑定 / setData 会剥离函数，所以不能通过 <markdown extensions="{{...}}"> 传入。
-const { XMarkdownMini, Footnote } = require('../../dist/index.js');
-const CodeHighlight = require('../../dist/plugins/CodeHighlight/index.js').default;
-const Latex = require('../../dist/plugins/Latex/index.js').default;
-const { flattenInlineNodes } = require('../../dist/shared/flattenInline.js');
+const { XMarkdownMini, Footnote } = require('@ant-design/x-markdown-mini/index.js');
+const CodeHighlight = require('@ant-design/x-markdown-mini/plugins/CodeHighlight/index.js').default;
+const Latex = require('@ant-design/x-markdown-mini/plugins/Latex/index.js').default;
+const { flattenInlineNodes } = require('@ant-design/x-markdown-mini/shared/flattenInline.js');
 
 // 打字机 + 语义分块节奏在组件内组装（在组件里 bake，避免嵌套配置/正则跨 setData 被裁剪）。
 // 对齐 markdown-x-mini：

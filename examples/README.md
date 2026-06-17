@@ -1,9 +1,26 @@
 # examples · 对话 Agent（真实 LLM）
 
 `examples/wechat` 与 `examples/alipay` 的首页（`pages/index`）已从「Markdown 渲染演示」改造为
-**可对话的 Agent**：调用真实模型网关，流式渲染回复，复用本仓库 `dist/` 里的 `markdown` 组件。
+**可对话的 Agent**：调用真实模型网关，流式渲染回复。
 
 > `custom` / `footnote` 两个示例页保持不变，仍是组件能力演示。
+
+## 依赖接入：真实 npm 包
+
+两个示例都通过 `npm i @ant-design/x-markdown-mini` 真实消费**已发布的 npm 包**，不再内置本仓库的
+`dist/` 拷贝。两端的引用路径不同（这是 IDE 的 npm 解析差异，不是可选项）：
+
+| 平台 | 解析方式 | 引用前缀 | 备注 |
+| --- | --- | --- | --- |
+| 支付宝 | 直接读 `node_modules` 包根，**不认 `package.json#exports`** | `@ant-design/x-markdown-mini/dist/…` | 子路径必须带 `dist/`；`mini.project.json` 需 `compileOptions.transpile: {}`（dist 是 ES2018，含对象展开 / class） |
+| 微信 | `package.json#miniprogram` + 开发者工具「构建 npm」→ 落到 `miniprogram_npm/` | `@ant-design/x-markdown-mini/…` | 无 `dist/` 段；改完依赖后在工具里重新「构建 npm」 |
+
+首次打开前：
+
+```bash
+cd examples/alipay && npm install   # 之后在支付宝开发者工具直接打开
+cd examples/wechat && npm install   # 之后在微信开发者工具里「工具 → 构建 npm」
+```
 
 ## 模型接入
 

@@ -2,6 +2,7 @@
   "format":2,
   "compileOptions": {
     "less": true,
-    "typescript": true
+    "typescript": true,
+    "transpile": {}
   }
 }
