@@ -54,7 +54,11 @@ export default defineConfig([
     entry: { index: 'src/index.ts' },
     outDir: 'dist',
     format: ['cjs', 'esm'],
-    dts: true,
+    // resolve: ['marked'] 把 marked 的 Token/Tokens/MarkedExtension 类型「内联」进
+    // 产出的 .d.ts，而不是留下 `import ... from 'marked'`。这样 marked 才能从
+    // dependencies 降级为 devDependency（它已被 noExternal 打包进 index.js，不是
+    // 运行时外部依赖），消费方零外部依赖、微信 构建npm 不会再去编译独立的 marked。
+    dts: { resolve: ['marked'] },
     clean: false,
     sourcemap: false,
     splitting: false,
@@ -117,7 +121,8 @@ export default defineConfig([
     },
     outDir: 'dist',
     format: ['cjs', 'esm'],
-    dts: true,
+    // 同主库：插件类型经主库间接引用 marked，内联以免 .d.ts 漏出 `from 'marked'`。
+    dts: { resolve: ['marked'] },
     clean: false,
     sourcemap: false,
     splitting: false,
