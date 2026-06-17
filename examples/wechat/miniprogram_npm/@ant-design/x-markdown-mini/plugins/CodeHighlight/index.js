@@ -1581,6 +1581,10 @@ var import_core = __toESM(require_core(), 1);
 var core_default = import_core.default;
 
 // src/plugins/shared/htmlToMiniNodes.ts
+var CLOSE_TAG_RE = /<\/(\w+)\s*>/y;
+var OPEN_TAG_RE = /<(\w+)((?:\s+[^>]*?)?)(\/?)>/y;
+var KATEX_CLOSE_SPAN_RE = /<\/span\s*>/iy;
+var KATEX_OPEN_SPAN_RE = /<span[\s>]/iy;
 function htmlToMiniNodes(html, escapeText) {
   var _a;
   const root = { name: "root", children: [] };
@@ -1618,7 +1622,8 @@ function htmlToMiniNodes(html, escapeText) {
   }
   while (i < html.length) {
     if (html[i] === "<") {
-      const closeMatch = /^<\/(\w+)\s*>/.exec(html.slice(i));
+      CLOSE_TAG_RE.lastIndex = i;
+      const closeMatch = CLOSE_TAG_RE.exec(html);
       if (closeMatch) {
         const closeTag = closeMatch[1].toLowerCase();
         for (let j = stack.length - 1; j > 0; j--) {
@@ -1630,7 +1635,8 @@ function htmlToMiniNodes(html, escapeText) {
         i += closeMatch[0].length;
         continue;
       }
-      const tagMatch = /^<(\w+)((?:\s+[^>]*?)?)(\/?)>/.exec(html.slice(i));
+      OPEN_TAG_RE.lastIndex = i;
+      const tagMatch = OPEN_TAG_RE.exec(html);
       if (tagMatch) {
         const rawTag = tagMatch[1].toLowerCase();
         const attrStr = tagMatch[2];
@@ -1641,8 +1647,10 @@ function htmlToMiniNodes(html, escapeText) {
           while (si < html.length && depth > 0) {
             const next = html.indexOf("<", si);
             if (next === -1) break;
-            const csm = /^<\/span\s*>/i.exec(html.slice(next));
-            const osm = /^<span[\s>]/i.exec(html.slice(next));
+            KATEX_CLOSE_SPAN_RE.lastIndex = next;
+            const csm = KATEX_CLOSE_SPAN_RE.exec(html);
+            KATEX_OPEN_SPAN_RE.lastIndex = next;
+            const osm = KATEX_OPEN_SPAN_RE.exec(html);
             if (csm) {
               depth--;
               si = next + csm[0].length;
@@ -3218,7 +3226,7 @@ function typescript(hljs) {
 // node_modules/highlight.js/es/languages/python.js
 function python(hljs) {
   const regex = hljs.regex;
-  const IDENT_RE3 = /[\p{XID_Start}_]\p{XID_Continue}*/u;
+  const IDENT_RE3 = new RegExp("[\\p{XID_Start}_]\\p{XID_Continue}*", "u");
   const RESERVED_WORDS = [
     "and",
     "as",

@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "description": "WeChat mini-program Agent demo for x-markdown-mini.",
+  "scripts": {
+    "postinstall": "node scripts/strip-bundled-deps.mjs"
+  },
   "dependencies": {
-    "@ant-design/x-markdown-mini": "0.1.0-beta.0"
+    "@ant-design/x-markdown-mini": "0.1.0-beta.1"
   }
 }

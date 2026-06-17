@@ -5,7 +5,18 @@
   animation-duration: var(--md-animation-duration, 300ms);
 }
 
+/* 纯透明度淡入：不做 translateY 位移，避免流式逐字重渲染时块体上下抖动。 */
 @keyframes md-block-appear {
-  0%   { opacity: 0; transform: translateY(4rpx); }
-  100% { opacity: 1; transform: translateY(0); }
+  from { opacity: 0.3; }
+  to   { opacity: 1; }
+}
+
+/* 流式逐字淡入：每个新字符从透明渐显，已显示的字符（按下标复用）不会重播。 */
+.md-anim-char {
+  opacity: 0;
+  animation: md-char-in 360ms ease-out forwards;
+}
+@keyframes md-char-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }

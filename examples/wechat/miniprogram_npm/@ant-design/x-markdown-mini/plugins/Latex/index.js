@@ -1,8 +1,25 @@
 "use strict";
 var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    }
+  return a;
+};
+var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -14523,6 +14540,10 @@ var katex = {
 };
 
 // src/plugins/shared/htmlToMiniNodes.ts
+var CLOSE_TAG_RE = /<\/(\w+)\s*>/y;
+var OPEN_TAG_RE = /<(\w+)((?:\s+[^>]*?)?)(\/?)>/y;
+var KATEX_CLOSE_SPAN_RE = /<\/span\s*>/iy;
+var KATEX_OPEN_SPAN_RE = /<span[\s>]/iy;
 function htmlToMiniNodes(html, escapeText) {
   var _a;
   const root = { name: "root", children: [] };
@@ -14560,7 +14581,8 @@ function htmlToMiniNodes(html, escapeText) {
   }
   while (i < html.length) {
     if (html[i] === "<") {
-      const closeMatch = /^<\/(\w+)\s*>/.exec(html.slice(i));
+      CLOSE_TAG_RE.lastIndex = i;
+      const closeMatch = CLOSE_TAG_RE.exec(html);
       if (closeMatch) {
         const closeTag = closeMatch[1].toLowerCase();
         for (let j = stack.length - 1; j > 0; j--) {
@@ -14572,7 +14594,8 @@ function htmlToMiniNodes(html, escapeText) {
         i += closeMatch[0].length;
         continue;
       }
-      const tagMatch = /^<(\w+)((?:\s+[^>]*?)?)(\/?)>/.exec(html.slice(i));
+      OPEN_TAG_RE.lastIndex = i;
+      const tagMatch = OPEN_TAG_RE.exec(html);
       if (tagMatch) {
         const rawTag = tagMatch[1].toLowerCase();
         const attrStr = tagMatch[2];
@@ -14583,8 +14606,10 @@ function htmlToMiniNodes(html, escapeText) {
           while (si < html.length && depth > 0) {
             const next = html.indexOf("<", si);
             if (next === -1) break;
-            const csm = /^<\/span\s*>/i.exec(html.slice(next));
-            const osm = /^<span[\s>]/i.exec(html.slice(next));
+            KATEX_CLOSE_SPAN_RE.lastIndex = next;
+            const csm = KATEX_CLOSE_SPAN_RE.exec(html);
+            KATEX_OPEN_SPAN_RE.lastIndex = next;
+            const osm = KATEX_OPEN_SPAN_RE.exec(html);
             if (csm) {
               depth--;
               si = next + csm[0].length;
@@ -14683,29 +14708,25 @@ function inlineStart(src) {
   return void 0;
 }
 function renderKatex(tex, displayMode, options) {
+  let html;
   try {
-    const html = katex.renderToString(tex, {
+    html = katex.renderToString(tex, __spreadProps(__spreadValues({
       displayMode,
-      throwOnError: false,
-      output: "html",
-      ...options.katexOptions
-    });
-    const nodes = htmlToMiniNodes(html, false);
-    const wrapper = displayMode ? "div" : "span";
-    const className = displayMode ? "katex-display" : "katex-inline";
-    return [{ name: wrapper, attrs: { class: className }, children: nodes }];
+      output: "html"
+    }, options.katexOptions), {
+      // The plugin owns error handling: force KaTeX to throw on invalid input
+      // so we never emit its red `.katex-error` markup. This is intentionally
+      // set after the spread so a caller's `throwOnError: false` cannot re-enable
+      // the broken-formula output (common during streaming of partial formulas).
+      throwOnError: true
+    }));
   } catch (err) {
-    if (options.onError) {
-      return options.onError(tex, err);
-    }
-    return [
-      {
-        name: "span",
-        attrs: { class: "katex-error" },
-        children: [{ name: "text", attrs: { value: err.message } }]
-      }
-    ];
+    return options.onError ? options.onError(tex, err) : [];
   }
+  const nodes = htmlToMiniNodes(html, false);
+  const wrapper = displayMode ? "div" : "span";
+  const className = displayMode ? "katex-display" : "katex-inline";
+  return [{ name: wrapper, attrs: { class: className }, children: nodes }];
 }
 function Latex(options = {}) {
   return {

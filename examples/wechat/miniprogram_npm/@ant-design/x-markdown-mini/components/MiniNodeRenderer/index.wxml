@@ -1,9 +1,21 @@
 <wxs src="./index.wxs" module="u" />
 
 <block wx:for="{{nodes}}" wx:for-item="node" wx:for-index="i" wx:key="i">
-  <!-- text leaf -->
+  <!-- text leaf: 流式时逐字淡入（每字一个 <text>，按下标 key 复用，只有新字触发动画）；
+       非流式时整段渲染为单个 <text>。 -->
   <text
-    wx:if="{{u.isText(node.name)}}"
+    wx:if="{{u.isText(node.name) && animation}}"
+    class="{{u.classOf(node)}}"
+    selectable="{{selectable}}"
+  ><text
+      wx:for="{{u.charsOf(node)}}"
+      wx:for-item="ch"
+      wx:for-index="ci"
+      wx:key="ci"
+      class="md-anim-char"
+    >{{ch}}</text></text>
+  <text
+    wx:elif="{{u.isText(node.name)}}"
     class="{{u.classOf(node)}}"
     selectable="{{selectable}}"
   >{{u.valueOf(node)}}</text>
@@ -25,26 +37,91 @@
     catch:tap="_tap"
   />
 
-  <!-- pre: scrollable code container -->
-  <scroll-view
+  <!-- pre: code block with language label + copy toolbar, scrollable body -->
+  <view
     wx:elif="{{u.isPre(node.name)}}"
-    scroll-x
-    class="{{u.classOf(node)}}"
-    style="{{u.styleOf(node)}}"
-    data-data="{{node}}"
-    catch:tap="_tap"
+    class="md-codeblock {{node.animate ? 'md-animate-block' : ''}}"
   >
-    <mini-node-renderer
-      wx:if="{{node.children}}"
-      generic:custom-slot="custom-slot"
-      nodes="{{node.children}}"
-      selectable="{{selectable}}"
-      animation="{{false}}"
-      slotComponents="{{slotComponents}}"
-      bind:tap="_tap"
-      bind:appear="_appear"
-    />
-  </scroll-view>
+    <view wx:if="{{node.header}}" class="md-codeblock-bar">
+      <block wx:for="{{node.header}}" wx:for-item="h" wx:for-index="hi" wx:key="hi">
+        <text wx:if="{{u.isText(h.name)}}" class="{{u.classOf(h)}}">{{u.valueOf(h)}}</text>
+        <image
+          wx:elif="{{u.isCopy(h.name)}}"
+          class="{{u.classOf(h) || 'md-copy-icon'}}"
+          src="https://mdn.alipayobjects.com/huamei_y8xg5f/afts/img/JXzqSoHDzm4AAAAAHpAAAAgADuJhAQFr/original"
+          data-copy="{{u.copyOf(h)}}"
+          catch:tap="_copy"
+        />
+        <view wx:else class="{{u.classOf(h)}}" style="{{u.styleOf(h)}}">
+          <mini-node-renderer
+            wx:if="{{h.children}}"
+            generic:custom-slot="custom-slot"
+            nodes="{{h.children}}"
+            selectable="{{selectable}}"
+            animation="{{false}}"
+            slotComponents="{{slotComponents}}"
+            bind:tap="_tap"
+          />
+        </view>
+      </block>
+    </view>
+    <scroll-view scroll-x class="md-code-block">
+      <mini-node-renderer
+        wx:if="{{node.children}}"
+        generic:custom-slot="custom-slot"
+        nodes="{{node.children}}"
+        selectable="{{selectable}}"
+        animation="{{false}}"
+        slotComponents="{{slotComponents}}"
+        bind:tap="_tap"
+        bind:appear="_appear"
+      />
+    </scroll-view>
+  </view>
+
+  <!-- table: caption + copy toolbar card, horizontal-scroll CSS table (columns kept aligned) -->
+  <view
+    wx:elif="{{u.isTable(node.name)}}"
+    class="md-tableblock {{node.animate ? 'md-animate-block' : ''}}"
+  >
+    <view wx:if="{{node.header}}" class="md-tableblock-bar">
+      <block wx:for="{{node.header}}" wx:for-item="h" wx:for-index="hi" wx:key="hi">
+        <text wx:if="{{u.isText(h.name)}}" class="{{u.classOf(h)}}">{{u.valueOf(h)}}</text>
+        <image
+          wx:elif="{{u.isCopy(h.name)}}"
+          class="{{u.classOf(h) || 'md-copy-icon'}}"
+          src="https://mdn.alipayobjects.com/huamei_y8xg5f/afts/img/JXzqSoHDzm4AAAAAHpAAAAgADuJhAQFr/original"
+          data-copy="{{u.copyOf(h)}}"
+          catch:tap="_copy"
+        />
+        <view wx:else class="{{u.classOf(h)}}" style="{{u.styleOf(h)}}">
+          <mini-node-renderer
+            wx:if="{{h.children}}"
+            generic:custom-slot="custom-slot"
+            nodes="{{h.children}}"
+            selectable="{{selectable}}"
+            animation="{{false}}"
+            slotComponents="{{slotComponents}}"
+            bind:tap="_tap"
+          />
+        </view>
+      </block>
+    </view>
+    <scroll-view scroll-x class="md-table-scroll">
+      <view class="md-table">
+        <mini-node-renderer
+          wx:if="{{node.children}}"
+          generic:custom-slot="custom-slot"
+          nodes="{{node.children}}"
+          selectable="{{selectable}}"
+          animation="{{false}}"
+          slotComponents="{{slotComponents}}"
+          bind:tap="_tap"
+          bind:appear="_appear"
+        />
+      </view>
+    </scroll-view>
+  </view>
 
   <!-- anchor: kept interactive, children are already flattened text runs -->
   <text
@@ -66,7 +143,7 @@
 
   <!-- inline tag rendered as <text>: children are flat text runs -->
   <text
-    wx:elif="{{u.isInline(node.name)}}"
+    wx:elif="{{u.isInline(node.name) && !u.isRich(node)}}"
     class="{{u.classOf(node)}}"
     style="{{u.styleOf(node)}}"
     selectable="{{selectable}}"

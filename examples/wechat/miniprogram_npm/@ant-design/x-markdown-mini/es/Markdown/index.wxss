@@ -45,11 +45,47 @@
 
 .md-code-block {
   display: block;
-  margin: 12rpx 0;
   padding: 16rpx;
   background: #f6f8fa;
-  border-radius: 8rpx;
   overflow-x: auto;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 26rpx;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+/* code & table cards share a captioned header bar with an icon copy button */
+.md-codeblock,
+.md-tableblock {
+  margin: 16rpx 0;
+  border: 2rpx solid #eceef1;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+.md-codeblock-bar,
+.md-tableblock-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64rpx;
+  padding: 0 24rpx;
+  background: #eceef2;
+  font-size: 24rpx;
+  color: #4e5969;
+}
+.md-codeblock-lang {
+  text-transform: uppercase;
+  letter-spacing: 1rpx;
+  font-weight: 600;
+  color: #1d2129;
+}
+.md-tableblock-title {
+  font-weight: 600;
+  color: #1d2129;
+}
+.md-copy-icon {
+  width: 32rpx;
+  height: 32rpx;
 }
 
 .md-code {
@@ -78,6 +114,8 @@
 .md-img {
   display: block;
   max-width: 100%;
+  margin: 16rpx 0;
+  border-radius: 12rpx;
 }
 
 .md-hr {
@@ -87,17 +125,37 @@
   margin: 16rpx 0;
 }
 
-.md-table {
+/* table body scrolls horizontally inside the .md-tableblock card */
+.md-table-scroll {
   display: block;
   width: 100%;
-  margin: 12rpx 0;
-  border-collapse: collapse;
+  overflow: hidden;
+  white-space: nowrap;
 }
+.md-table {
+  display: table;
+  table-layout: auto;
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 26rpx;
+}
+.md-tr { display: table-row; }
 .md-th, .md-td {
   display: table-cell;
-  padding: 8rpx 12rpx;
-  border: 1rpx solid #e5e5e5;
+  padding: 12rpx 20rpx;
+  max-width: 480rpx;
+  border-right: 2rpx solid #e5e5e5;
+  border-bottom: 2rpx solid #e5e5e5;
+  text-align: left;
+  vertical-align: top;
+  word-break: break-word;
+  white-space: normal;
 }
 .md-th { background: #fafafa; font-weight: 600; }
+.md-tr .md-th:last-child,
+.md-tr .md-td:last-child { border-right: none; }
+.md-table .md-tr:last-child .md-td { border-bottom: none; }
 
 .md-html { display: block; }

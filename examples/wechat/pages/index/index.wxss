@@ -1,5 +1,6 @@
-@import "@ant-design/x-markdown-mini/plugins/CodeHighlight/style.wxss";
-@import "@ant-design/x-markdown-mini/plugins/Latex/style.wxss";
+/* 微信 WXSS @import 只认相对路径；../../ 从 pages/index 回到小程序根再进 miniprogram_npm。 */
+@import "../../miniprogram_npm/@ant-design/x-markdown-mini/plugins/CodeHighlight/style.wxss";
+@import "../../miniprogram_npm/@ant-design/x-markdown-mini/plugins/Latex/style.wxss";
 
 .page {
   display: flex;

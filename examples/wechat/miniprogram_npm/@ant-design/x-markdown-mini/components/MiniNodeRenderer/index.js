@@ -16,6 +16,14 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/components/wechat/MiniNodeRenderer/index.ts
 var MiniNodeRenderer_exports = {};
 module.exports = __toCommonJS(MiniNodeRenderer_exports);
+function copyToClipboard(text) {
+  if (!text) return;
+  wx.setClipboardData({
+    data: text,
+    success: () => wx.showToast({ title: "\u5DF2\u590D\u5236", icon: "none", duration: 1200 }),
+    fail: () => wx.showToast({ title: "\u590D\u5236\u5931\u8D25", icon: "none" })
+  });
+}
 Component({
   options: {
     multipleSlots: true,
@@ -34,6 +42,10 @@ Component({
     },
     _appear(e) {
       this.triggerEvent("appear", e, { bubbles: true, composed: true });
+    },
+    _copy(e) {
+      const ds = e && e.currentTarget && e.currentTarget.dataset;
+      copyToClipboard(ds && ds.copy || "");
     }
   }
 });

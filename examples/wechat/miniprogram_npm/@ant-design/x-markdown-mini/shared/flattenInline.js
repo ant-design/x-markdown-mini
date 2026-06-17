@@ -1,8 +1,25 @@
 "use strict";
 var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    }
+  return a;
+};
+var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -34,16 +51,23 @@ const INLINE_TAGS = {
 const TAG_CLASS = {
   strong: "md-strong",
   em: "md-em",
-  del: "md-del",
-  code: "md-inline-code"
+  del: "md-del"
+  // 'code' 不在此处加类：行内 codespan 由 transformer 直接打 md-inline-code，
+  // 而代码块内的 <code>（在 <pre> 中）不应带行内药丸底色。
   // 'span' 不附加额外 class
 };
+function isKatex(node) {
+  var _a;
+  const cls = (_a = node.attrs) == null ? void 0 : _a.class;
+  return typeof cls === "string" && cls.indexOf("katex") > -1;
+}
 function walk(node) {
+  if (isKatex(node)) return node;
   if (!node.children || node.children.length === 0) return node;
   if (node.name === "a") {
-    return { ...node, children: flattenChildren(node.children) };
+    return __spreadProps(__spreadValues({}, node), { children: flattenChildren(node.children) });
   }
-  return { ...node, children: flattenChildren(node.children) };
+  return __spreadProps(__spreadValues({}, node), { children: flattenChildren(node.children) });
 }
 function flattenChildren(children) {
   const out = [];
@@ -65,8 +89,12 @@ function flattenOne(n, classChain, out) {
     out.push({ name: "br", attrs: {} });
     return;
   }
+  if (isKatex(n)) {
+    out.push(n);
+    return;
+  }
   if (n.name === "a") {
-    out.push({ ...n, children: flattenChildren((_d = n.children) != null ? _d : []) });
+    out.push(__spreadProps(__spreadValues({}, n), { children: flattenChildren((_d = n.children) != null ? _d : []) }));
     return;
   }
   if (n.name === "img") {

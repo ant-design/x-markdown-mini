@@ -1,9 +1,37 @@
 "use strict";
 var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b3) => {
+  for (var prop in b3 || (b3 = {}))
+    if (__hasOwnProp.call(b3, prop))
+      __defNormalProp(a, prop, b3[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b3)) {
+      if (__propIsEnum.call(b3, prop))
+        __defNormalProp(a, prop, b3[prop]);
+    }
+  return a;
+};
+var __spreadProps = (a, b3) => __defProps(a, __getOwnPropDescs(b3));
+var __objRest = (source, exclude) => {
+  var target = {};
+  for (var prop in source)
+    if (__hasOwnProp.call(source, prop) && exclude.indexOf(prop) < 0)
+      target[prop] = source[prop];
+  if (source != null && __getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(source)) {
+      if (exclude.indexOf(prop) < 0 && __propIsEnum.call(source, prop))
+        target[prop] = source[prop];
+    }
+  return target;
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -26,6 +54,7 @@ __export(src_exports, {
   StreamingProcessor: () => StreamingProcessor,
   XMarkdownMini: () => XMarkdownMini,
   alipayRenderer: () => alipayRenderer,
+  copyButton: () => copyButton,
   flattenInlineTokens: () => flattenInlineTokens,
   getPlatformRenderer: () => getPlatformRenderer,
   parse: () => parse,
@@ -86,9 +115,9 @@ var ae = d(j).replace("hr", I).replace("heading", " {0,3}#{1,6}(?:\\s|$)").repla
 var Me = d(/^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/).replace("paragraph", ae).getRegex();
 var K = { blockquote: Me, code: Oe, def: $e, fences: we, heading: ye, hr: I, html: _e, lheading: oe, list: Le, newline: Te, paragraph: ae, table: _, text: Se };
 var re = d("^ *([^\\n ].*)\\n {0,3}((?:\\| *)?:?-+:? *(?:\\| *:?-+:? *)*(?:\\| *)?)(?:\\n((?:(?! *\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)").replace("hr", I).replace("heading", " {0,3}#{1,6}(?:\\s|$)").replace("blockquote", " {0,3}>").replace("code", "(?: {4}| {0,3}	)[^\\n]").replace("fences", " {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list", " {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html", "</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag", v).getRegex();
-var ze = { ...K, lheading: Pe, table: re, paragraph: d(j).replace("hr", I).replace("heading", " {0,3}#{1,6}(?:\\s|$)").replace("|lheading", "").replace("table", re).replace("blockquote", " {0,3}>").replace("fences", " {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list", " {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html", "</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag", v).getRegex() };
-var Ee = { ...K, html: d(`^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:"[^"]*"|'[^']*'|\\s[^'"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))`).replace("comment", U).replace(/tag/g, "(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b").getRegex(), def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/, heading: /^(#{1,6})(.*)(?:\n+|$)/, fences: _, lheading: /^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/, paragraph: d(j).replace("hr", I).replace("heading", ` *#{1,6} *[^
-]`).replace("lheading", oe).replace("|table", "").replace("blockquote", " {0,3}>").replace("|fences", "").replace("|list", "").replace("|html", "").replace("|tag", "").getRegex() };
+var ze = __spreadProps(__spreadValues({}, K), { lheading: Pe, table: re, paragraph: d(j).replace("hr", I).replace("heading", " {0,3}#{1,6}(?:\\s|$)").replace("|lheading", "").replace("table", re).replace("blockquote", " {0,3}>").replace("fences", " {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list", " {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html", "</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag", v).getRegex() });
+var Ee = __spreadProps(__spreadValues({}, K), { html: d(`^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:"[^"]*"|'[^']*'|\\s[^'"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))`).replace("comment", U).replace(/tag/g, "(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b").getRegex(), def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/, heading: /^(#{1,6})(.*)(?:\n+|$)/, fences: _, lheading: /^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/, paragraph: d(j).replace("hr", I).replace("heading", ` *#{1,6} *[^
+]`).replace("lheading", oe).replace("|table", "").replace("blockquote", " {0,3}>").replace("|fences", "").replace("|list", "").replace("|html", "").replace("|tag", "").getRegex() });
 var Ae = /^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/;
 var Ce = /^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/;
 var le = /^( {2,}|\\)\n(?!\s*$)/;
@@ -122,9 +151,9 @@ var ke = d(/^!?\[(ref)\](?:\[\])?/).replace("ref", F).getRegex();
 var Ye = d("reflink|nolink(?!\\()", "g").replace("reflink", he).replace("nolink", ke).getRegex();
 var se = /[hH][tT][tT][pP][sS]?|[fF][tT][pP]/;
 var X = { _backpedal: _, anyPunctuation: Ke, autolink: We, blockSkip: ve, br: le, code: Ce, del: _, delLDelim: _, delRDelim: _, emStrongLDelim: He, emStrongRDelimAst: Ge, emStrongRDelimUnd: Qe, escape: Ae, link: Ve, nolink: ke, punctuation: Be, reflink: he, reflinkSearch: Ye, tag: Je, text: Ie, url: _ };
-var et = { ...X, link: d(/^!?\[(label)\]\((.*?)\)/).replace("label", q).getRegex(), reflink: d(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace("label", q).getRegex() };
-var N = { ...X, emStrongRDelimAst: Ne, emStrongLDelim: Ze, delLDelim: je, delRDelim: Ue, url: d(/^((?:protocol):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/).replace("protocol", se).replace("email", /[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/).getRegex(), _backpedal: /(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/, del: /^(~~?)(?=[^\s~])((?:\\[\s\S]|[^\\])*?(?:\\[\s\S]|[^\s~\\]))\1(?=[^~]|$)/, text: d(/^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|protocol:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/).replace("protocol", se).getRegex() };
-var tt = { ...N, br: d(le).replace("{2,}", "*").getRegex(), text: d(N.text).replace("\\b_", "\\b_| {2,}\\n").replace(/\{2,\}/g, "*").getRegex() };
+var et = __spreadProps(__spreadValues({}, X), { link: d(/^!?\[(label)\]\((.*?)\)/).replace("label", q).getRegex(), reflink: d(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace("label", q).getRegex() });
+var N = __spreadProps(__spreadValues({}, X), { emStrongRDelimAst: Ne, emStrongLDelim: Ze, delLDelim: je, delRDelim: Ue, url: d(/^((?:protocol):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/).replace("protocol", se).replace("email", /[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/).getRegex(), _backpedal: /(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/, del: /^(~~?)(?=[^\s~])((?:\\[\s\S]|[^\\])*?(?:\\[\s\S]|[^\s~\\]))\1(?=[^~]|$)/, text: d(/^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|protocol:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/).replace("protocol", se).getRegex() });
+var tt = __spreadProps(__spreadValues({}, N), { br: d(le).replace("{2,}", "*").getRegex(), text: d(N.text).replace("\\b_", "\\b_| {2,}\\n").replace(/\{2,\}/g, "*").getRegex() });
 var B = { normal: K, gfm: ze, pedantic: Ee };
 var A = { normal: X, gfm: N, breaks: tt, pedantic: et };
 var nt = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -1128,7 +1157,7 @@ var D = class {
   use(...e) {
     let t = this.defaults.extensions || { renderers: {}, childTokens: {} };
     return e.forEach((n) => {
-      let s = { ...n };
+      let s = __spreadValues({}, n);
       if (s.async = this.defaults.async || s.async || false, n.extensions && (n.extensions.forEach((r) => {
         if (!r.name) throw new Error("extension name required");
         if ("renderer" in r) {
@@ -1201,11 +1230,11 @@ var D = class {
           return u2.push(i.call(this, o)), r && (u2 = u2.concat(r.call(this, o))), u2;
         };
       }
-      this.defaults = { ...this.defaults, ...s };
+      this.defaults = __spreadValues(__spreadValues({}, this.defaults), s);
     }), this;
   }
   setOptions(e) {
-    return this.defaults = { ...this.defaults, ...e }, this;
+    return this.defaults = __spreadValues(__spreadValues({}, this.defaults), e), this;
   }
   lexer(e, t) {
     return x.lex(e, t != null ? t : this.defaults);
@@ -1215,7 +1244,7 @@ var D = class {
   }
   parseMarkdown(e) {
     return (n, s) => {
-      let r = { ...s }, i = { ...this.defaults, ...r }, o = this.onError(!!i.silent, !!i.async);
+      let r = __spreadValues({}, s), i = __spreadValues(__spreadValues({}, this.defaults), r), o = this.onError(!!i.silent, !!i.async);
       if (this.defaults.async === true && r.async === false) return o(new Error("marked(): The async option was set to true by an extension. Remove async: false from the parse options object to return a Promise."));
       if (typeof n > "u" || n === null) return o(new Error("marked(): input parameter is undefined or null"));
       if (typeof n != "string") return o(new Error("marked(): input parameter is of type " + Object.prototype.toString.call(n) + ", string expected"));
@@ -1282,6 +1311,10 @@ var Jt = b.parse;
 var Vt = x.lex;
 
 // src/plugins/shared/htmlToMiniNodes.ts
+var CLOSE_TAG_RE = /<\/(\w+)\s*>/y;
+var OPEN_TAG_RE = /<(\w+)((?:\s+[^>]*?)?)(\/?)>/y;
+var KATEX_CLOSE_SPAN_RE = /<\/span\s*>/iy;
+var KATEX_OPEN_SPAN_RE = /<span[\s>]/iy;
 function htmlToMiniNodes(html, escapeText) {
   var _a2;
   const root = { name: "root", children: [] };
@@ -1319,7 +1352,8 @@ function htmlToMiniNodes(html, escapeText) {
   }
   while (i < html.length) {
     if (html[i] === "<") {
-      const closeMatch = /^<\/(\w+)\s*>/.exec(html.slice(i));
+      CLOSE_TAG_RE.lastIndex = i;
+      const closeMatch = CLOSE_TAG_RE.exec(html);
       if (closeMatch) {
         const closeTag = closeMatch[1].toLowerCase();
         for (let j3 = stack.length - 1; j3 > 0; j3--) {
@@ -1331,7 +1365,8 @@ function htmlToMiniNodes(html, escapeText) {
         i += closeMatch[0].length;
         continue;
       }
-      const tagMatch = /^<(\w+)((?:\s+[^>]*?)?)(\/?)>/.exec(html.slice(i));
+      OPEN_TAG_RE.lastIndex = i;
+      const tagMatch = OPEN_TAG_RE.exec(html);
       if (tagMatch) {
         const rawTag = tagMatch[1].toLowerCase();
         const attrStr = tagMatch[2];
@@ -1342,8 +1377,10 @@ function htmlToMiniNodes(html, escapeText) {
           while (si < html.length && depth > 0) {
             const next = html.indexOf("<", si);
             if (next === -1) break;
-            const csm = /^<\/span\s*>/i.exec(html.slice(next));
-            const osm = /^<span[\s>]/i.exec(html.slice(next));
+            KATEX_CLOSE_SPAN_RE.lastIndex = next;
+            const csm = KATEX_CLOSE_SPAN_RE.exec(html);
+            KATEX_OPEN_SPAN_RE.lastIndex = next;
+            const osm = KATEX_OPEN_SPAN_RE.exec(html);
             if (csm) {
               depth--;
               si = next + csm[0].length;
@@ -1458,7 +1495,7 @@ function inlineNode(adapter, node, token) {
 }
 function compactNode(node) {
   if (node.attrs && Object.keys(node.attrs).length === 0) {
-    const { attrs: _attrs, ...rest } = node;
+    const _a2 = node, { attrs: _attrs } = _a2, rest = __objRest(_a2, ["attrs"]);
     return rest;
   }
   return node;
@@ -1485,10 +1522,41 @@ function collectText(nodes) {
   }
   return out;
 }
+function copyButton(text) {
+  return { name: "copy-button", attrs: { "data-copy": text, class: "md-copy-icon" } };
+}
+function asNodeArray(x3) {
+  if (!x3) return [];
+  return Array.isArray(x3) ? x3 : [x3];
+}
+function buildCodeHeader(ctx, lang, text, token) {
+  const cfg = ctx.codeHeader;
+  if (cfg === false) return [];
+  if (typeof cfg === "function") return asNodeArray(cfg({ lang, text, token }));
+  return [
+    { name: "text", attrs: { class: "md-codeblock-lang", value: lang || "code" } },
+    copyButton(text)
+  ];
+}
+function buildTableHeader(ctx, token) {
+  var _a2;
+  const cfg = ctx.tableHeader;
+  if (cfg === false) return [];
+  const markdown = (_a2 = token.raw) != null ? _a2 : "";
+  if (typeof cfg === "function") return asNodeArray(cfg({ markdown, token }));
+  return [
+    { name: "text", attrs: { class: "md-tableblock-title", value: "\u8868\u683C" } },
+    copyButton(markdown)
+  ];
+}
+function withHeader(node, header) {
+  if (header.length) node.header = header;
+  return node;
+}
 function renderTokensToMiniNodes(tokens, adapter, ctx = {}) {
   const animate = ctx.animation === true;
   const enc = ctx.escapeText === false ? (s) => s : escapeHtml;
-  const localCtx = { ...ctx };
+  const localCtx = __spreadValues({}, ctx);
   localCtx.renderInlineTokens = (inner) => inlineTokens(inner, adapter, enc, localCtx);
   return blockTokens(tokens, adapter, animate, enc, localCtx);
 }
@@ -1501,7 +1569,7 @@ function blockTokens(tokens, adapter, animate, enc, ctx) {
   return out;
 }
 function blockTok(tok, adapter, animate, enc, ctx) {
-  var _a2, _b, _c, _d, _e2, _f, _g, _h, _i, _j, _k, _l, _m;
+  var _a2, _b, _c, _d, _e2, _f, _g, _h, _i, _j, _k, _l, _m, _n2, _o, _p;
   switch (tok.type) {
     case "space":
       return null;
@@ -1515,23 +1583,26 @@ function blockTok(tok, adapter, animate, enc, ctx) {
       return block("p", inlineTokens((_c = t.tokens) != null ? _c : [], adapter, enc, ctx), animate, adapter, tok);
     }
     case "code": {
-      const custom = renderCustomToken(tok, ctx);
-      if (custom.length) return block("pre", custom, animate, adapter, tok);
       const t = tok;
+      const lang = (_e2 = ((_d = t.lang) != null ? _d : "").trim().split(/\s+/)[0]) != null ? _e2 : "";
+      const preAttrs = lang ? { class: "md-code-block", lang } : { class: "md-code-block" };
+      const header = buildCodeHeader(ctx, lang, (_f = t.text) != null ? _f : "", t);
+      const custom = renderCustomToken(tok, ctx);
+      if (custom.length) return withHeader(block("pre", custom, animate, adapter, tok, preAttrs), header);
       if (!supports(adapter, "supportsPre")) {
-        return textBlock(enc((_d = t.text) != null ? _d : ""), animate, adapter, tok);
+        return textBlock(enc((_g = t.text) != null ? _g : ""), animate, adapter, tok);
       }
       const codeChild = {
         name: "code",
-        children: [{ name: "text", attrs: { value: enc((_e2 = t.text) != null ? _e2 : "") } }]
+        children: [{ name: "text", attrs: { value: enc((_h = t.text) != null ? _h : "") } }]
       };
-      return block("pre", [codeChild], animate, adapter, tok);
+      return withHeader(block("pre", [codeChild], animate, adapter, tok, preAttrs), header);
     }
     case "hr":
       return block("hr", [], animate, adapter, tok);
     case "blockquote": {
       const t = tok;
-      const children = blockTokens((_f = t.tokens) != null ? _f : [], adapter, animate, enc, ctx);
+      const children = blockTokens((_i = t.tokens) != null ? _i : [], adapter, animate, enc, ctx);
       if (!supports(adapter, "supportsBlockquote")) {
         return textBlock(collectText(children), animate, adapter, tok);
       }
@@ -1547,15 +1618,15 @@ function blockTok(tok, adapter, animate, enc, ctx) {
     }
     case "html": {
       const t = tok;
-      const raw = ((_h = (_g = t.text) != null ? _g : t.raw) != null ? _h : "").replace(/\s+$/, "");
+      const raw = ((_k = (_j = t.text) != null ? _j : t.raw) != null ? _k : "").replace(/\s+$/, "");
       return block("div", raw ? [{ name: "text", attrs: { value: raw } }] : [], animate, adapter, tok);
     }
     case "table": {
       const t = tok;
       if (!supports(adapter, "supportsTable")) {
         const rows = [
-          (_i = t.header) != null ? _i : [],
-          ...(_j = t.rows) != null ? _j : []
+          (_l = t.header) != null ? _l : [],
+          ...(_m = t.rows) != null ? _m : []
         ];
         const value = rows.map((row) => row.map((cell) => {
           var _a3;
@@ -1563,33 +1634,35 @@ function blockTok(tok, adapter, animate, enc, ctx) {
         }).join("	")).join("\n");
         return textBlock(value, animate, adapter, tok);
       }
-      const headCells = ((_k = t.header) != null ? _k : []).map((cell) => {
+      const headCells = ((_n2 = t.header) != null ? _n2 : []).map((cell) => {
         var _a3;
         return {
           name: "th",
+          attrs: { class: "md-th" },
           children: inlineTokens((_a3 = cell.tokens) != null ? _a3 : [], adapter, enc, ctx)
         };
       });
-      const rowNodes = ((_l = t.rows) != null ? _l : []).map((row) => ({
+      const rowNodes = ((_o = t.rows) != null ? _o : []).map((row) => ({
         name: "tr",
+        attrs: { class: "md-tr" },
         children: row.map((cell) => {
           var _a3;
           return {
             name: "td",
+            attrs: { class: "md-td" },
             children: inlineTokens((_a3 = cell.tokens) != null ? _a3 : [], adapter, enc, ctx)
           };
         })
       }));
-      const thead = {
-        name: "thead",
-        children: [{ name: "tr", attrs: {}, children: headCells }]
-      };
-      const tbody = { name: "tbody", attrs: {}, children: rowNodes };
-      return block("table", [compactNode(thead), compactNode(tbody)], animate, adapter, tok);
+      const headerRow = { name: "tr", attrs: { class: "md-tr" }, children: headCells };
+      return withHeader(
+        block("table", [headerRow, ...rowNodes], animate, adapter, tok, { class: "md-table" }),
+        buildTableHeader(ctx, t)
+      );
     }
     case "text": {
       const t = tok;
-      const inline = t.tokens ? inlineTokens(t.tokens, adapter, enc, ctx) : [{ name: "text", attrs: { value: enc((_m = t.text) != null ? _m : "") } }];
+      const inline = t.tokens ? inlineTokens(t.tokens, adapter, enc, ctx) : [{ name: "text", attrs: { value: enc((_p = t.text) != null ? _p : "") } }];
       return block("p", inline, animate, adapter, tok);
     }
     case "def":
@@ -1678,6 +1751,7 @@ function inlineTok(tok, adapter, enc, out, ctx) {
       const t = tok;
       const node = inlineNode(adapter, {
         name: "code",
+        attrs: { class: "md-inline-code" },
         children: [{ name: "text", attrs: { value: enc((_f = t.text) != null ? _f : "") } }]
       }, tok);
       if (node) out.push(node);
@@ -1744,7 +1818,7 @@ var alipayAdapter = {
   olAttrs: () => ({})
 };
 function tokensToAlipay(content, opts = {}) {
-  const { options, ...ctx } = opts;
+  const _a2 = opts, { options } = _a2, ctx = __objRest(_a2, ["options"]);
   const tokens = x.lex(content, buildMarkedOptions(options != null ? options : {}));
   return tokensToAlipayNodes(tokens, ctx);
 }
@@ -1782,7 +1856,7 @@ var wechatAdapter = {
   }
 };
 function tokensToWechat(content, opts = {}) {
-  const { options, ...ctx } = opts;
+  const _a2 = opts, { options } = _a2, ctx = __objRest(_a2, ["options"]);
   const tokens = x.lex(content, buildMarkedOptions2(options != null ? options : {}));
   return tokensToWechatNodes(tokens, ctx);
 }
@@ -1972,6 +2046,7 @@ var StreamingProcessor = class {
   // --- 内部 ---
   /** 按 delimiters + maxChunkSize 把 buffer 切成 chunk 序列；hasNext=false 时 flush 末尾。 */
   splitIntoChunks(hasNextChunk) {
+    var _a2;
     const { semanticEnabled, delimiters = DEFAULT_DELIMITERS, maxChunkSize = DEFAULT_MAX_CHUNK_SIZE } = this.config;
     const pending = [];
     let remaining = this.buffer;
@@ -1979,7 +2054,7 @@ var StreamingProcessor = class {
       let chunk = "";
       if (semanticEnabled) {
         const m3 = remaining.match(delimiters);
-        const cut = m3 ? remaining.indexOf(m3[0]) + 1 : -1;
+        const cut = m3 ? ((_a2 = m3.index) != null ? _a2 : 0) + 1 : -1;
         if (cut > 0) {
           chunk = remaining.slice(0, cut);
           remaining = remaining.slice(cut);
@@ -2739,12 +2814,14 @@ var XMarkdownMini = class {
     this.nodeStreamProcessor = null;
     this.activeTokenStreamDefaults = null;
     this.activeNodeStreamDefaults = null;
-    var _a2, _b, _c;
+    var _a2, _b, _c, _d, _e2;
     this.escapeText = (_a2 = opts.escapeText) != null ? _a2 : true;
     this.fixup = resolveStreamingFixup((_b = opts.streamingFixup) != null ? _b : "remend");
     this.gfm = opts.gfm;
     this.breaks = opts.breaks;
-    const directExtensions = (_c = opts.extensions) != null ? _c : [];
+    this.codeHeader = (_c = opts.codeBlock) == null ? void 0 : _c.header;
+    this.tableHeader = (_d = opts.table) == null ? void 0 : _d.header;
+    const directExtensions = (_e2 = opts.extensions) != null ? _e2 : [];
     this.componentsExtension = opts.components && opts.components.length > 0 ? synthesizeComponentsExtension(opts.components) : void 0;
     const allMarkedExtensions = [
       ...directExtensions,
@@ -2778,7 +2855,7 @@ var XMarkdownMini = class {
    */
   applyPerCallExtensions(perCall) {
     if (!perCall || perCall.length === 0) return null;
-    const saved = { ...this.marked.defaults };
+    const saved = __spreadValues({}, this.marked.defaults);
     this.marked.use(...perCall);
     return saved;
   }
@@ -2789,11 +2866,7 @@ var XMarkdownMini = class {
     var _a2, _b;
     const gfm = (_a2 = perCall == null ? void 0 : perCall.gfm) != null ? _a2 : this.gfm;
     const breaks = (_b = perCall == null ? void 0 : perCall.breaks) != null ? _b : this.breaks;
-    return {
-      ...this.marked.defaults,
-      ...gfm !== void 0 ? { gfm: gfm !== false } : {},
-      ...breaks !== void 0 ? { breaks: !!breaks } : {}
-    };
+    return __spreadValues(__spreadValues(__spreadValues({}, this.marked.defaults), gfm !== void 0 ? { gfm: gfm !== false } : {}), breaks !== void 0 ? { breaks: !!breaks } : {});
   }
   lex(content, opts) {
     const tokens = this.marked.lexer(content, opts != null ? opts : this.buildMarkedOptions());
@@ -2840,11 +2913,11 @@ var XMarkdownMini = class {
       this.activeTokenStreamDefaults = this.applyPerCallExtensions(perCallExts);
       const markedOpts = this.buildMarkedOptions({ gfm, breaks });
       const transform = (md) => this.lex(md, markedOpts);
-      this.tokenStreamProcessor = new StreamingProcessor({
+      this.tokenStreamProcessor = new StreamingProcessor(__spreadProps(__spreadValues({
         transform,
         fixup: this.fixup,
-        semanticEnabled: stream.semanticEnabled,
-        ...stream.semanticConfig,
+        semanticEnabled: stream.semanticEnabled
+      }, stream.semanticConfig), {
         onUpdate: (markdown) => {
           var _a3;
           return (_a3 = props.onRenderProgress) == null ? void 0 : _a3.call(props, { markdown });
@@ -2860,7 +2933,7 @@ var XMarkdownMini = class {
           this.restoreDefaults(this.activeTokenStreamDefaults);
           this.activeTokenStreamDefaults = null;
         }
-      });
+      }));
       (_d = props.onRenderStart) == null ? void 0 : _d.call(props);
     }
     this.tokenStreamProcessor.handleContentUpdate(content);
@@ -2889,7 +2962,9 @@ var XMarkdownMini = class {
           animation: false,
           selectable,
           escapeText: this.escapeText,
-          extensions: ctxExtensions
+          extensions: ctxExtensions,
+          codeHeader: this.codeHeader,
+          tableHeader: this.tableHeader
         };
         const tokens = this.lex(content, markedOpts);
         const nodes = renderer.renderTokens(tokens, ctx);
@@ -2907,14 +2982,16 @@ var XMarkdownMini = class {
         animation: stream.enableAnimation,
         selectable,
         escapeText: this.escapeText,
-        extensions: ctxExtensions
+        extensions: ctxExtensions,
+        codeHeader: this.codeHeader,
+        tableHeader: this.tableHeader
       };
       const transform = (md) => renderer.renderTokens(this.lex(md, markedOpts), ctx);
-      this.nodeStreamProcessor = new StreamingProcessor({
+      this.nodeStreamProcessor = new StreamingProcessor(__spreadProps(__spreadValues({
         transform,
         fixup: this.fixup,
-        semanticEnabled: stream.semanticEnabled,
-        ...stream.semanticConfig,
+        semanticEnabled: stream.semanticEnabled
+      }, stream.semanticConfig), {
         onUpdate: (markdown) => {
           var _a3;
           return (_a3 = props.onRenderProgress) == null ? void 0 : _a3.call(props, { markdown });
@@ -2930,7 +3007,7 @@ var XMarkdownMini = class {
           this.restoreDefaults(this.activeNodeStreamDefaults);
           this.activeNodeStreamDefaults = null;
         }
-      });
+      }));
       (_d = props.onRenderStart) == null ? void 0 : _d.call(props);
     }
     this.nodeStreamProcessor.handleContentUpdate(content);
@@ -3136,6 +3213,7 @@ function renderNodes(props) {
   StreamingProcessor,
   XMarkdownMini,
   alipayRenderer,
+  copyButton,
   flattenInlineTokens,
   getPlatformRenderer,
   parse,

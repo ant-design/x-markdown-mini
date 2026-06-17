@@ -6,6 +6,20 @@ function isBr(name) { return name === 'br'; }
 function isImg(name) { return name === 'img'; }
 function isHr(name) { return name === 'hr'; }
 function isPre(name) { return name === 'pre'; }
+function isTable(name) { return name === 'table'; }
+function isCopy(name) { return name === 'copy-button'; }
+function copyOf(node) { return (node.attrs || {})['data-copy'] || ''; }
+// 富内联节点（如 KaTeX 公式容器）含有元素子节点，必须走递归 <view> 路径
+// 渲染，保留嵌套结构与 style；普通已扁平化的内联只有 text/br 子节点。
+function isRich(node) {
+  var ch = node.children;
+  if (!ch) return false;
+  for (var i = 0; i < ch.length; i++) {
+    var nm = ch[i].name;
+    if (nm !== 'text' && nm !== 'br') return true;
+  }
+  return false;
+}
 function isSlot(name, slotComponents) {
   return !!slotComponents && slotComponents.indexOf(name) > -1;
 }
@@ -19,8 +33,29 @@ function classOf(node) {
   return cls;
 }
 
+// 把文本拆成「按 code point 安全」的字符数组（不劈坏 emoji/组合 surrogate pair），
+// 供流式逐字淡入：每个字符渲染成独立 <text>，按下标 key 复用，只有新字符会触发淡入动画。
+function charsOf(node) {
+  var v = (node.attrs || {}).value || '';
+  var out = [];
+  var i = 0;
+  var n = v.length;
+  while (i < n) {
+    var code = v.charCodeAt(i);
+    if (code >= 55296 && code <= 56319 && i + 1 < n) {
+      out.push(v.charAt(i) + v.charAt(i + 1));
+      i += 2;
+    } else {
+      out.push(v.charAt(i));
+      i += 1;
+    }
+  }
+  return out;
+}
+
 function styleOf(node) { return (node.attrs || {}).style || ''; }
 function srcOf(node)   { return (node.attrs || {}).src || ''; }
+function langOf(node)  { return (node.attrs || {}).lang || ''; }
 function altOf(node)   { return (node.attrs || {}).alt || ''; }
 function valueOf(node) { return (node.attrs || {}).value || ''; }
 
@@ -31,10 +66,16 @@ module.exports = {
   isImg: isImg,
   isHr: isHr,
   isPre: isPre,
+  isTable: isTable,
+  isCopy: isCopy,
+  copyOf: copyOf,
+  isRich: isRich,
   isSlot: isSlot,
   classOf: classOf,
+  charsOf: charsOf,
   styleOf: styleOf,
   srcOf: srcOf,
+  langOf: langOf,
   altOf: altOf,
   valueOf: valueOf,
 };

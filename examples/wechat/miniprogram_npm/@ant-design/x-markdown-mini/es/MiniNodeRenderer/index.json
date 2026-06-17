@@ -5,6 +5,6 @@
     "mini-node-renderer": "./index"
   },
   "componentGenerics": {
-    "custom-slot": { "default": "view" }
+    "custom-slot": { "default": "./index" }
   }
 }
