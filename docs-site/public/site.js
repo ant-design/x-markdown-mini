@@ -446,9 +446,15 @@
     return document.querySelector('.xmd-nav-cluster');
   }
 
+  function canUseInlineSearch(cluster) {
+    if (!cluster) return false;
+    var style = window.getComputedStyle(cluster);
+    return style.display !== 'none' && style.visibility !== 'hidden' && cluster.getBoundingClientRect().width > 0;
+  }
+
   function openInlineSearch() {
     var cluster = getNavCluster();
-    if (!cluster) {
+    if (!canUseInlineSearch(cluster)) {
       openSearchModal();
       return;
     }
@@ -1117,35 +1123,45 @@
       searchBtn.type = 'button';
       searchBtn.className = 'xmd-search-trigger';
       searchBtn.setAttribute('aria-label', isEn ? 'Search' : '搜索');
-      searchBtn.innerHTML = SEARCH_ICON_SVG;
+      var shortcutLabel = /(mac|iphone|ipod|ipad)/i.test(navigator.platform || '') ? '⌘K' : 'Ctrl K';
+      searchBtn.innerHTML =
+        '<svg class="xmd-search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">' +
+        '<circle cx="9" cy="9" r="5.75" stroke="currentColor" stroke-width="1.7"/>' +
+        '<path d="m13.4 13.4 3.35 3.35" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>' +
+        '</svg>' +
+        '<span class="xmd-search-trigger-label">' +
+        (isEn ? 'Search...' : '搜索...') +
+        '</span>' +
+        '<kbd aria-hidden="true">' +
+        shortcutLabel +
+        '</kbd>';
       searchBtn.addEventListener('click', function (ev) {
         ev.preventDefault();
         ev.stopPropagation();
-        openInlineSearch();
+        openSearchModal();
       });
       searchShell.appendChild(searchBtn);
 
       var searchInline = document.createElement('div');
       searchInline.className = 'xmd-search-inline';
       var placeholder = isEn ? 'Search docs…' : '搜索文档…';
+      searchInline.innerHTML =
+        '<svg class="xmd-search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">' +
+        '<circle cx="9" cy="9" r="5.75" stroke="currentColor" stroke-width="1.7"/>' +
+        '<path d="m13.4 13.4 3.35 3.35" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>' +
+        '</svg>';
       var input = document.createElement('input');
       input.type = 'search';
       input.autocomplete = 'off';
       input.placeholder = placeholder;
       input.setAttribute('aria-label', placeholder);
       var escKbd = document.createElement('kbd');
-      escKbd.textContent = 'esc';
+      escKbd.textContent = 'Esc';
       escKbd.setAttribute('aria-label', isEn ? 'Close search' : '关闭搜索');
       escKbd.addEventListener('click', function (ev) {
         ev.preventDefault();
         closeInlineSearch();
       });
-      // The expanded input gets its own leading search icon, mirroring the
-      // dumi-default-search-bar layout (icon + input + shortcut span).
-      var leadIcon = document.createElement('span');
-      leadIcon.className = 'xmd-search-inline-icon';
-      leadIcon.innerHTML = SEARCH_ICON_SVG;
-      searchInline.appendChild(leadIcon);
       searchInline.appendChild(input);
       searchInline.appendChild(escKbd);
       searchShell.appendChild(searchInline);
@@ -1325,13 +1341,13 @@
       var hasHero = !!hero;
       if (!hasHero) {
         document.body.classList.remove('xmd-homepage', 'xmd-over-hero');
-        header.classList.toggle('xmd-mini', window.scrollY > 24);
+        header.classList.toggle('xmd-mini', window.scrollY > 8);
         return;
       }
       document.body.classList.add('xmd-homepage');
       var heroBottom = hero.getBoundingClientRect().bottom;
       var isOverHero = heroBottom > header.offsetHeight + 12;
-      var shouldShrink = window.scrollY > 80;
+      var shouldShrink = window.scrollY > 8;
       document.body.classList.toggle('xmd-over-hero', isOverHero);
       header.classList.toggle('xmd-mini', shouldShrink);
     }
