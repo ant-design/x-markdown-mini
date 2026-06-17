@@ -6,6 +6,9 @@ dist/
 examples/*/dist/
 *.tsbuildinfo
 
+# docs
+docs/
+
 # Docs site (dumi)
 docs-site/node_modules/
 .dumi/
