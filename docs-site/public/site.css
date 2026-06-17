@@ -1992,15 +1992,28 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
   height: 30px;
   padding: 0;
   border: 0;
-  border-radius: 999px;
+  /* square (rounded-rect), matching the 在线演示 switch + the pill buttons */
+  border-radius: 8px;
   background: transparent;
-  color: #0a0a0a;
+  color: #525252;
   cursor: pointer;
-  transition: background-color 0.15s;
+  transition: background-color 0.15s, color 0.15s;
 }
 
+/* match the GitHub / version pill buttons: muted at rest, darken + grey bg on hover */
 .xmd-lang-switch:hover {
   background: #f4f4f5;
+  color: #0a0a0a;
+}
+
+.xmd-lang-switch:hover .xmd-lang-label {
+  border-color: #0a0a0a;
+  color: #0a0a0a;
+}
+
+.xmd-lang-switch:hover .xmd-lang-primary {
+  background: #0a0a0a;
+  color: #ffffff;
 }
 
 .xmd-lang-switch .xmd-lang-inner {
@@ -2018,18 +2031,19 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
   height: 14px;
   font-size: 12px;
   line-height: 1;
-  border: 1px solid #0a0a0a;
-  color: #0a0a0a;
+  border: 1px solid #525252;
+  color: #525252;
   border-radius: 2px;
   box-sizing: border-box;
   letter-spacing: 0;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .xmd-lang-switch .xmd-lang-primary {
   inset-inline-start: 0;
   top: 0;
   z-index: 1;
-  background: #0a0a0a;
+  background: #525252;
   color: #ffffff;
   transform: scale(0.85);
   transform-origin: 0 0;
@@ -2040,7 +2054,7 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
   bottom: 0;
   z-index: 0;
   background: transparent;
-  color: #0a0a0a;
+  color: #525252;
   transform: scale(0.65);
   transform-origin: 100% 100%;
 }
@@ -4016,18 +4030,28 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
 }
 
 .xmd-header-support .xmd-pill-btn {
-  height: 34px;
-  min-width: 32px;
+  height: 30px;
+  min-width: 30px;
   padding: 0 7px;
   color: oklch(30% 0 0 / 0.84);
-  border-radius: 6px;
+  /* square (rounded-rect), matching the 在线演示 platform switch */
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 560;
 }
 
+/* GitHub is icon-only: drop the wider min-width/padding so its hover box is a
+   snug 30x30 square like the lang switch (no extra 边距 around the icon). */
+.xmd-header-support a.xmd-github-link {
+  width: 30px;
+  min-width: 30px;
+  padding: 0;
+}
+
+/* grey hover, matching the lang switch (was the blue accent) */
 .xmd-header-support .xmd-pill-btn:hover {
-  color: var(--xmd-accent);
-  background: color-mix(in oklch, var(--xmd-accent) 7%, transparent);
+  color: #0a0a0a;
+  background: #f4f4f5;
 }
 
 @media (max-width: 1120px) {
