@@ -1,6 +1,6 @@
 {
   "defaultTitle": "组件接入",
   "usingComponents": {
-    "markdown": "@ant-design/x-markdown-mini/es/Markdown/index"
+    "markdown": "@ant-design/x-markdown-mini/dist/es/Markdown/index"
   }
 }
