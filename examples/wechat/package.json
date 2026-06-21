@@ -4,6 +4,6 @@
   "private": true,
   "description": "WeChat mini-program integration demo for x-markdown-mini.",
   "dependencies": {
-    "@ant-design/x-markdown-mini": "0.1.0-beta.4"
+    "@ant-design/x-markdown-mini": "0.1.0-beta.5"
   }
 }

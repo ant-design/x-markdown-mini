@@ -1592,7 +1592,10 @@ function htmlToMiniNodes(html, escapeText) {
   let i = 0;
   function decode(s) {
     if (!escapeText) return s;
-    return s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+    return s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, (_match, value) => String.fromCodePoint(Number(value))).replace(
+      /&#x([\da-f]+);/gi,
+      (_match, value) => String.fromCodePoint(parseInt(value, 16))
+    );
   }
   function mapTag(tag) {
     switch (tag) {
@@ -8028,7 +8031,7 @@ function CodeHighlight(options = {}) {
               language: resolved,
               ignoreIllegals
             });
-            const nodes = htmlToMiniNodes(result.value, false);
+            const nodes = htmlToMiniNodes(result.value, true);
             return [
               {
                 name: "code",

@@ -1322,7 +1322,10 @@ function htmlToMiniNodes(html, escapeText) {
   let i = 0;
   function decode(s) {
     if (!escapeText) return s;
-    return s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+    return s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, (_match, value) => String.fromCodePoint(Number(value))).replace(
+      /&#x([\da-f]+);/gi,
+      (_match, value) => String.fromCodePoint(parseInt(value, 16))
+    );
   }
   function mapTag(tag) {
     switch (tag) {
@@ -1813,9 +1816,20 @@ var alipayCapabilities = {
 };
 var alipayAdapter = {
   capabilities: alipayCapabilities,
-  linkAttrs: (href) => ({ href }),
+  linkAttrs: (href) => ({ href, class: "md-link" }),
   imageSrc: (src) => src.replace(/^http:\/\//, "https://"),
-  olAttrs: () => ({})
+  olAttrs: () => ({}),
+  node: (node, meta) => {
+    var _a2, _b;
+    if (node.name !== "table") return node;
+    const table = meta.token;
+    const columnCount = (_b = (_a2 = table.header) == null ? void 0 : _a2.length) != null ? _b : 0;
+    return __spreadProps(__spreadValues({}, node), {
+      attrs: __spreadProps(__spreadValues({}, node.attrs), {
+        class: columnCount > 1 ? "md-table md-table-multi" : "md-table md-table-single"
+      })
+    });
+  }
 };
 function tokensToAlipay(content, opts = {}) {
   const _a2 = opts, { options } = _a2, ctx = __objRest(_a2, ["options"]);
@@ -1853,6 +1867,17 @@ var wechatAdapter = {
     const attrs = {};
     if (start !== 1) attrs.start = start;
     return attrs;
+  },
+  node: (node, meta) => {
+    var _a2, _b;
+    if (node.name !== "table") return node;
+    const table = meta.token;
+    const columnCount = (_b = (_a2 = table.header) == null ? void 0 : _a2.length) != null ? _b : 0;
+    return __spreadProps(__spreadValues({}, node), {
+      attrs: __spreadProps(__spreadValues({}, node.attrs), {
+        class: columnCount > 1 ? "md-table md-table-multi" : "md-table md-table-single"
+      })
+    });
   }
 };
 function tokensToWechat(content, opts = {}) {

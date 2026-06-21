@@ -106,7 +106,8 @@ Component({
   },
   data: {
     nodes: [],
-    slotComponents: []
+    slotComponents: [],
+    animation: false
   },
   md: null,
   textAnimation: createTextAnimationState(),
@@ -150,6 +151,7 @@ Component({
     _render() {
       var _a, _b, _c;
       const data = this.data;
+      this.setData({ animation: !!data.streaming });
       this.md.renderNodes({
         content: data.content,
         platform: "wechat",

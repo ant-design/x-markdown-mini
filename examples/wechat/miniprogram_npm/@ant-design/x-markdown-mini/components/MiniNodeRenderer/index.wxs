@@ -8,6 +8,10 @@ function isHr(name) { return name === 'hr'; }
 function isPre(name) { return name === 'pre'; }
 function isTable(name) { return name === 'table'; }
 function isCopy(name) { return name === 'copy-button'; }
+function isKatex(node) {
+  var cls = (node.attrs || {})['class'] || '';
+  return cls.indexOf('katex') > -1;
+}
 function copyOf(node) { return (node.attrs || {})['data-copy'] || ''; }
 // 富内联节点（如 KaTeX 公式容器）含有元素子节点，必须走递归 <view> 路径
 // 渲染，保留嵌套结构与 style；普通已扁平化的内联只有 text/br 子节点。
@@ -38,6 +42,14 @@ function srcOf(node)   { return (node.attrs || {}).src || ''; }
 function langOf(node)  { return (node.attrs || {}).lang || ''; }
 function altOf(node)   { return (node.attrs || {}).alt || ''; }
 function valueOf(node) { return (node.attrs || {}).value || ''; }
+function tableShadowClass(shadows, key) {
+  var state = shadows && shadows[key];
+  if (!state) return '';
+  var cls = '';
+  if (state.left) cls += ' md-table-content--left-shadow';
+  if (state.right) cls += ' md-table-content--right-shadow';
+  return cls;
+}
 
 module.exports = {
   isInline: isInline,
@@ -48,6 +60,7 @@ module.exports = {
   isPre: isPre,
   isTable: isTable,
   isCopy: isCopy,
+  isKatex: isKatex,
   copyOf: copyOf,
   isRich: isRich,
   isSlot: isSlot,
@@ -57,4 +70,5 @@ module.exports = {
   langOf: langOf,
   altOf: altOf,
   valueOf: valueOf,
+  tableShadowClass: tableShadowClass,
 };
