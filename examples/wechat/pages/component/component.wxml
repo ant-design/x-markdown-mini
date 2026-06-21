@@ -1,4 +1,12 @@
 <view class="page">
+  <view class="stream-control">
+    <view class="stream-copy">
+      <text class="stream-title">AI 流式渲染</text>
+      <text class="stream-status">{{streamingStatus}}</text>
+    </view>
+    <switch checked="{{streamingEnabled}}" color="#165dff" bindchange="onStreamingChange" />
+  </view>
+
   <view class="note">
     <text class="note-tag">组件接入</text>
     一行 usingComponents 引入 &lt;markdown&gt;，加 latex / highlight 属性即开启公式与代码高亮。
@@ -6,6 +14,11 @@
   </view>
 
   <view class="card">
-    <markdown content="{{sample}}" latex="{{true}}" highlight="{{true}}" />
+    <markdown
+      content="{{streamContent}}"
+      streaming="{{streamingActive}}"
+      latex="{{true}}"
+      highlight="{{true}}"
+    />
   </view>
 </view>

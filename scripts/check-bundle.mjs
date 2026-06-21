@@ -9,17 +9,20 @@
 //   3. No object-spread syntax leaks into dist/. Alipay IDE rejects object
 //      spread in dependencies even though it is valid ES2018.
 //   4. Bundle syntax stays within ES2018 (delegates to `es-check`).
+//   5. Published manifest preserves component registration side effects.
 //
 // Runs after `npm run build`. Exits non-zero on any violation.
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const dist = join(root, 'dist');
+const require = createRequire(import.meta.url);
 
 const KB = 1024;
 
@@ -51,25 +54,31 @@ const BUDGETS = [
   //   copyButton 帮助函数 + buildCodeHeader/buildTableHeader）。实测 mjs raw
   //   ~119.62 KB、index.js ~121.17 KB；预算上调留 ~1 KB headroom。
   { file: 'index.mjs', rawMax: 121 * KB, gzipMax: 30 * KB },
-  { file: 'index.js', rawMax: 122 * KB, gzipMax: 30 * KB },
+  // raw/gzip +<1 KB：支付宝表格补齐溢出测量和左右阴影状态。
+  { file: 'index.js', rawMax: 123 * KB, gzipMax: 31 * KB },
   // 微信专用主库副本（通过 package.json#miniprogram 进入）
-  { file: 'miniprogram_dist/index.js', rawMax: 122 * KB, gzipMax: 30 * KB },
-  // 共享 helper（alipay 包根 + wechat 包根 各一份）
-  { file: 'shared/flattenInline.js', rawMax: 5 * KB },
-  { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 5 * KB },
+  { file: 'miniprogram_dist/index.js', rawMax: 123 * KB, gzipMax: 31 * KB },
+  // 共享 helper（alipay 包根 + wechat 包根 各一份）。JS 接入复用时间戳
+  // 动画协调器完整内联后约 7.59 KB，只让新增字符渐显，避免微信旧字符重复播放；
+  // 入口必须自包含，不能留下未发布的 ./textAnimation.js require。
+  { file: 'shared/flattenInline.js', rawMax: 8 * KB },
+  { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 8 * KB },
   // Alipay 组件
   { file: 'es/Markdown/index.js', rawMax: 5 * KB },
-  { file: 'es/MiniNodeRenderer/index.js', rawMax: 5 * KB },
+  // MiniNodeRenderer 表格溢出测量、缓存和滚动阴影增加约 4 KB wrapper 源码。
+  { file: 'es/MiniNodeRenderer/index.js', rawMax: 7 * KB },
   { file: 'components/Markdown/index.js', rawMax: 5 * KB },
-  { file: 'components/MiniNodeRenderer/index.js', rawMax: 5 * KB },
+  { file: 'components/MiniNodeRenderer/index.js', rawMax: 7 * KB },
   // Wechat 组件
   // Timestamped typewriter segments resume CSS animation after WeChat rebuilds
   // the node tree; the state reconciler adds ~2.8 KB to the wrapper. The
   // latex/highlight opt-in plugin bake-in (require + extension assembly) adds ~0.5 KB.
+  // MiniNodeRenderer table overflow measurement + position-aware edge shadows
+  // add ~4 KB to the wrapper (selector query, cached geometry, scroll handler).
   { file: 'miniprogram_dist/es/Markdown/index.js', rawMax: 7 * KB },
-  { file: 'miniprogram_dist/es/MiniNodeRenderer/index.js', rawMax: 5 * KB },
+  { file: 'miniprogram_dist/es/MiniNodeRenderer/index.js', rawMax: 7 * KB },
   { file: 'miniprogram_dist/components/Markdown/index.js', rawMax: 7 * KB },
-  { file: 'miniprogram_dist/components/MiniNodeRenderer/index.js', rawMax: 5 * KB },
+  { file: 'miniprogram_dist/components/MiniNodeRenderer/index.js', rawMax: 7 * KB },
   // Plugin bundles (separate entries — not counted against main lib budget)
   // KaTeX includes font data and CSS; highlight.js/lib/common bundles ~18 languages.
   { file: 'plugins/Latex/index.js', rawMax: 500 * KB, gzipMax: 110 * KB },
@@ -207,6 +216,48 @@ function runEsCheck(label, extraArgs, files) {
 }
 runEsCheck('ESM (.mjs)', ['--module'], COMPAT_ESM_FILES);
 runEsCheck('CJS (.js)', [], COMPAT_CJS_FILES);
+
+// --- 5. component registration side effects ---
+// Mini-program component wrappers register themselves through a top-level
+// `Component({...})` call. Marking the package side-effect-free lets Alipay's
+// bundler remove that call while retaining templates/styles, which only fails
+// later at runtime with a misleading "reading 'options'" error.
+console.log('\nPublished manifest (component side effects):');
+const publishedManifestPath = join(dist, 'package.json');
+if (!existsSync(publishedManifestPath)) {
+  errors.push('[manifest] missing dist/package.json — did prepare-publish run?');
+  console.log('  FAIL  dist/package.json is missing');
+} else {
+  const publishedManifest = JSON.parse(readFileSync(publishedManifestPath, 'utf8'));
+  if (publishedManifest.sideEffects !== true) {
+    errors.push(
+      '[manifest] dist/package.json must set sideEffects: true so mini-program Component() registration is retained.',
+    );
+    console.log(`  FAIL  sideEffects is ${JSON.stringify(publishedManifest.sideEffects)}`);
+  } else {
+    console.log('  OK    sideEffects is true');
+  }
+}
+
+console.log('\nPublished shared helper exports:');
+for (const file of ['shared/flattenInline.js', 'miniprogram_dist/shared/flattenInline.js']) {
+  const path = join(dist, file);
+  try {
+    const helper = require(path);
+    const expected = [
+      'flattenInlineNodes',
+      'createTextAnimationState',
+      'reconcileTextAnimation',
+      'resetTextAnimation',
+    ];
+    const missing = expected.filter((name) => typeof helper[name] !== 'function');
+    if (missing.length) throw new Error(`missing ${missing.join(', ')}`);
+    console.log(`  OK    ${file}`);
+  } catch (error) {
+    errors.push(`[exports] ${file} is not self-contained: ${error.message}`);
+    console.log(`  FAIL  ${file}`);
+  }
+}
 
 console.log('');
 if (errors.length) {

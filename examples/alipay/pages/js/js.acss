@@ -8,6 +8,30 @@
   padding: 32rpx;
   box-sizing: border-box;
 }
+.stream-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+  padding: 22rpx 24rpx;
+  background: #f9f8f5;
+  border: 2rpx solid #eee9df;
+  border-radius: 16rpx;
+}
+.stream-copy {
+  display: flex;
+  flex-direction: column;
+}
+.stream-title {
+  color: #1d2129;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+.stream-status {
+  margin-top: 4rpx;
+  color: #86909c;
+  font-size: 22rpx;
+}
 .note {
   margin-bottom: 24rpx;
   padding: 24rpx;

@@ -32,7 +32,11 @@ export function htmlToMiniNodes(html: string, escapeText: boolean): MiniNode[] {
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'");
+      .replace(/&apos;/g, "'")
+      .replace(/&#(\d+);/g, (_match, value) => String.fromCodePoint(Number(value)))
+      .replace(/&#x([\da-f]+);/gi, (_match, value) =>
+        String.fromCodePoint(parseInt(value, 16)),
+      );
   }
 
   // Map common HTML tags to mini-program–friendly names.

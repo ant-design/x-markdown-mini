@@ -52,7 +52,10 @@ const pub = {
     },
     './package.json': './package.json',
   },
-  sideEffects: false,
+  // Mini-program component entries register themselves through top-level
+  // `Component({...})` calls. They must remain side-effectful or Alipay's
+  // bundler can remove the registration while keeping templates and styles.
+  sideEffects: src.sideEffects,
   keywords: src.keywords,
   license: src.license,
   // marked/remend are bundled (tsup noExternal), so the published package has no

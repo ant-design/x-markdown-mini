@@ -25,6 +25,8 @@
 .hljs {
   color: #24292f;
   background: transparent;
+  white-space: pre;
+  word-break: normal;
 }
 
 .hljs-doctag,

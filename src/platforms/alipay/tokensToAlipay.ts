@@ -1,4 +1,4 @@
-import { Lexer, type MarkedOptions, type Token } from 'marked';
+import { Lexer, type MarkedOptions, type Token, type Tokens } from 'marked';
 import type { MiniNode, RenderContext } from '../../types.js';
 import type { PlatformCapabilities } from '../types.js';
 import {
@@ -21,9 +21,21 @@ export const alipayCapabilities: PlatformCapabilities = {
 
 const alipayAdapter: MiniNodePlatformAdapter = {
   capabilities: alipayCapabilities,
-  linkAttrs: (href) => ({ href }),
+  linkAttrs: (href) => ({ href, class: 'md-link' }),
   imageSrc: (src) => src.replace(/^http:\/\//, 'https://'),
   olAttrs: () => ({}),
+  node: (node, meta) => {
+    if (node.name !== 'table') return node;
+    const table = meta.token as Tokens.Table;
+    const columnCount = table.header?.length ?? 0;
+    return {
+      ...node,
+      attrs: {
+        ...node.attrs,
+        class: columnCount > 1 ? 'md-table md-table-multi' : 'md-table md-table-single',
+      },
+    };
+  },
 };
 
 export interface TokensToAlipayOptions extends RenderContext {

@@ -78,9 +78,12 @@ export default defineConfig([
     entry: { 'shared/flattenInline': 'src/components/shared/flattenInline.ts' },
     outDir: 'dist',
     format: ['cjs'],
-    bundle: false,
+    // Bundle the text-animation re-exports into this single published helper;
+    // consumers only receive shared/flattenInline.js, not source-adjacent files.
+    bundle: true,
     dts: false,
     clean: false,
+    splitting: false,
     target: MINI_PROGRAM_TARGET,
   },
   // 3) Alipay 组件 — bundle: true 但 runtime/shared external，输出只剩 wrapper 逻辑

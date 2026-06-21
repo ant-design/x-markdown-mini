@@ -1,4 +1,4 @@
-import { Lexer, type MarkedOptions, type Token } from 'marked';
+import { Lexer, type MarkedOptions, type Token, type Tokens } from 'marked';
 import type { MiniNode, RenderContext } from '../../types.js';
 import type { PlatformCapabilities } from '../types.js';
 import {
@@ -27,6 +27,18 @@ const wechatAdapter: MiniNodePlatformAdapter = {
     const attrs: Record<string, string | number | boolean> = {};
     if (start !== 1) attrs.start = start;
     return attrs;
+  },
+  node: (node, meta) => {
+    if (node.name !== 'table') return node;
+    const table = meta.token as Tokens.Table;
+    const columnCount = table.header?.length ?? 0;
+    return {
+      ...node,
+      attrs: {
+        ...node.attrs,
+        class: columnCount > 1 ? 'md-table md-table-multi' : 'md-table md-table-single',
+      },
+    };
   },
 };
 

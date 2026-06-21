@@ -79,6 +79,7 @@ Component({
   data: {
     nodes: [] as MiniNode[],
     slotComponents: [] as string[],
+    animation: false,
   },
   md: null as XMarkdownMini | null,
 
@@ -130,6 +131,7 @@ Component({
     },
 
     _render(this: any, props: MarkdownProps) {
+      this.setData({ animation: !!props.streaming });
       this.md.renderNodes({
         content: props.content,
         platform: 'alipay',

@@ -58,6 +58,7 @@ Component({
   data: {
     nodes: [] as MiniNode[],
     slotComponents: [] as string[],
+    animation: false,
   },
   md: null as XMarkdownMini | null,
   textAnimation: createTextAnimationState(),
@@ -98,6 +99,7 @@ Component({
     },
     _render(this: any) {
       const data = this.data;
+      this.setData({ animation: !!data.streaming });
       this.md.renderNodes({
         content: data.content,
         platform: 'wechat',

@@ -52,6 +52,14 @@ describe('tokensToWechat — platform-specific behavior', () => {
     expect(out[0].animate).toBe(true);
     expect(out[0].attrs?.class).toBeUndefined();
   });
+
+  it('marks single- and multi-column tables for responsive column sizing', () => {
+    const single = tokensToWechat('| a |\n| - |\n| 1 |');
+    const multi = tokensToWechat('| a | b |\n| - | - |\n| 1 | 2 |');
+
+    expect(find(single, 'table')?.attrs?.class).toBe('md-table md-table-single');
+    expect(find(multi, 'table')?.attrs?.class).toBe('md-table md-table-multi');
+  });
 });
 
 describe('tokensToWechat — shared semantic mapping', () => {

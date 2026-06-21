@@ -125,7 +125,9 @@ export default function CodeHighlight(options: CodeHighlightOptions = {}): XMark
               ignoreIllegals,
             });
 
-            const nodes = htmlToMiniNodes(result.value, false);
+            // highlight.js emits encoded HTML (including numeric entities such
+            // as &#x27;). Decode those entities before MiniNodeRenderer displays text.
+            const nodes = htmlToMiniNodes(result.value, true);
             return [
               {
                 name: 'code',

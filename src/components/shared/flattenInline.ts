@@ -1,5 +1,11 @@
 import type { MiniNode } from '../../index.js';
 
+export {
+  createTextAnimationState,
+  reconcileTextAnimation,
+  resetTextAnimation,
+} from './textAnimation.js';
+
 /**
  * 把 MiniNode[] 中所有 inline 子树 (strong/em/code/span) 折叠为一层 <text> 文本片段，
  * 类名沿祖先链合并。anchor (<a>) 和 image (<img>) 保留为独立节点。
@@ -84,6 +90,19 @@ function flattenOne(n: MiniNode, classChain: string, out: MiniNode[]): void {
     const value = (n.attrs?.value as string) ?? '';
     if (!value) return;
     const merged = mergeClass(classChain, n.attrs?.class as string | undefined);
+    if (hasClass(merged, 'hljs') && value.indexOf('\n') >= 0) {
+      const lines = value.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i]) {
+          out.push({
+            name: 'text',
+            attrs: merged ? { value: lines[i], class: merged } : { value: lines[i] },
+          });
+        }
+        if (i < lines.length - 1) out.push({ name: 'br', attrs: {} });
+      }
+      return;
+    }
     out.push({ name: 'text', attrs: merged ? { value, class: merged } : { value } });
     return;
   }
@@ -121,6 +140,10 @@ function flattenOne(n: MiniNode, classChain: string, out: MiniNode[]): void {
 
   // block 节点（理论上 inline 上下文不会出现，但保险起见 walk 后压入）
   out.push(walk(n));
+}
+
+function hasClass(className: string, target: string): boolean {
+  return (` ${className} `).indexOf(` ${target} `) >= 0;
 }
 
 function mergeClass(...parts: Array<string | undefined>): string {

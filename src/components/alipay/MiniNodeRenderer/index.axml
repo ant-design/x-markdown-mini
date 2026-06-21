@@ -112,39 +112,73 @@
         </view>
       </block>
     </view>
-    <scroll-view scroll-x class="md-table-scroll">
-      <view class="md-table">
-        <mini-node-renderer
-          a:if="{{node.children}}"
-          nodes="{{node.children}}"
-          selectable="{{selectable}}"
-          animation="{{false}}"
-          slotComponents="{{slotComponents}}"
-          onTap="onTap"
-          onAppear="onAppear"
-        >
-          <slot slot-scope="prop" data="{{prop.data}}" />
-        </mini-node-renderer>
-      </view>
-    </scroll-view>
+    <view class="markdownx-table-content {{u.tableShadowClass(tableShadows, i)}}">
+      <scroll-view
+        scroll-x
+        class="md-table-scroll"
+        data-table-key="{{i}}"
+        onScroll="_tableScroll"
+      >
+        <view class="{{u.classOf(node)}}" data-table-key="{{i}}">
+          <view
+            a:for="{{node.children}}"
+            a:for-item="row"
+            a:for-index="ri"
+            a:key="k"
+            class="{{u.classOf(row)}}"
+            style="{{u.styleOf(row)}}"
+          >
+            <view
+              a:for="{{row.children}}"
+              a:for-item="cell"
+              a:for-index="ci"
+              a:key="k"
+              class="{{u.classOf(cell)}}"
+              style="{{u.styleOf(cell)}}"
+            >
+              <mini-node-renderer
+                a:if="{{cell.children}}"
+                nodes="{{cell.children}}"
+                selectable="{{selectable}}"
+                animation="{{false}}"
+                slotComponents="{{slotComponents}}"
+                onTap="onTap"
+                onAppear="onAppear"
+              >
+                <slot slot-scope="prop" data="{{prop.data}}" />
+              </mini-node-renderer>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
   </view>
 
-  <!-- anchor: kept interactive, children are already flattened text runs -->
-  <view
-    a:elif="{{node.name === 'a'}}"
-    class="{{u.classOf(node)}}"
-    style="{{u.styleOf(node)}}"
-    data-data="{{node}}"
-    catchTap="_tap"
-  >
+  <!-- Anchor runs must be direct <text> siblings. An outer Alipay <view>
+       creates a layout box even with display:inline and breaks surrounding text. -->
+  <block a:elif="{{node.name === 'a'}}">
     <text
       a:for="{{node.children}}"
       a:for-item="c"
       a:for-index="ci"
       a:key="k"
-      class="{{u.classOf(c)}}"
+      a:if="{{u.isText(c.name)}}"
+      class="{{u.classOf(node)}} {{u.classOf(c)}}"
+      style="{{u.styleOf(node)}}"
+      data-data="{{node}}"
+      hover-class="md-link--active"
+      hover-start-time="0"
+      hover-stay-time="80"
+      catchTap="_tap"
     >{{u.valueOf(c)}}</text>
-  </view>
+    <text
+      a:for="{{node.children}}"
+      a:for-item="c"
+      a:for-index="ci"
+      a:key="k"
+      a:if="{{u.isBr(c.name)}}"
+    >{{'\n'}}</text>
+  </block>
 
   <!-- inline tag rendered as a flat container because Alipay SDK 2.x rejects nested <text>. -->
   <view

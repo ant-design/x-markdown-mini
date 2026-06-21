@@ -18,12 +18,12 @@ function find(nodes: MiniNode[], name: string): MiniNode | undefined {
 }
 
 describe('tokensToAlipay — platform-specific behavior', () => {
-  it('keeps <a href> as-is (no data-href rewrite) and strips class', () => {
+  it('keeps <a href> and marks it as an interactive link', () => {
     const out = tokensToAlipay('[L](https://e.com)');
     const a = find(out, 'a')!;
     expect(a.attrs?.href).toBe('https://e.com');
     expect(a.attrs?.['data-href']).toBeUndefined();
-    expect(a.attrs?.class).toBeUndefined();
+    expect(a.attrs?.class).toBe('md-link');
   });
 
   it('drops <ol start> attribute for Alipay', () => {
@@ -55,6 +55,14 @@ describe('tokensToAlipay — platform-specific behavior', () => {
     const out = tokensToAlipay('# X', { animation: true });
     expect(out[0].animate).toBe(true);
     expect(out[0].attrs?.class).toBeUndefined();
+  });
+
+  it('marks single- and multi-column tables for responsive column sizing', () => {
+    const single = tokensToAlipay('| a |\n| - |\n| 1 |');
+    const multi = tokensToAlipay('| a | b |\n| - | - |\n| 1 | 2 |');
+
+    expect(find(single, 'table')?.attrs?.class).toBe('md-table md-table-single');
+    expect(find(multi, 'table')?.attrs?.class).toBe('md-table md-table-multi');
   });
 });
 

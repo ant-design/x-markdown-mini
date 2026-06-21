@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { XMarkdownMini } from '../index.js';
 import type { XMarkdownExtension } from '../index.js';
 import { htmlToMiniNodes } from '../plugins/shared/htmlToMiniNodes.js';
+import { flattenInlineNodes } from '../components/shared/flattenInline.js';
 
 // ---------------------------------------------------------------------------
 // htmlToMiniNodes
@@ -229,6 +230,32 @@ describe('CodeHighlight', () => {
     const json = JSON.stringify(nodes);
     expect(json).toContain('hljs');
     expect(json).toContain('language-javascript');
+  });
+
+  it('turns highlighted source newlines into explicit break nodes', async () => {
+    const { default: CodeHighlight } = await import('../plugins/CodeHighlight/index.js');
+    const md = new XMarkdownMini({ extensions: [CodeHighlight()] });
+    const nodes = md.renderNodes({
+      content: '```js\nconst md = new XMarkdownMini();\nconst nodes = md.renderNodes({ content });\n```',
+      platform: 'wechat',
+    });
+    const codeBlock = flattenInlineNodes(nodes).find((node) => node.name === 'pre');
+
+    expect(codeBlock?.children?.some((node) => node.name === 'br')).toBe(true);
+  });
+
+  it('decodes numeric HTML entities emitted by highlight.js', async () => {
+    const { default: CodeHighlight } = await import('../plugins/CodeHighlight/index.js');
+    const md = new XMarkdownMini({ extensions: [CodeHighlight()], escapeText: false });
+    const nodes = md.renderNodes({
+      content: "```js\nconst value = 'quoted';\n```",
+      platform: 'alipay',
+    });
+    const flat = flattenInlineNodes(nodes);
+    const json = JSON.stringify(flat);
+
+    expect(json).toContain("'quoted'");
+    expect(json).not.toContain('&#x27;');
   });
 
   it('falls back to default when no language specified', async () => {

@@ -101,6 +101,15 @@ function valueOf(node) {
   return attrs.value || '';
 }
 
+function tableShadowClass(shadows, key) {
+  var state = shadows && shadows[key];
+  if (!state) return '';
+  var cls = '';
+  if (state.left) cls += ' markdownx-table-content--left-shadow';
+  if (state.right) cls += ' markdownx-table-content--right-shadow';
+  return cls;
+}
+
 export default {
   isInline: isInline,
   isBlock: isBlock,
@@ -122,4 +131,5 @@ export default {
   langOf: langOf,
   altOf: altOf,
   valueOf: valueOf,
+  tableShadowClass: tableShadowClass,
 };

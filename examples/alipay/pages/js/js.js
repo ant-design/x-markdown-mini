@@ -7,24 +7,63 @@ const CodeHighlight = require('@ant-design/x-markdown-mini/plugins/CodeHighlight
 const Latex = require('@ant-design/x-markdown-mini/plugins/Latex/index.js').default;
 const { flattenInlineNodes } = require('@ant-design/x-markdown-mini/shared/flattenInline.js');
 const { SAMPLE } = require('../sample.js');
+const { createStreamPlayer } = require('../streaming.js');
+
+const STATUS_TEXT = {
+  idle: '完整内容',
+  streaming: 'AI 正在输出',
+  done: '流式完成',
+};
 
 Page({
   data: {
     nodes: [],
+    streamingEnabled: false,
+    streamingActive: false,
+    streamingStatus: STATUS_TEXT.idle,
   },
 
   onLoad() {
     // 每个视图独立一个实例（流式状态不共享）。escapeText:false 因为 MiniNodeRenderer
     // 的 <text>{{value}}</text> 不会解码实体。
-    const md = new XMarkdownMini({
+    this.md = new XMarkdownMini({
       escapeText: false,
       extensions: [CodeHighlight(), Latex({ katexOptions: { throwOnError: false } })],
     });
-    md.renderNodes({
+
+    this.streamPlayer = createStreamPlayer({
       content: SAMPLE,
+      onFrame: (content, streaming, status) => {
+        this.setData({
+          streamingActive: streaming,
+          streamingStatus: STATUS_TEXT[status],
+        });
+        this._render(content, streaming);
+      },
+    });
+    this.streamPlayer.showAll();
+  },
+
+  _render(content, streaming) {
+    this.md.renderNodes({
+      content,
       platform: 'alipay',
+      streaming,
       // mini-program 的 <text> 不能嵌套自定义组件，setData 前先扁平化内联树。
       onPatch: (nodes) => this.setData({ nodes: flattenInlineNodes(nodes) }),
     });
+  },
+
+  onStreamingChange(e) {
+    const enabled = e.detail.value;
+    this.setData({ streamingEnabled: enabled });
+    this.md.reset();
+    if (enabled) this.streamPlayer.play();
+    else this.streamPlayer.showAll();
+  },
+
+  onUnload() {
+    this.streamPlayer.dispose();
+    this.md.reset();
   },
 });
