@@ -1,8 +1,0 @@
-{
-  "pages": ["pages/bench/bench"],
-  "window": {
-    "defaultTitle": "Markdown 渲染对比",
-    "titleBarColor": "#1a1a1a",
-    "backgroundColor": "#f7f7f7"
-  }
-}
