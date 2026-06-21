@@ -79,14 +79,18 @@ function renderKatex(tex: string, displayMode: boolean, options: LatexOptions): 
     return options.onError ? options.onError(tex, err as Error) : [];
   }
   const nodes = htmlToMiniNodes(html, false);
-  const markNodes = (list: MiniNode[]): void => {
+  const markNodes = (list: MiniNode[], parentIsVlist = false): void => {
     for (const node of list) {
       if (node.name !== 'text' && node.name !== 'br') {
         const current = String(node.attrs?.class ?? '');
-        const marker = node.name === 'img' ? 'katex-node katex-img' : 'katex-node';
+        let marker = node.name === 'img' ? 'katex-node katex-img' : 'katex-node';
+        if (parentIsVlist) marker += ' katex-vlist-child';
         node.attrs = { ...node.attrs, class: current ? `${current} ${marker}` : marker };
+        const isVlist = current.split(/\s+/).includes('vlist');
+        if (node.children) markNodes(node.children, isVlist);
+        continue;
       }
-      if (node.children) markNodes(node.children);
+      if (node.children) markNodes(node.children, false);
     }
   };
   markNodes(nodes);

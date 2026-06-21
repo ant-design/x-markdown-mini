@@ -1,61 +1,53 @@
-import { describe, it, expect } from 'vitest';
-import { XMarkdownMini, Footnote } from '../index.js';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
+import { XMarkdownMini } from '../index.js';
 import type { MiniNode } from '../index.js';
 
+const root = resolve(__dirname, '../..');
+
 function findNode(nodes: MiniNode[], name: string): MiniNode | undefined {
-  for (const n of nodes) {
-    if (n.name === name) return n;
-    if (n.children) {
-      const f = findNode(n.children, name);
-      if (f) return f;
-    }
+  for (const node of nodes) {
+    if (node.name === name) return node;
+    const nested = node.children && findNode(node.children, name);
+    if (nested) return nested;
   }
   return undefined;
 }
 
-describe('Footnote extension', () => {
-  it('parses [^label:content] into a footnote node with label + content attrs', () => {
-    const md = new XMarkdownMini({ extensions: [Footnote()] });
-    const nodes = md.renderNodes({
-      content: 'Markdown[^1:一种轻量标记语言] 很好用。',
-      platform: 'alipay',
-    });
-    const fn = findNode(nodes, 'footnote');
-    expect(fn).toBeDefined();
-    expect(fn!.tag).toBe('footnote');
-    expect(fn!.attrs?.label).toBe('1');
-    expect(fn!.attrs?.content).toBe('一种轻量标记语言');
+describe('Footnote stays an application extension', () => {
+  it('is absent from the library entry and built-in Markdown component API', () => {
+    const files = [
+      'src/index.ts',
+      'src/components/alipay/Markdown/index.ts',
+      'src/components/wechat/Markdown/index.ts',
+    ];
+
+    for (const file of files) {
+      expect(readFileSync(resolve(root, file), 'utf8')).not.toMatch(/\b[Ff]ootnote\b/);
+    }
   });
 
-  it('falls back to default label when no explicit label is given', () => {
-    const md = new XMarkdownMini({ extensions: [Footnote({ defaultLabel: '注' })] });
+  it('can be implemented locally by the docs-site demo', async () => {
+    const extensionFile = resolve(
+      root,
+      'docs-site/src/demos/plugins/footnoteExtension.ts',
+    );
+    expect(existsSync(extensionFile)).toBe(true);
+
+    const { createFootnoteExtension } = await import(
+      '../../docs-site/src/demos/plugins/footnoteExtension.js'
+    );
+    const md = new XMarkdownMini({ extensions: [createFootnoteExtension()] });
     const nodes = md.renderNodes({
-      content: '文字[^这是一段说明]后续。',
+      content: 'Markdown[^1:一种轻量标记语言]',
       platform: 'wechat',
     });
-    const fn = findNode(nodes, 'footnote');
-    expect(fn).toBeDefined();
-    expect(fn!.attrs?.label).toBe('注');
-    expect(fn!.attrs?.content).toBe('这是一段说明');
-  });
+    const footnote = findNode(nodes, 'footnote');
 
-  it('footnote node survives inline flattening with attrs intact', async () => {
-    const { flattenInlineNodes } = await import('../components/shared/flattenInline.js');
-    const md = new XMarkdownMini({ extensions: [Footnote()], escapeText: false });
-    const nodes = md.renderNodes({
-      content: 'a[^2:第二条] b',
-      platform: 'wechat',
+    expect(footnote?.attrs).toMatchObject({
+      label: '1',
+      content: '一种轻量标记语言',
     });
-    const fn = findNode(flattenInlineNodes(nodes), 'footnote');
-    expect(fn).toBeDefined();
-    expect(fn!.attrs?.label).toBe('2');
-    expect(fn!.attrs?.content).toBe('第二条');
-  });
-
-  it('plain markdown without footnote syntax is unaffected', () => {
-    const md = new XMarkdownMini({ extensions: [Footnote()] });
-    const nodes = md.renderNodes({ content: '普通 [链接](https://x) 文本', platform: 'alipay' });
-    expect(findNode(nodes, 'footnote')).toBeUndefined();
-    expect(findNode(nodes, 'a')).toBeDefined();
   });
 });

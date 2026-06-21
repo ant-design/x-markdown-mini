@@ -16,8 +16,10 @@ npm 包** `@ant-design/x-markdown-mini`，不内置本仓库的 `dist/` 拷贝�
 | `pages/component` | **组件接入** | 一行 `usingComponents` 引入 `markdown` 组件：`<markdown content latex highlight />`。页面无需 `require` 插件、无需 `@import` 样式。接入成本最低。 |
 | `pages/js` | **JS 接入** | 页面自己 `require` 核心 + 插件，`new XMarkdownMini({...})` → `renderNodes()` 直出节点，交给底层 `<mini-node-renderer>` 渲染。多了显式装配，换来对实例/扩展的完全控制；样式需自行 `@import`（见 `js.acss` / `js.wxss`）。 |
 
-`pages/sample.js` 是两个示例页共享的同一份 Markdown 内容（标题 / 列表 / 表格 / 行内代码 / 代码高亮 /
-行内 + 块级 LaTeX / 引用），组件接入与 JS 接入渲染**同一份内容**，可直接对照结果是否一致。
+`examples/sample.js` 是微信和支付宝的唯一 Markdown 内容源（标题 / 长段落 / 列表 / 表格 / 行内代码 /
+代码高亮 / 行内 + 块级 LaTeX / 引用）。修改后在仓库根目录运行 `npm run sync:examples`，脚本会生成
+两端各自的 `pages/sample.js`；`npm run check:examples` 会阻止副本与共享源发生漂移。组件接入与 JS
+接入渲染**同一份内容**，可直接对照结果是否一致。
 
 接入要点（两端一致）：每个视图独立一个 `XMarkdownMini` 实例（流式状态不共享）；`escapeText: false`
 （`<mini-node-renderer>` 的 `<text>{{value}}</text>` 不解码实体）；`setData` 前先

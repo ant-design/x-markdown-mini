@@ -1,9 +1,12 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
+const require = createRequire(import.meta.url);
+const { createSample } = require(join(root, 'examples', 'sample.js'));
 
 // Each example demonstrates the same two integration paths, as a real npm
 // consumer would wire them (no reaching into source):
@@ -68,6 +71,13 @@ for (const example of examples) {
   if (!Array.isArray(app.pages) || app.pages.length === 0) {
     throw new Error(`${example.name} app.json must declare at least one page`);
   }
+
+  const { SAMPLE } = require(join(example.dir, 'pages', 'sample.js'));
+  assertEqual(
+    SAMPLE,
+    createSample(example.name),
+    `${example.name} sample is stale; run npm run sync:examples`,
+  );
 
   // The two integration paths must both be present and reachable from home.
   for (const required of ['pages/component/component', 'pages/js/js', 'pages/home/home']) {

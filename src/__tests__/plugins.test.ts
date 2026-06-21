@@ -182,6 +182,33 @@ describe('Latex — tokenizer', () => {
     expect(json).toContain('katex-display');
   });
 
+  it('marks only direct vlist children for zero-height positioning', async () => {
+    const { default: Latex } = await import('../plugins/Latex/index.js');
+    const md = new XMarkdownMini({ extensions: [Latex()] });
+    const nodes = md.renderNodes({
+      content: '$$\n\\frac{n(n+1)}{2}\n$$',
+      platform: 'wechat',
+    });
+    const queue = [...nodes];
+    let vlist: any;
+    while (queue.length) {
+      const node = queue.shift()!;
+      if (String(node.attrs?.class ?? '').split(/\s+/).includes('vlist')) {
+        vlist = node;
+        break;
+      }
+      if (node.children) queue.push(...node.children);
+    }
+
+    expect(vlist).toBeTruthy();
+    const direct = vlist.children.filter((node: any) => node.name !== 'text');
+    expect(direct.every((node: any) =>
+      String(node.attrs?.class ?? '').includes('katex-vlist-child'))).toBe(true);
+    const grandchildren = direct.flatMap((node: any) => node.children ?? []);
+    expect(grandchildren.some((node: any) =>
+      String(node.attrs?.class ?? '').includes('katex-vlist-child'))).toBe(false);
+  });
+
   it('renders nothing when a formula fails to parse', async () => {
     const { default: Latex } = await import('../plugins/Latex/index.js');
     const md = new XMarkdownMini({ extensions: [Latex()] });

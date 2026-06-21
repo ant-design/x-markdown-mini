@@ -55,7 +55,7 @@ pnpm add @ant-design/x-markdown-mini
 />
 ```
 
-`latex` / `highlight` / `footnote` 是 **布尔开关**：命中后组件在内部 `require` 并 bake 对应插件
+`latex` / `highlight` 是 **布尔开关**：命中后组件在内部 `require` 并 bake 对应插件
 （插件扩展带函数，无法通过属性 / `setData` 跨组件边界传入，所以必须在组件里加载）。未开启的页面
 不会为 KaTeX（约 487KB）付出体积。
 

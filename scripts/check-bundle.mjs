@@ -40,8 +40,6 @@ const BUDGETS = [
   // 主库（npm 消费方 + 支付宝默认包根）
   // gzip 28→29 KB：components 合成节点新增 `tag` 字段（宿主 slot/抽象节点按
   //   node.tag 分发自定义组件）。
-  // raw +2 KB：内置轻量 Footnote 扩展（`[^标签:内容]` 行内脚注，组件可按名启用）
-  //   打进主 bundle，raw ~114.4 KB / mjs ~112.8 KB。
   // raw +1 KB：typewriter mode now requeues unrendered chunks when a new
   // cumulative streaming update arrives before the previous timer chain drains.
   // raw/gzip +~0.6 KB：StreamingProcessor 变速打字机（chunkDelay/charDelay 支持

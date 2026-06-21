@@ -18,6 +18,9 @@ Component({
   options: {
     multipleSlots: true,
     styleIsolation: 'shared',
+    // Recursive MiniNodeRenderer instances must not inject host layout boxes.
+    // KaTeX vlist/fraction positioning depends on one continuous box tree.
+    virtualHost: true,
   },
   properties: {
     nodes: { type: Array, value: [] },

@@ -26,7 +26,7 @@ function clearRuntimes(): void {
 }
 
 function installRuntime(key: (typeof RUNTIMES)[number]): void {
-  (globalThis as unknown as Globalish)[key] = { getSystemInfo: () => ({}) };
+  (globalThis as unknown as Globalish)[key] = {};
 }
 
 afterEach(() => {
@@ -141,15 +141,9 @@ describe('resolvePlatform / detectPlatformRuntime', () => {
     }
   });
 
-  it('ignores runtimes that exist but lack getSystemInfo*', () => {
+  it('accepts runtime objects without probing deprecated system-info APIs', () => {
     clearRuntimes();
-    (globalThis as unknown as Globalish).wx = { something: 'else' };
-    expect(resolvePlatform('auto')).toBe('alipay');
-  });
-
-  it('accepts getSystemInfoSync as a valid runtime marker', () => {
-    clearRuntimes();
-    (globalThis as unknown as Globalish).wx = { getSystemInfoSync: () => ({}) };
+    (globalThis as unknown as Globalish).wx = {};
     expect(resolvePlatform('auto')).toBe('wechat');
   });
 

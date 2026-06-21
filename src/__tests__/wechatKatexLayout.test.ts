@@ -5,19 +5,41 @@ import { describe, expect, it } from 'vitest';
 const root = resolve(__dirname, '../..');
 
 describe('WeChat KaTeX layout', () => {
-  it('renders the deep KaTeX tree in one component boundary', () => {
+  it('uses virtual component hosts instead of forbidden recursive templates', () => {
     const wxml = readFileSync(
       resolve(root, 'src/components/wechat/MiniNodeRenderer/index.wxml'),
       'utf8',
     );
-    const wxs = readFileSync(
-      resolve(root, 'src/components/wechat/MiniNodeRenderer/index.wxs'),
+    const component = readFileSync(
+      resolve(root, 'src/components/wechat/MiniNodeRenderer/index.ts'),
       'utf8',
     );
 
-    expect(wxml).toContain('<template name="katexTree">');
-    expect(wxml).toContain('<template is="katexTree"');
-    expect(wxml).toContain('u.isKatex(node)');
-    expect(wxs).toContain('function isKatex(node)');
+    expect(wxml).not.toContain('<template name="katexTree">');
+    expect(wxml).not.toContain('<template is="katexTree"');
+    expect(component).toMatch(/options:\s*\{[\s\S]*?virtualHost:\s*true/);
+
+    const wxss = readFileSync(
+      resolve(root, 'src/plugins/Latex/style.wxss'),
+      'utf8',
+    );
+    expect(wxss).toContain('.katex .vlist .katex-vlist-child');
+    expect(wxss).not.toMatch(/\.katex \.vlist \.katex-node\s*\{/);
+  });
+
+  it('compensates WeChat vlist baseline rounding without affecting Alipay', () => {
+    const wechatStyles = readFileSync(
+      resolve(root, 'src/plugins/Latex/style.wxss'),
+      'utf8',
+    );
+    const alipayStyles = readFileSync(
+      resolve(root, 'src/plugins/Latex/style.acss'),
+      'utf8',
+    );
+
+    expect(wechatStyles).toMatch(
+      /\.katex \.vlist\s*\{[^}]*transform:\s*translateY\(0\.04em\)/s,
+    );
+    expect(alipayStyles).not.toContain('translateY(0.04em)');
   });
 });

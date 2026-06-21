@@ -269,7 +269,7 @@
     { title: '介绍', link: '/docs/introduce', group: '指南', desc: 'x-markdown-mini 的定位、特性、渲染链路与安装方式', keywords: '介绍 特性 安装 MiniNode marked 小程序' },
     { title: '代码示例', link: '/docs/code-examples', group: '指南', desc: 'renderNodes、实例化、组件接入、GFM 与换行示例', keywords: '示例 renderNodes XMarkdownMini Markdown 组件 GFM breaks' },
     { title: '流式渲染', link: '/docs/streaming', group: '指南', desc: '稳定块缓存、tail fixup、语义化分块与流式补全', keywords: 'streaming stableNodes liveTail 流式 补全 semantic fixup' },
-    { title: '组件使用', link: '/docs/components', group: '组件', desc: 'Markdown 与 MiniNodeRenderer 组件的使用方法', keywords: '组件 Markdown MiniNodeRenderer components footnote' },
+    { title: '组件使用', link: '/docs/components', group: '组件', desc: 'Markdown 与 MiniNodeRenderer 组件的使用方法', keywords: '组件 Markdown MiniNodeRenderer components' },
     { title: '代码高亮', link: '/docs/plugins-code-highlight', group: '插件', desc: 'CodeHighlight 插件与 highlight.js 语言配置', keywords: '插件 代码高亮 CodeHighlight highlight.js' },
     { title: '公式', link: '/docs/plugins-latex', group: '插件', desc: 'Latex 插件、KaTeX 语法与样式引入', keywords: '插件 公式 Latex KaTeX 数学' },
     { title: '自定义插件', link: '/docs/plugins-custom', group: '插件', desc: '以脚注为例编写 XMarkdownExtension', keywords: '插件 自定义 extension footnote 脚注 tokenizer miniRenderer' },

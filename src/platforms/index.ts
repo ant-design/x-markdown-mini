@@ -45,12 +45,7 @@ const RENDERERS: Record<string, PlatformRenderer> = {
 };
 
 function isRuntimeObject(obj: unknown): boolean {
-  if (!obj || typeof obj !== 'object') return false;
-  const target = obj as Record<string, unknown>;
-  return (
-    typeof target.getSystemInfo === 'function' ||
-    typeof target.getSystemInfoSync === 'function'
-  );
+  return obj !== null && (typeof obj === 'object' || typeof obj === 'function');
 }
 
 function detectPlatformRuntime(): BuiltinPlatform {

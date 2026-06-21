@@ -1,32 +1,5 @@
 <wxs src="./index.wxs" module="u" />
 
-<!-- KaTeX relies on one uninterrupted positioning tree. Rendering every span
-     through a recursive custom component inserts host boxes and displaces
-     fraction/overline rules, so the formula subtree stays in this template. -->
-<template name="katexTree">
-  <text
-    wx:if="{{name === 'text'}}"
-    class="{{attrs.class || ''}}"
-    style="{{attrs.style || ''}}"
-  >{{attrs.value || ''}}</text>
-  <image
-    wx:elif="{{name === 'img'}}"
-    class="{{attrs.class || ''}}"
-    style="{{attrs.style || ''}}"
-    src="{{attrs.src || ''}}"
-    mode="widthFix"
-  />
-  <view
-    wx:else
-    class="{{attrs.class || ''}}"
-    style="{{attrs.style || ''}}"
-  >
-    <block wx:for="{{children}}" wx:for-item="child" wx:key="k">
-      <template is="katexTree" data="{{...child}}" />
-    </block>
-  </view>
-</template>
-
 <block wx:for="{{nodes}}" wx:for-item="node" wx:for-index="i" wx:key="k">
   <!-- 微信重建节点时，以负 delay 从字符原有时间点续播，避免整段重新闪。 -->
   <text
@@ -62,17 +35,6 @@
     data-data="{{node}}"
     catch:tap="_tap"
   />
-
-  <!-- Keep deep KaTeX layout inside this component boundary. -->
-  <view
-    wx:elif="{{u.isKatex(node)}}"
-    class="{{u.classOf(node)}}"
-    style="{{u.styleOf(node)}}"
-  >
-    <block wx:for="{{node.children}}" wx:for-item="child" wx:key="k">
-      <template is="katexTree" data="{{...child}}" />
-    </block>
-  </view>
 
   <!-- pre: code block with language label + copy toolbar, scrollable body -->
   <view

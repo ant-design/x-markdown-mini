@@ -24,7 +24,7 @@ export interface PhoneSection {
 
 /** 控制预览渲染行为的可选项，与库的真实 API 一一对应 */
 export interface PhoneRenderOptions {
-  /** 插件列表（CodeHighlight / Latex / Footnote / 自定义） */
+  /** 插件列表（CodeHighlight / Latex / 自定义） */
   extensions?: (XMarkdownExtension | MarkedExtension)[];
   /** 自定义组件标签白名单（构造级选项，会创建独立实例） */
   components?: string[];

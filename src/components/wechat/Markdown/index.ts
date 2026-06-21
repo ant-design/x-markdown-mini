@@ -1,4 +1,4 @@
-import { XMarkdownMini, Footnote } from '../../../index.js';
+import { XMarkdownMini } from '../../../index.js';
 import type {
   MiniNode,
   StreamingConfig,
@@ -20,12 +20,10 @@ declare const require: (id: string) => any;
 
 // 仅在命中 latex/highlight 时才 require 对应插件——未开启的页面不为 KaTeX(~487KB) 付费。
 function bakeExtensions(
-  footnote: boolean,
   latex: boolean,
   highlight: boolean,
 ): (XMarkdownExtension | MarkedExtension)[] {
   const exts: (XMarkdownExtension | MarkedExtension)[] = [];
-  if (footnote) exts.push(Footnote());
   if (highlight) exts.push(require('../../../plugins/CodeHighlight/index.js').default());
   if (latex)
     exts.push(
@@ -50,7 +48,6 @@ Component({
     className: { type: String, value: '' },
     extensions: { type: null, value: null },
     components: { type: null, value: null },
-    footnote: { type: Boolean, value: false },
     // 开启内置插件（组件内部 require + bake），无需页面传入函数型扩展。
     latex: { type: Boolean, value: false },
     highlight: { type: Boolean, value: false },
@@ -75,8 +72,8 @@ Component({
     },
   },
   observers: {
-    // `components` / `footnote` / `latex` / `highlight` 都 bake 进 marked 实例，变更需重建。
-    'components, footnote, latex, highlight'(this: any) {
+    // `components` / `latex` / `highlight` 都 bake 进 marked 实例，变更需重建。
+    'components, latex, highlight'(this: any) {
       if (this.md) {
         this._build();
         this._render();
@@ -89,13 +86,11 @@ Component({
   methods: {
     _build(this: any) {
       const components = (this.data.components as string[] | null) ?? [];
-      const footnote = !!this.data.footnote;
-      const extensions = bakeExtensions(footnote, !!this.data.latex, !!this.data.highlight);
+      const extensions = bakeExtensions(!!this.data.latex, !!this.data.highlight);
       this.md?.reset();
       resetTextAnimation(this.textAnimation);
       this.md = new XMarkdownMini({ escapeText: false, components, extensions });
-      const slotComponents = footnote ? components.concat(['footnote']) : components;
-      this.setData({ slotComponents });
+      this.setData({ slotComponents: components });
     },
     _render(this: any) {
       const data = this.data;

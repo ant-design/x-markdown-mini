@@ -1,4 +1,4 @@
-import { XMarkdownMini, Footnote } from '../../../index.js';
+import { XMarkdownMini } from '../../../index.js';
 import type {
   MiniNode,
   StreamingConfig,
@@ -15,12 +15,10 @@ declare const require: (id: string) => any;
 
 // 仅在命中 latex/highlight 时才 require 对应插件——未开启的页面不为 KaTeX(~487KB) 付费。
 function bakeExtensions(
-  footnote: boolean,
   latex: boolean,
   highlight: boolean,
 ): (XMarkdownExtension | MarkedExtension)[] {
   const exts: (XMarkdownExtension | MarkedExtension)[] = [];
-  if (footnote) exts.push(Footnote());
   if (highlight) exts.push(require('../../../plugins/CodeHighlight/index.js').default());
   if (latex)
     exts.push(
@@ -41,8 +39,6 @@ interface MarkdownProps {
   extensions: (XMarkdownExtension | MarkedExtension)[] | null;
   /** 自定义组件标签白名单，命中的 <tag> 交给页面作用域插槽渲染。 */
   components: string[] | null;
-  /** 开启内置脚注扩展（`[^标签:内容]`）。脚注 marker 走作用域插槽，由页面渲染。 */
-  footnote: boolean;
   /** 开启内置 KaTeX 公式插件（组件内部 require + bake）。 */
   latex: boolean;
   /** 开启内置代码高亮插件（组件内部 require + bake）。 */
@@ -61,7 +57,6 @@ const defaultProps: MarkdownProps = {
   className: '',
   extensions: null,
   components: null,
-  footnote: false,
   latex: false,
   highlight: false,
 };
@@ -90,11 +85,10 @@ Component({
 
   didUpdate(this: any, prevProps: MarkdownProps) {
     const p = this.props as MarkdownProps;
-    // `components` / `footnote` / `latex` / `highlight` 都 bake 进 marked 实例（构造时），
+    // `components` / `latex` / `highlight` 都 bake 进 marked 实例（构造时），
     // 任一变化都需要重建 XMarkdownMini 实例。
     if (
       !sameList(prevProps.components, p.components) ||
-      prevProps.footnote !== p.footnote ||
       prevProps.latex !== p.latex ||
       prevProps.highlight !== p.highlight
     ) {
@@ -122,12 +116,10 @@ Component({
   methods: {
     _build(this: any, props: MarkdownProps) {
       const components = props.components ?? [];
-      const extensions = bakeExtensions(!!props.footnote, !!props.latex, !!props.highlight);
+      const extensions = bakeExtensions(!!props.latex, !!props.highlight);
       this.md?.reset();
       this.md = new XMarkdownMini({ escapeText: false, components, extensions });
-      // 脚注节点（name: 'footnote'）也走 slot 路由交给页面渲染 marker + popover。
-      const slotComponents = props.footnote ? components.concat(['footnote']) : components;
-      this.setData({ slotComponents });
+      this.setData({ slotComponents: components });
     },
 
     _render(this: any, props: MarkdownProps) {
