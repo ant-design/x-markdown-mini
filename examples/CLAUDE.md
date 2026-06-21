@@ -26,16 +26,24 @@ Corollary: the examples depend on a **published** version (currently `@ant-desig
 
 `pages/sample.js` is shared by both demo pages on each platform — one Markdown fixture (headings, list, table, code highlight, inline + block LaTeX, blockquote) so component mode and JS mode render the **same** content for visual diffing. Key things baked into the demos: a **fresh `XMarkdownMini` per view** (streaming state isn't shared), `escapeText: false` (because `<mini-node-renderer>`'s `<text>{{value}}</text>` doesn't decode entities), and `flattenInlineNodes(nodes)` before `setData` (mini-program `<text>` can't nest custom components).
 
-## Platform import paths differ — this is IDE npm-resolution, not a choice
+## Platform import paths — now symmetric (no `dist/` on either side)
 
-The same logical import is written differently per platform. Do not "unify" them:
+As of `0.1.0-beta.4` the package is **published with the `dist/` contents at its root**
+(`scripts/prepare-publish.mjs` writes a root-relative `dist/package.json`, release is
+`npm publish ./dist`). So `es/`, `plugins/`, `shared/`, `index.js`, and `miniprogram_dist/`
+all sit at the package root, and the **same no-`dist/` import works on both platforms**:
 
-| Platform | How the IDE resolves npm | Import prefix | Example |
-| --- | --- | --- | --- |
-| **Alipay** | Reads the `node_modules` package root directly and **ignores `package.json#exports`**, so subpaths must point at real on-disk files | **`dist/` required** | `@ant-design/x-markdown-mini/dist/es/Markdown/index`, `.../dist/index.js`, `.../dist/plugins/Latex/index.js` |
-| **WeChat** | Uses `package.json#miniprogram` (→ `dist/miniprogram_dist`) as the package root after **构建 npm** lands it in `miniprogram_npm/` | **no `dist/`** | `@ant-design/x-markdown-mini/es/Markdown/index`, `.../index.js`, `.../plugins/Latex/index.js` |
+| Platform | How the IDE resolves npm | Example |
+| --- | --- | --- |
+| **Alipay** | Reads the `node_modules` package root directly and **ignores `package.json#exports`** — and `es/` now physically sits at that root | `@ant-design/x-markdown-mini/es/Markdown/index`, `.../index.js`, `.../plugins/Latex/index.js` |
+| **WeChat** | Uses `package.json#miniprogram` (→ `miniprogram_dist`) as the package root after **构建 npm** lands it in `miniprogram_npm/` | `@ant-design/x-markdown-mini/es/Markdown/index`, `.../index.js`, `.../plugins/Latex/index.js` |
 
-Because Alipay ignores `exports`, the bare `es/Markdown/index` form **fails with `CE1000.01: cannot resolve module`** there — Alipay always needs the explicit `dist/` segment. (A package republish that exposes those subpaths at the package root could remove the prefix; until then, keep `dist/`.)
+> Historical note: with the old `dist/`-nested layout (≤ `beta.3`), Alipay needed an
+> explicit `dist/` prefix and a bare `es/Markdown/index` failed with
+> `CE1000.01: cannot resolve module`. The publish-from-dist change removed that asymmetry.
+> If you ever see `CE1000.01` again, confirm the *installed* package has `es/` at its
+> root (`ls node_modules/@ant-design/x-markdown-mini/es`) — an older version reintroduces
+> the `dist/` nesting.
 
 ## Running the examples (opened in their respective IDEs, not built here)
 
@@ -46,5 +54,5 @@ cd examples/alipay && npm install   # then open examples/alipay in Alipay DevToo
 cd examples/wechat && npm install   # then open examples/wechat in WeChat DevTool → 工具 → 构建 npm
 ```
 
-- **Alipay**: `mini.project.json` sets `compileOptions.transpile: {}` — required because the shipped `dist/` is ES2018 (object spread / `class`) and the IDE must transpile it. After changing a dependency, just recompile (no separate npm-build step).
+- **Alipay**: `mini.project.json` sets `compileOptions.transpile: {}` — required because the shipped code is ES2018 (object spread / `class`) and the IDE must transpile it. After changing a dependency, just recompile (no separate npm-build step).
 - **WeChat**: after `npm install` or any dependency change, run **工具 → 构建 npm** in the IDE to regenerate `miniprogram_npm/`. That generated tree is the package root WeChat imports from — treat it as build output (see the no-魔改 rule), never edit it by hand.

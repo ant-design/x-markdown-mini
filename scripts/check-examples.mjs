@@ -10,21 +10,21 @@ const root = join(__dirname, '..');
 //   - 组件接入: the shipped <Markdown> component via its package path, with
 //     latex/highlight baked inside the component (booleans, not props).
 //   - JS 接入: renderNodes() in page JS feeding the low-level MiniNodeRenderer.
-// Platform path difference (NOT symmetric):
-// - Alipay resolves npm subpaths RAW from the package root filesystem and does
-//   NOT honor package.json#exports, so it needs the explicit `dist/` prefix
-//   (a no-dist path → CE1000.01 cannot resolve module). It also needs Component2
-//   plus node_modules transpilation, or the component fails to register at runtime
-//   ("reading 'options'").
-// - WeChat resolves via `package.json#miniprogram` + 构建npm → flat miniprogram_npm,
-//   so its paths have NO dist/ segment.
+// Import paths are now SYMMETRIC — NO dist/ segment on either platform. The package
+// is published with the dist/ CONTENTS at its root (scripts/prepare-publish.mjs +
+// `npm publish ./dist`), so `es/Markdown/index` resolves on both:
+// - Alipay resolves npm subpaths RAW from the package root filesystem (it does NOT
+//   honor package.json#exports) → es/ now sits at that root, so no dist/ prefix is
+//   needed (a missing path would still be CE1000.01). It also needs Component2 plus
+//   node_modules transpilation, or the component fails to register ("reading 'options'").
+// - WeChat resolves via `package.json#miniprogram` (→ miniprogram_dist) + 构建npm.
 const examples = [
   {
     name: 'alipay',
     dir: join(root, 'examples', 'alipay'),
     pageExts: ['.js', '.axml', '.json'],
-    markdownComponent: '@ant-design/x-markdown-mini/dist/es/Markdown/index',
-    nodeRenderer: '@ant-design/x-markdown-mini/dist/es/MiniNodeRenderer/index',
+    markdownComponent: '@ant-design/x-markdown-mini/es/Markdown/index',
+    nodeRenderer: '@ant-design/x-markdown-mini/es/MiniNodeRenderer/index',
   },
   {
     name: 'wechat',

@@ -23,15 +23,19 @@ npm 包** `@ant-design/x-markdown-mini`，不内置本仓库的 `dist/` 拷贝�
 （`<mini-node-renderer>` 的 `<text>{{value}}</text>` 不解码实体）；`setData` 前先
 `flattenInlineNodes(nodes)`（小程序 `<text>` 不能嵌套自定义组件）。
 
-## 引用路径：两端不同，是 IDE 的 npm 解析差异，不是可选项
+## 引用路径：两端一致，均无 `dist/`
 
-| 平台 | 解析方式 | 引用前缀 | 示例 |
-| --- | --- | --- | --- |
-| 支付宝 | 直接读 `node_modules` 包根，**不认 `package.json#exports`**，子路径必须指向真实文件 | **必须带 `dist/`** | `@ant-design/x-markdown-mini/dist/es/Markdown/index`、`.../dist/index.js`、`.../dist/plugins/Latex/index.js` |
-| 微信 | 用 `package.json#miniprogram`（→ `dist/miniprogram_dist`）作包根，「构建 npm」落到 `miniprogram_npm/` | **无 `dist/`** | `@ant-design/x-markdown-mini/es/Markdown/index`、`.../index.js`、`.../plugins/Latex/index.js` |
+自 `0.1.0-beta.4` 起，包以 **「`dist/` 内容即包根」** 的形式发布（`npm publish ./dist`），
+`es/`、`plugins/`、`shared/`、`index.js`、`miniprogram_dist/` 都在包根，故两端写法完全一致：
 
-支付宝下若写成裸 `es/Markdown/index` 会报 `CE1000.01: cannot resolve module`——支付宝始终需要
-显式的 `dist/` 段。
+| 平台 | 解析方式 | 示例 |
+| --- | --- | --- |
+| 支付宝 | 直接读 `node_modules` 包根，**不认 `package.json#exports`**——`es/` 现已在包根 | `@ant-design/x-markdown-mini/es/Markdown/index`、`.../index.js`、`.../plugins/Latex/index.js` |
+| 微信 | 用 `package.json#miniprogram`（→ `miniprogram_dist`）作包根，「构建 npm」落到 `miniprogram_npm/` | `@ant-design/x-markdown-mini/es/Markdown/index`、`.../index.js`、`.../plugins/Latex/index.js` |
+
+> 历史：旧的 `dist/` 嵌套布局（≤ `beta.3`）下支付宝必须带 `dist/` 前缀，裸 `es/Markdown/index`
+> 会报 `CE1000.01: cannot resolve module`。改为 publish-from-dist 后此差异消除。若再遇到
+> `CE1000.01`，先确认安装的版本包根有 `es/`（`ls node_modules/@ant-design/x-markdown-mini/es`）。
 
 ## 在开发者工具里运行
 
@@ -42,7 +46,7 @@ cd examples/alipay && npm install   # 之后用支付宝开发者工具打开 ex
 cd examples/wechat && npm install   # 之后用微信开发者工具打开 examples/wechat → 工具 → 构建 npm
 ```
 
-- **支付宝**：`mini.project.json` 已设 `compileOptions.transpile: {}`——发布的 `dist/` 是 ES2018
+- **支付宝**：`mini.project.json` 已设 `compileOptions.transpile: {}`——发布的代码是 ES2018
   （含对象展开 / `class`），IDE 需转译。改完依赖直接重新编译即可（无独立 npm 构建步骤）。
 - **微信**：`npm install` 或依赖变更后，在 IDE 里执行 **工具 → 构建 npm** 重新生成 `miniprogram_npm/`。
   该产物即微信的导入包根，按构建产物对待，**不要手改**。

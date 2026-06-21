@@ -1,11 +1,11 @@
 // JS 接入：页面自己 require 核心 + 插件，调用 renderNodes() 直出节点，
 // 交给底层 MiniNodeRenderer 渲染。比组件接入多了显式装配，换来对实例/扩展的完全控制。
-// 支付宝从「包根文件系统」原样解析 npm 子路径（不认 package.json#exports），
-// 所以子路径必须带显式 dist/ 前缀，指向真实文件位置。
-const { XMarkdownMini } = require('@ant-design/x-markdown-mini/dist/index.js');
-const CodeHighlight = require('@ant-design/x-markdown-mini/dist/plugins/CodeHighlight/index.js').default;
-const Latex = require('@ant-design/x-markdown-mini/dist/plugins/Latex/index.js').default;
-const { flattenInlineNodes } = require('@ant-design/x-markdown-mini/dist/shared/flattenInline.js');
+// 包以「dist 内容即包根」的形式发布（npm publish ./dist），故 es/ plugins/ shared/ index.js
+// 都在包根；支付宝直接读包根、微信经 miniprogram_dist，两端子路径一致、均无 dist/ 段。
+const { XMarkdownMini } = require('@ant-design/x-markdown-mini/index.js');
+const CodeHighlight = require('@ant-design/x-markdown-mini/plugins/CodeHighlight/index.js').default;
+const Latex = require('@ant-design/x-markdown-mini/plugins/Latex/index.js').default;
+const { flattenInlineNodes } = require('@ant-design/x-markdown-mini/shared/flattenInline.js');
 const { SAMPLE } = require('../sample.js');
 
 Page({

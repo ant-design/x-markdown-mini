@@ -5,7 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run build          # tsup → patch-modern-regex → copy-miniprogram-dist → copy-component-assets
+npm run build          # tsup → patch-modern-regex → copy-miniprogram-dist → copy-component-assets → prepare-publish
+npm run release        # build + `npm publish ./dist` (publishes the dist/ CONTENTS as the package root)
 npm test               # vitest run --coverage  (one-shot, not watch)
 npm run test:ci        # same + JSON reporter → test-results.json (CI gate consumes this)
 npm run lint           # eslint src --ext .ts
@@ -72,7 +73,9 @@ This is the supported way to add LaTeX, code-block highlighting (lazy-loaded), o
 
 The repo ships one library twice plus four component bundles. The duplication is structural — don't try to "deduplicate":
 
-- `dist/index.{js,mjs}` — npm consumers + Alipay package root (Alipay reads the default package root).
+> **Publish-from-dist:** the package is published by `npm publish ./dist` (the `release` script), so the **published tarball's root is the `dist/` contents** — `es/`, `plugins/`, `shared/`, `index.js`, `miniprogram_dist/` all sit at the package root with **no `dist/` segment**. `scripts/prepare-publish.mjs` (last build step) writes a root-relative `dist/package.json` (`main: index.js`, `exports['./es/*']: './es/*'`, no `files`/`scripts`/`devDependencies`) and copies `README.md`/`LICENSE` in. The local build still emits to `dist/` unchanged, so every `dist/…` path below and all size/bundle gates are unaffected — only the *publish root* changed. This makes Alipay (which ignores `package.json#exports` and reads the package root literally) resolve the same no-`dist/` imports as WeChat and npm.
+
+- `dist/index.{js,mjs}` — npm consumers + Alipay package root (after publish-from-dist these are `index.{js,mjs}` at the installed package root).
 - `dist/miniprogram_dist/index.js` — WeChat-only CJS copy. WeChat reads `package.json#miniprogram` to find this subtree as a package root. **This file is not built by tsup directly** — `scripts/copy-miniprogram-dist.mjs` copies `dist/index.js` over after the tsup build to avoid bundling marked + remend twice.
 - `dist/{,miniprogram_dist/}shared/flattenInline.js` — `flattenInlineNodes` shipped twice, once per package root. The wechat copy is also produced by `copy-miniprogram-dist.mjs`.
 - `dist/{es,miniprogram_dist/es}/{Markdown,MiniNodeRenderer}/index.js` — component wrappers. Built with `bundle: true` but a custom esbuild plugin (`externalRuntimePlugin` in `tsup.config.ts`) marks `../../../index.js` and `../../shared/flattenInline.js` as external and rewrites them to `../../…` so the wrappers only carry component logic and `require` the core from the same package root.
@@ -83,6 +86,7 @@ Build post-steps:
 - `scripts/patch-modern-regex.mjs` rewrites every `(?<name>…)` regex literal in `dist/index.js` and `dist/index.mjs` into `new RegExp("…")`. Required because Alipay's compile-time JS parser rejects named-capture-group regex literals even though the runtime supports them. `marked` ships such literals; without this patch Alipay's IDE refuses to compile. Runs **before** `copy-miniprogram-dist.mjs` so the wechat copy inherits the patched form.
 - `scripts/copy-miniprogram-dist.mjs` (post-patch) copies `dist/index.js` + `dist/shared/flattenInline.js` into `dist/miniprogram_dist/` so the wechat package root mirrors the alipay one without a second tsup build.
 - `scripts/copy-component-assets.mjs` copies `.axml/.acss/.sjs/.wxml/.wxss/.wxs/.json` from `src/components/{alipay,wechat}/` into the right `dist/` subtree, and syncs `dist/` (or `dist/miniprogram_dist/`) into `examples/{alipay,wechat}/dist/` so the example mini-programs are openable in their respective IDEs without symlinks.
+- `scripts/prepare-publish.mjs` (last step) writes `dist/package.json` with root-relative `main`/`module`/`types`/`miniprogram`/`exports` and copies `README.md`/`LICENSE` into `dist/`, so `npm publish ./dist` ships the `dist/` contents as the package root. **Release = `npm run release` (or `npm run build && npm publish ./dist`), never a bare `npm publish` from the repo root** (that would publish the old `dist/`-nested layout via `files: ["dist"]`).
 
 ## CI gates (`.github/workflows/ci.yml`)
 
