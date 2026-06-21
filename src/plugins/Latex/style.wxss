@@ -403,7 +403,8 @@
 
 /* --- Display math --- */
 .katex-display {
-  display: inline-block;
+  display: block;
+  width: 100%;
   margin: 0.8em 0;
   text-align: center;
 }

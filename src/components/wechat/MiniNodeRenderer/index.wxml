@@ -36,6 +36,17 @@
     catch:tap="_tap"
   />
 
+  <!-- KaTeX trees are 14–15 levels deep. Rendering each level through this
+       recursive custom component exceeds WeChat's practical component depth;
+       rich-text keeps the static span tree inside one native boundary. -->
+  <rich-text
+    wx:elif="{{u.isKatex(node)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    nodes="{{u.toRichTextNodes(node.children)}}"
+    user-select="{{selectable}}"
+  />
+
   <!-- pre: code block with language label + copy toolbar, scrollable body -->
   <view
     wx:elif="{{u.isPre(node.name)}}"

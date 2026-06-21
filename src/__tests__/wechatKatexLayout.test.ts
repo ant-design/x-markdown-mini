@@ -5,19 +5,28 @@ import { describe, expect, it } from 'vitest';
 const root = resolve(__dirname, '../..');
 
 describe('WeChat KaTeX layout', () => {
-  it('uses virtual component hosts instead of forbidden recursive templates', () => {
+  it('renders KaTeX in one rich-text boundary instead of recursive components', () => {
     const wxml = readFileSync(
       resolve(root, 'src/components/wechat/MiniNodeRenderer/index.wxml'),
       'utf8',
     );
-    const component = readFileSync(
-      resolve(root, 'src/components/wechat/MiniNodeRenderer/index.ts'),
+    const wxs = readFileSync(
+      resolve(root, 'src/components/wechat/MiniNodeRenderer/index.wxs'),
       'utf8',
     );
 
     expect(wxml).not.toContain('<template name="katexTree">');
     expect(wxml).not.toContain('<template is="katexTree"');
-    expect(component).toMatch(/options:\s*\{[\s\S]*?virtualHost:\s*true/);
+    expect(wxml).toMatch(
+      /<rich-text\s+wx:elif="\{\{u\.isKatex\(node\)\}\}"[\s\S]*?nodes="\{\{u\.toRichTextNodes\(node\.children\)\}\}"/,
+    );
+    expect(wxs).toContain('function isKatex(node)');
+    expect(wxs).toContain('isKatex: isKatex');
+
+    const richTextIndex = wxml.indexOf('u.isKatex(node)');
+    const recursiveIndex = wxml.lastIndexOf('<mini-node-renderer');
+    expect(richTextIndex).toBeGreaterThan(-1);
+    expect(richTextIndex).toBeLessThan(recursiveIndex);
 
     const wxss = readFileSync(
       resolve(root, 'src/plugins/Latex/style.wxss'),
@@ -25,6 +34,9 @@ describe('WeChat KaTeX layout', () => {
     );
     expect(wxss).toContain('.katex .vlist .katex-vlist-child');
     expect(wxss).not.toMatch(/\.katex \.vlist \.katex-node\s*\{/);
+    expect(wxss).toMatch(
+      /\.katex-display\s*\{[^}]*display:\s*block;[^}]*width:\s*100%;/s,
+    );
   });
 
   it('compensates WeChat vlist baseline rounding without affecting Alipay', () => {
@@ -41,5 +53,30 @@ describe('WeChat KaTeX layout', () => {
       /\.katex \.vlist\s*\{[^}]*transform:\s*translateY\(0\.04em\)/s,
     );
     expect(alipayStyles).not.toContain('translateY(0.04em)');
+  });
+
+  it('converts MiniNode text leaves to the rich-text node schema', () => {
+    const source = readFileSync(
+      resolve(root, 'src/components/wechat/MiniNodeRenderer/index.wxs'),
+      'utf8',
+    );
+    const wxsModule: { exports?: Record<string, any> } = {};
+    new Function('module', source)(wxsModule);
+
+    const result = wxsModule.exports!.toRichTextNodes([
+      {
+        name: 'span',
+        attrs: { class: 'mord' },
+        children: [{ name: 'text', attrs: { value: 'x' } }],
+      },
+    ]);
+
+    expect(result).toEqual([
+      {
+        name: 'span',
+        attrs: { class: 'mord' },
+        children: [{ type: 'text', text: 'x' }],
+      },
+    ]);
   });
 });
