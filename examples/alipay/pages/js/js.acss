@@ -1,7 +1,7 @@
 /* 直接用底层 MiniNodeRenderer 时，markdown 元素样式（标题/代码卡片/表格/复制按钮等）
-   不会自动带上，需自行 @import。支付宝 npm 子路径需显式 dist/ 前缀。
+   不会自动带上，需自行 @import。包以 dist 内容即包根发布，子路径无 dist/ 段。
    Markdown/index.acss 已内含 CodeHighlight + Latex(含字体) 样式，引一处即可。 */
-@import "@ant-design/x-markdown-mini/dist/components/Markdown/index.acss";
+@import "@ant-design/x-markdown-mini/components/Markdown/index.acss";
 
 .page {
   min-height: 100vh;
