@@ -33,6 +33,15 @@ function isRich(node) {
 function isSlot(name, slotComponents) {
   return !!slotComponents && slotComponents.indexOf(name) > -1;
 }
+// KaTeX 公式子树（class 含 'katex'）很深（实测 inline 14 层 / block 15 层）。若沿用
+// 每层一个 <mini-node-renderer> 自定义组件的递归，单个公式就会实例化 13~33 个组件，
+// 支付宝渲染层撑不住而白屏。KaTeX 子树无交互（无 tap/slot），改用「递归 AXML 模板」
+// 渲染——产出完全相同的 view/text + class/style，但没有组件实例。微信侧不受影响。
+function isKatex(node) {
+  var attrs = node.attrs || {};
+  var cls = attrs['class'] || '';
+  return cls.indexOf('katex') > -1;
+}
 
 function classOf(node) {
   var attrs = node.attrs || {};
@@ -44,21 +53,25 @@ function classOf(node) {
 }
 
 // 把文本拆成「按 code point 安全」的字符数组（不劈坏 emoji/组合 surrogate pair），
-// 供流式逐字淡入：每个字符渲染成独立 <text>，按下标 key 复用，只有新字符会触发淡入动画。
+// 供流式逐字淡入：每个字符渲染成独立 <text>。返回 { k, c } 对象——k 是稳定的下标
+// key（a:key 只能取 item 的属性名，不能引用 a:for-index 变量，否则无法 diff、整段重建
+// 导致全体重播淡入）。追加文本时旧字符 k 不变被复用、不重播，只有新字符触发淡入。
 function charsOf(node) {
   var v = (node.attrs || {}).value || '';
   var out = [];
   var i = 0;
   var n = v.length;
+  var k = 0;
   while (i < n) {
     var code = v.charCodeAt(i);
     if (code >= 55296 && code <= 56319 && i + 1 < n) {
-      out.push(v.charAt(i) + v.charAt(i + 1));
+      out.push({ k: k, c: v.charAt(i) + v.charAt(i + 1) });
       i += 2;
     } else {
-      out.push(v.charAt(i));
+      out.push({ k: k, c: v.charAt(i) });
       i += 1;
     }
+    k++;
   }
   return out;
 }
@@ -100,6 +113,7 @@ export default {
   isCopy: isCopy,
   copyOf: copyOf,
   isRich: isRich,
+  isKatex: isKatex,
   isSlot: isSlot,
   classOf: classOf,
   charsOf: charsOf,

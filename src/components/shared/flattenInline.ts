@@ -8,7 +8,25 @@ import type { MiniNode } from '../../index.js';
  * 任意深度的 strong/em；提前在 JS 层扁平化，模板只剩一层 inline。
  */
 export function flattenInlineNodes(nodes: MiniNode[]): MiniNode[] {
-  return nodes.map(walk);
+  const flat = nodes.map(walk);
+  assignKeys(flat);
+  return flat;
+}
+
+/**
+ * 递归给每个节点（含 children 与 header 项）打上「兄弟内稳定下标」key。
+ * 小程序 wx:for 的 wx:key 只能取 item 的属性名，不能引用 for-index 变量；缺了
+ * 稳定唯一 key，流式每帧整树 setData 会让框架无法 diff 复用 → 整树重建 → 入场
+ * 动画全体重播（整段闪）。下标对追加式流式是稳定的：已渲染节点 k 不变得以复用、
+ * 不重播，只有新追加的节点/字符触发入场动画。
+ */
+function assignKeys(list: MiniNode[]): void {
+  for (let i = 0; i < list.length; i++) {
+    const n = list[i];
+    n.k = i;
+    if (n.children) assignKeys(n.children);
+    if (n.header) assignKeys(n.header);
+  }
 }
 
 const INLINE_TAGS: Record<string, true> = {

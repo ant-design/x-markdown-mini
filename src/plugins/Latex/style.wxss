@@ -1,209 +1,5 @@
-/* KaTeX styles for Alipay mini-program.
- * Adapted from KaTeX 0.16.x CSS. Replaces Less @import/@variable with plain CSS,
- * replaces '>' child combinators with ' ' (descendant) for mini-program compat,
- * uses CDN font URLs. */
-
-/* --- Font faces (KaTeX 0.16.11 CDN) --- */
-
-@font-face {
-  font-family: "KaTeX_AMS";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_AMS-Regular.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_AMS-Regular.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_AMS-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Caligraphic";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Caligraphic-Bold.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Caligraphic-Bold.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Caligraphic-Bold.ttf") format("truetype");
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Caligraphic";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Caligraphic-Regular.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Caligraphic-Regular.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Caligraphic-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Fraktur";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Fraktur-Bold.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Fraktur-Bold.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Fraktur-Bold.ttf") format("truetype");
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Fraktur";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Fraktur-Regular.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Fraktur-Regular.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Fraktur-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Main";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Main-Bold.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Main-Bold.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Main-Bold.ttf") format("truetype");
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Main";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Main-BoldItalic.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Main-BoldItalic.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Main-BoldItalic.ttf") format("truetype");
-  font-weight: bold;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Main";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Main-Italic.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Main-Italic.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Main-Italic.ttf") format("truetype");
-  font-weight: normal;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Main";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Main-Regular.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Main-Regular.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Main-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Math";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Math-BoldItalic.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Math-BoldItalic.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Math-BoldItalic.ttf") format("truetype");
-  font-weight: bold;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Math";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Math-Italic.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Math-Italic.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Math-Italic.ttf") format("truetype");
-  font-weight: normal;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_SansSerif";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_SansSerif-Bold.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_SansSerif-Bold.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_SansSerif-Bold.ttf") format("truetype");
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_SansSerif";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_SansSerif-Italic.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_SansSerif-Italic.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_SansSerif-Italic.ttf") format("truetype");
-  font-weight: normal;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_SansSerif";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_SansSerif-Regular.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_SansSerif-Regular.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_SansSerif-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Script";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Script-Regular.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Script-Regular.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Script-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Size1";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Size1-Regular.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Size1-Regular.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Size1-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Size2";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Size2-Regular.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Size2-Regular.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Size2-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Size3";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Size3-Regular.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Size3-Regular.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Size3-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Size4";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Size4-Regular.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Size4-Regular.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Size4-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "KaTeX_Typewriter";
-  src: url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Typewriter-Regular.woff2") format("woff2"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Typewriter-Regular.woff") format("woff"),
-    url("https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/fonts/KaTeX_Typewriter-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* KaTeX styles for WeChat mini-program. */
+@import "./fonts.wxss";
 
 /* --- KaTeX core styles --- */
 /* Note: '>' child combinators replaced with ' ' (descendant) for mini-program compat */
@@ -221,7 +17,7 @@
 
 /* mini-program 无原生 <span>，KaTeX 节点渲染为 <view>/<text>；未带显式 display
    的原子默认 inline-block，结构性 class 规则（.base/.vlist* 等）按特异性覆盖。 */
-.katex view { display: inline-block; vertical-align: baseline; }
+.katex .katex-node { display: inline-block; vertical-align: baseline; }
 
 .katex .katex-mathml {
   position: absolute;
@@ -281,13 +77,13 @@
   position: relative;
 }
 
-.katex .vlist view {
+.katex .vlist .katex-node {
   display: block;
   height: 0;
   position: relative;
 }
 
-.katex .vlist view view { display: inline-block; }
+.katex .vlist .katex-node .katex-node { display: inline-block; }
 
 .katex .vlist .pstrut {
   overflow: hidden;
@@ -326,7 +122,7 @@
 
 .katex .msupsub { text-align: left; }
 
-.katex .mfrac view view { text-align: center; }
+.katex .mfrac .katex-node .katex-node { text-align: center; }
 
 .katex .mfrac .frac-line {
   display: inline-block;
@@ -354,7 +150,7 @@
 .katex .llap .fix, .katex .rlap .fix, .katex .clap .fix { display: inline-block; }
 .katex .llap .inner { right: 0; }
 .katex .rlap .inner, .katex .clap .inner { left: 0; }
-.katex .clap .inner view { margin-left: -50%; margin-right: 50%; }
+.katex .clap .inner .katex-node { margin-left: -50%; margin-right: 50%; }
 
 .katex .rule {
   display: inline-block;
@@ -529,8 +325,8 @@
 .katex .delimsizing.size3 { font-family: KaTeX_Size3; }
 .katex .delimsizing.size4 { font-family: KaTeX_Size4; }
 
-.katex .delimsizing.mult .delim-size1 view { font-family: KaTeX_Size1; }
-.katex .delimsizing.mult .delim-size4 view { font-family: KaTeX_Size4; }
+.katex .delimsizing.mult .delim-size1 .katex-node { font-family: KaTeX_Size1; }
+.katex .delimsizing.mult .delim-size4 .katex-node { font-family: KaTeX_Size4; }
 
 .katex .nulldelimiter { display: inline-block; width: 0.12em; }
 .katex .delimcenter { position: relative; }
@@ -569,9 +365,9 @@
   stroke-opacity: 1;
 }
 
-.katex .katex-svg path { stroke: none; }
+.katex .katex-svg .katex-node { stroke: none; }
 
-.katex img {
+.katex .katex-img {
   border-style: none;
   min-width: 0;
   min-height: 0;

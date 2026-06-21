@@ -35,7 +35,8 @@ pnpm add @ant-design/x-markdown-mini
 <!-- 支付宝 page.axml -->
 <markdown
   content="{{content}}"
-  animation="{{true}}"
+  latex="{{true}}"
+  highlight="{{true}}"
   selectable="{{true}}"
   streaming="{{ { hasNextChunk: hasNextChunk, semantic: true } }}"
   onRenderComplete="onComplete"
@@ -46,16 +47,22 @@ pnpm add @ant-design/x-markdown-mini
 <!-- 微信 page.wxml -->
 <markdown
   content="{{content}}"
-  animation="{{true}}"
+  latex
+  highlight
   selectable="{{true}}"
   streaming="{{ { hasNextChunk: hasNextChunk, semantic: true } }}"
   bindrendercomplete="onComplete"
 />
 ```
 
+`latex` / `highlight` / `footnote` 是 **布尔开关**：命中后组件在内部 `require` 并 bake 对应插件
+（插件扩展带函数，无法通过属性 / `setData` 跨组件边界传入，所以必须在组件里加载）。未开启的页面
+不会为 KaTeX（约 487KB）付出体积。
+
 组件内部已经把 `XMarkdownMini` / `StreamingProcessor` 接好，直接 `setData` 节点；
-样式（`.md-paragraph` / `.md-heading` / `.md-code-block` …）随组件 `acss` / `wxss`
-一起加载，可在外层覆盖。
+组件样式（`.md-paragraph` / `.md-heading` / `.md-code-block` …）**以及 KaTeX、代码高亮的样式与字体**
+都随组件 `acss` / `wxss` 一起加载，开启 `latex` / `highlight` 时无需在页面手动 `@import` 任何样式。
+可在外层覆盖。
 
 ### B. 仅取节点数据，自己渲染
 

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { XMarkdownMini } from '../index.js';
 import type { XMarkdownExtension } from '../index.js';
 import { htmlToMiniNodes } from '../plugins/shared/htmlToMiniNodes.js';
@@ -103,6 +104,47 @@ describe('CodeHighlight — extension miniRenderer override', () => {
 // ---------------------------------------------------------------------------
 
 describe('Latex — tokenizer', () => {
+  it('inlines KaTeX fonts as base64 (offline) for both platforms', () => {
+    const wxss = readFileSync(
+      new URL('../plugins/Latex/style.wxss', import.meta.url),
+      'utf8',
+    );
+    const acss = readFileSync(
+      new URL('../plugins/Latex/style.acss', import.meta.url),
+      'utf8',
+    );
+    const fontsWxss = readFileSync(
+      new URL('../plugins/Latex/fonts.wxss', import.meta.url),
+      'utf8',
+    );
+    const fontsAcss = readFileSync(
+      new URL('../plugins/Latex/fonts.acss', import.meta.url),
+      'utf8',
+    );
+
+    // Each platform's style sheet pulls its own base64 font sheet — consumers
+    // import a single style file and get working glyphs with no network/CDN.
+    expect(wxss).toContain('@import "./fonts.wxss";');
+    expect(acss).toContain('@import "./fonts.acss";');
+
+    // Fonts are base64 data URIs, never CDN/http (broken inside a mini-program).
+    for (const fonts of [fontsWxss, fontsAcss]) {
+      expect(fonts).toContain('data:font/woff2;base64,');
+      expect(fonts).not.toContain('http');
+    }
+    // The layout sheets must not ship dead CDN url() refs anymore.
+    expect(wxss).not.toContain('http');
+    expect(acss).not.toContain('http');
+  });
+
+  it('avoids tag selectors forbidden in component wxss', () => {
+    const wxss = readFileSync(
+      new URL('../plugins/Latex/style.wxss', import.meta.url),
+      'utf8',
+    );
+    expect(wxss).not.toMatch(/\.katex(?:[^\n{]*\s)(?:view|path|img)(?=[\s,{.:])/);
+  });
+
   it('tokenizes inline math $...$', async () => {
     // Dynamic import to avoid test bundling issues
     const { default: Latex } = await import('../plugins/Latex/index.js');
@@ -128,6 +170,7 @@ describe('Latex — tokenizer', () => {
     const nodes = md.renderNodes({ content: '$x^2$', platform: 'alipay' });
     const json = JSON.stringify(nodes);
     expect(json).toContain('katex');
+    expect(json).toContain('katex-node');
   });
 
   it('block math renders to MiniNode with katex-display class', async () => {
@@ -166,6 +209,19 @@ describe('Latex — tokenizer', () => {
 // ---------------------------------------------------------------------------
 
 describe('CodeHighlight', () => {
+  it('ships a light theme by default on both mini-program platforms', () => {
+    for (const file of ['style.wxss', 'style.acss']) {
+      const css = readFileSync(
+        new URL(`../plugins/CodeHighlight/${file}`, import.meta.url),
+        'utf8',
+      );
+      expect(css).toContain('Light syntax theme');
+      expect(css).toContain('background: #f6f8fa');
+      expect(css).toContain('color: #24292f');
+      expect(css).not.toContain('background: #111827');
+    }
+  });
+
   it('highlights JavaScript code', async () => {
     const { default: CodeHighlight } = await import('../plugins/CodeHighlight/index.js');
     const md = new XMarkdownMini({ extensions: [CodeHighlight()] });

@@ -63,9 +63,12 @@ const BUDGETS = [
   { file: 'components/Markdown/index.js', rawMax: 5 * KB },
   { file: 'components/MiniNodeRenderer/index.js', rawMax: 5 * KB },
   // Wechat 组件
-  { file: 'miniprogram_dist/es/Markdown/index.js', rawMax: 5 * KB },
+  // Timestamped typewriter segments resume CSS animation after WeChat rebuilds
+  // the node tree; the state reconciler adds ~2.8 KB to the wrapper. The
+  // latex/highlight opt-in plugin bake-in (require + extension assembly) adds ~0.5 KB.
+  { file: 'miniprogram_dist/es/Markdown/index.js', rawMax: 7 * KB },
   { file: 'miniprogram_dist/es/MiniNodeRenderer/index.js', rawMax: 5 * KB },
-  { file: 'miniprogram_dist/components/Markdown/index.js', rawMax: 5 * KB },
+  { file: 'miniprogram_dist/components/Markdown/index.js', rawMax: 7 * KB },
   { file: 'miniprogram_dist/components/MiniNodeRenderer/index.js', rawMax: 5 * KB },
   // Plugin bundles (separate entries — not counted against main lib budget)
   // KaTeX includes font data and CSS; highlight.js/lib/common bundles ~18 languages.

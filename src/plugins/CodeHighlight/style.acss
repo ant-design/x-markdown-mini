@@ -1,29 +1,29 @@
-/* Dark syntax theme for mini-program code blocks. */
+/* Light syntax theme for mini-program code blocks. */
 .md-codeblock {
-  background: #111827;
-  border: 1px solid #263244;
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
   border-radius: 8px;
   overflow: hidden;
 }
 
 .md-codeblock-bar {
-  background: #172033;
-  border-bottom: 1px solid #263244;
+  background: #ffffff;
+  border-bottom: 1px solid #d0d7de;
 }
 
 .md-codeblock-lang {
-  color: #93c5fd;
+  color: #57606a;
   letter-spacing: 0;
   text-transform: uppercase;
 }
 
 .md-code-block {
-  background: #111827;
-  color: #dbeafe;
+  background: #f6f8fa;
+  color: #24292f;
 }
 
 .hljs {
-  color: #dbeafe;
+  color: #24292f;
   background: transparent;
 }
 
@@ -34,14 +34,14 @@
 .hljs-template-variable,
 .hljs-type,
 .hljs-variable.language_ {
-  color: #f472b6;
+  color: #cf222e;
 }
 
 .hljs-title,
 .hljs-title.class_,
 .hljs-title.class_.inherited__,
 .hljs-title.function_ {
-  color: #93c5fd;
+  color: #8250df;
 }
 
 .hljs-attr,
@@ -54,62 +54,62 @@
 .hljs-selector-attr,
 .hljs-selector-class,
 .hljs-selector-id {
-  color: #67e8f9;
+  color: #0550ae;
 }
 
 .hljs-regexp,
 .hljs-string,
 .hljs-meta .hljs-string {
-  color: #86efac;
+  color: #0a3069;
 }
 
 .hljs-built_in,
 .hljs-symbol {
-  color: #fbbf24;
+  color: #953800;
 }
 
 .hljs-comment,
 .hljs-code,
 .hljs-formula {
-  color: #94a3b8;
+  color: #6e7781;
 }
 
 .hljs-name,
 .hljs-quote,
 .hljs-selector-tag,
 .hljs-selector-pseudo {
-  color: #c4b5fd;
+  color: #116329;
 }
 
 .hljs-subst {
-  color: #dbeafe;
+  color: #24292f;
 }
 
 .hljs-section {
-  color: #60a5fa;
+  color: #0550ae;
   font-weight: bold;
 }
 
 .hljs-bullet {
-  color: #fbbf24;
+  color: #953800;
 }
 
 .hljs-emphasis {
-  color: #dbeafe;
+  color: #24292f;
   font-style: italic;
 }
 
 .hljs-strong {
-  color: #eff6ff;
+  color: #24292f;
   font-weight: bold;
 }
 
 .hljs-addition {
-  color: #86efac;
-  background-color: #052e16;
+  color: #116329;
+  background-color: #dafbe1;
 }
 
 .hljs-deletion {
-  color: #fca5a5;
-  background-color: #450a0a;
+  color: #cf222e;
+  background-color: #ffebe9;
 }

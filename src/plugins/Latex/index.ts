@@ -79,6 +79,17 @@ function renderKatex(tex: string, displayMode: boolean, options: LatexOptions): 
     return options.onError ? options.onError(tex, err as Error) : [];
   }
   const nodes = htmlToMiniNodes(html, false);
+  const markNodes = (list: MiniNode[]): void => {
+    for (const node of list) {
+      if (node.name !== 'text' && node.name !== 'br') {
+        const current = String(node.attrs?.class ?? '');
+        const marker = node.name === 'img' ? 'katex-node katex-img' : 'katex-node';
+        node.attrs = { ...node.attrs, class: current ? `${current} ${marker}` : marker };
+      }
+      if (node.children) markNodes(node.children);
+    }
+  };
+  markNodes(nodes);
   const wrapper = displayMode ? 'div' : 'span';
   const className = displayMode ? 'katex-display' : 'katex-inline';
   return [{ name: wrapper, attrs: { class: className }, children: nodes }];

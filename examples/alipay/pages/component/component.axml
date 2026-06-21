@@ -1,0 +1,11 @@
+<view class="page">
+  <view class="note">
+    <text class="note-tag">组件接入</text>
+    一行 usingComponents 引入 markdown，加 latex / highlight 属性即开启公式与代码高亮。
+    页面无需 require 插件、无需 @import 样式。
+  </view>
+
+  <view class="card">
+    <markdown content="{{sample}}" latex="{{true}}" highlight="{{true}}" />
+  </view>
+</view>

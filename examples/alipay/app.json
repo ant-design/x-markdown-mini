@@ -1,8 +1,9 @@
 {
   "pages": [
-    "pages/index/index"
+    "pages/home/home",
+    "pages/component/component",
+    "pages/js/js"
   ],
-  "lazyCodeLoading": "renderedComponents",
   "window": {
     "defaultTitle": "x-markdown-mini",
     "titleBarColor": "#ffffff",

@@ -1,6 +1,6 @@
 <import-sjs from="./index.sjs" name="u" />
 
-<block a:for="{{nodes}}" a:for-item="node" a:for-index="i" a:key="i">
+<block a:for="{{nodes}}" a:for-item="node" a:for-index="i" a:key="k">
   <!-- text leaf: 流式时逐字淡入（Alipay 不能嵌套 <text>，用 inline <view> 包裹字符 <text>，
        按下标 key 复用，只有新字触发动画）；非流式时整段渲染为单个 <text>。 -->
   <view
@@ -10,11 +10,10 @@
     <text
       a:for="{{u.charsOf(node)}}"
       a:for-item="ch"
-      a:for-index="ci"
-      a:key="ci"
+      a:key="k"
       class="md-anim-char"
       selectable="{{selectable}}"
-    >{{ch}}</text>
+    >{{ch.c}}</text>
   </view>
   <text
     a:elif="{{u.isText(node.name)}}"
@@ -46,7 +45,7 @@
     class="md-codeblock {{node.animate ? 'md-animate-block' : ''}}"
   >
     <view a:if="{{node.header}}" class="md-codeblock-bar">
-      <block a:for="{{node.header}}" a:for-item="h" a:for-index="hi" a:key="hi">
+      <block a:for="{{node.header}}" a:for-item="h" a:for-index="hi" a:key="k">
         <text a:if="{{u.isText(h.name)}}" class="{{u.classOf(h)}}">{{u.valueOf(h)}}</text>
         <image
           a:elif="{{u.isCopy(h.name)}}"
@@ -90,7 +89,7 @@
     class="md-tableblock {{node.animate ? 'md-animate-block' : ''}}"
   >
     <view a:if="{{node.header}}" class="md-tableblock-bar">
-      <block a:for="{{node.header}}" a:for-item="h" a:for-index="hi" a:key="hi">
+      <block a:for="{{node.header}}" a:for-item="h" a:for-index="hi" a:key="k">
         <text a:if="{{u.isText(h.name)}}" class="{{u.classOf(h)}}">{{u.valueOf(h)}}</text>
         <image
           a:elif="{{u.isCopy(h.name)}}"
@@ -142,7 +141,7 @@
       a:for="{{node.children}}"
       a:for-item="c"
       a:for-index="ci"
-      a:key="ci"
+      a:key="k"
       class="{{u.classOf(c)}}"
     >{{u.valueOf(c)}}</text>
   </view>
@@ -159,7 +158,7 @@
       a:for="{{node.children}}"
       a:for-item="c"
       a:for-index="ci"
-      a:key="ci"
+      a:key="k"
       class="{{u.classOf(c)}}"
     >{{u.valueOf(c)}}</text>
   </view>

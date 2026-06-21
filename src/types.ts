@@ -242,4 +242,20 @@ export interface MiniNode {
   header?: MiniNode[];
   /** 是否开启动画 */
   animate?: boolean;
+  /**
+   * 兄弟节点内的稳定下标 key，由 `flattenInlineNodes` 递归赋值。供小程序模板的
+   * wx:for / a:for 作 wx:key —— index 变量不能直接当 key，缺了稳定 key 会让流式
+   * 每帧整树重建、入场动画全体重播（整段闪）。追加时旧节点 k 不变得以复用。
+  */
+  k?: number;
+  /** 流式文本的时间轴片段；重建节点时通过负 animation-delay 从原进度续播。 */
+  animationSegments?: MiniNodeAnimationSegment[];
+}
+
+export interface MiniNodeAnimationSegment {
+  k: number;
+  value: string;
+  bornAt: number;
+  animate?: true;
+  style?: string;
 }

@@ -14724,6 +14724,18 @@ function renderKatex(tex, displayMode, options) {
     return options.onError ? options.onError(tex, err) : [];
   }
   const nodes = htmlToMiniNodes(html, false);
+  const markNodes = (list) => {
+    var _a, _b;
+    for (const node of list) {
+      if (node.name !== "text" && node.name !== "br") {
+        const current = String((_b = (_a = node.attrs) == null ? void 0 : _a.class) != null ? _b : "");
+        const marker = node.name === "img" ? "katex-node katex-img" : "katex-node";
+        node.attrs = __spreadProps(__spreadValues({}, node.attrs), { class: current ? `${current} ${marker}` : marker });
+      }
+      if (node.children) markNodes(node.children);
+    }
+  };
+  markNodes(nodes);
   const wrapper = displayMode ? "div" : "span";
   const className = displayMode ? "katex-display" : "katex-inline";
   return [{ name: wrapper, attrs: { class: className }, children: nodes }];

@@ -39,7 +39,17 @@ __export(flattenInline_exports, {
 });
 module.exports = __toCommonJS(flattenInline_exports);
 function flattenInlineNodes(nodes) {
-  return nodes.map(walk);
+  const flat = nodes.map(walk);
+  assignKeys(flat);
+  return flat;
+}
+function assignKeys(list) {
+  for (let i = 0; i < list.length; i++) {
+    const n = list[i];
+    n.k = i;
+    if (n.children) assignKeys(n.children);
+    if (n.header) assignKeys(n.header);
+  }
 }
 const INLINE_TAGS = {
   strong: true,

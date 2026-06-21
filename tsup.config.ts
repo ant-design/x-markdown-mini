@@ -26,6 +26,14 @@ const externalRuntimePlugin = {
       path: '../../shared/flattenInline.js',
       external: true,
     }));
+    // 组件内部按需 require 插件（CodeHighlight / Latex），把 KaTeX/highlight.js 留在
+    // 各自的 plugin bundle 里，绝不打进组件 wrapper。源码写 `../../../plugins/<N>/index.js`
+    // （src 里 3 上能解析到 src/plugins/<N>）；输出端组件在 dist/{es,components}/<Comp>/，
+    // 到 dist/plugins/<N> 是 2 上，改写成 `../../plugins/<N>/index.js` 并 external。
+    build.onResolve({ filter: /^\.\.\/\.\.\/\.\.\/plugins\// }, (args: any) => ({
+      path: args.path.replace('../../../plugins/', '../../plugins/'),
+      external: true,
+    }));
   },
 };
 

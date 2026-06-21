@@ -1,19 +1,18 @@
 <wxs src="./index.wxs" module="u" />
 
-<block wx:for="{{nodes}}" wx:for-item="node" wx:for-index="i" wx:key="i">
-  <!-- text leaf: 流式时逐字淡入（每字一个 <text>，按下标 key 复用，只有新字触发动画）；
-       非流式时整段渲染为单个 <text>。 -->
+<block wx:for="{{nodes}}" wx:for-item="node" wx:for-index="i" wx:key="k">
+  <!-- 微信重建节点时，以负 delay 从字符原有时间点续播，避免整段重新闪。 -->
   <text
-    wx:if="{{u.isText(node.name) && animation}}"
+    wx:if="{{u.isText(node.name) && animation && node.animationSegments}}"
     class="{{u.classOf(node)}}"
     selectable="{{selectable}}"
   ><text
-      wx:for="{{u.charsOf(node)}}"
-      wx:for-item="ch"
-      wx:for-index="ci"
-      wx:key="ci"
-      class="md-anim-char"
-    >{{ch}}</text></text>
+      wx:for="{{node.animationSegments}}"
+      wx:for-item="segment"
+      wx:key="k"
+      class="{{segment.animate ? 'md-anim-char' : ''}}"
+      style="{{segment.style || ''}}"
+    >{{segment.value}}</text></text>
   <text
     wx:elif="{{u.isText(node.name)}}"
     class="{{u.classOf(node)}}"
@@ -43,7 +42,7 @@
     class="md-codeblock {{node.animate ? 'md-animate-block' : ''}}"
   >
     <view wx:if="{{node.header}}" class="md-codeblock-bar">
-      <block wx:for="{{node.header}}" wx:for-item="h" wx:for-index="hi" wx:key="hi">
+      <block wx:for="{{node.header}}" wx:for-item="h" wx:for-index="hi" wx:key="k">
         <text wx:if="{{u.isText(h.name)}}" class="{{u.classOf(h)}}">{{u.valueOf(h)}}</text>
         <image
           wx:elif="{{u.isCopy(h.name)}}"
@@ -85,7 +84,7 @@
     class="md-tableblock {{node.animate ? 'md-animate-block' : ''}}"
   >
     <view wx:if="{{node.header}}" class="md-tableblock-bar">
-      <block wx:for="{{node.header}}" wx:for-item="h" wx:for-index="hi" wx:key="hi">
+      <block wx:for="{{node.header}}" wx:for-item="h" wx:for-index="hi" wx:key="k">
         <text wx:if="{{u.isText(h.name)}}" class="{{u.classOf(h)}}">{{u.valueOf(h)}}</text>
         <image
           wx:elif="{{u.isCopy(h.name)}}"
@@ -136,7 +135,7 @@
       wx:for="{{node.children}}"
       wx:for-item="c"
       wx:for-index="ci"
-      wx:key="ci"
+      wx:key="k"
       class="{{u.classOf(c)}}"
     >{{u.valueOf(c)}}</text>
   </text>
@@ -154,7 +153,7 @@
       wx:for="{{node.children}}"
       wx:for-item="c"
       wx:for-index="ci"
-      wx:key="ci"
+      wx:key="k"
       class="{{u.classOf(c)}}"
     >{{u.valueOf(c)}}</text>
   </text>

@@ -1,8 +1,8 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/custom/custom",
-    "pages/footnote/footnote"
+    "pages/home/home",
+    "pages/component/component",
+    "pages/js/js"
   ],
   "window": {
     "navigationBarTitleText": "x-markdown-mini",

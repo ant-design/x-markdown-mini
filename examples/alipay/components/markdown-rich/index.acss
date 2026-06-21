@@ -1,5 +1,0 @@
-/* 基础 markdown 节点样式（含表格）+ 代码高亮 + KaTeX 公式样式。
-   插件含函数，无法通过 setData 跨组件传递，因此在本组件内 require 并 bake。 */
-@import "@ant-design/x-markdown-mini/dist/components/Markdown/index.acss";
-@import "@ant-design/x-markdown-mini/dist/plugins/CodeHighlight/style.acss";
-@import "@ant-design/x-markdown-mini/dist/plugins/Latex/style.acss";

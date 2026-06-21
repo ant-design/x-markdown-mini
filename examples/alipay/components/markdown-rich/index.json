@@ -1,7 +1,0 @@
-{
-  "component": true,
-  "styleIsolation": "shared",
-  "usingComponents": {
-    "mini-node-renderer": "@ant-design/x-markdown-mini/dist/components/MiniNodeRenderer/index"
-  }
-}

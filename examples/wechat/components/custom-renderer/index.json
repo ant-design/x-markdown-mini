@@ -1,7 +1,0 @@
-{
-  "component": true,
-  "usingComponents": {
-    "countdown": "../countdown/index",
-    "footnote-ref": "../footnote-ref/index"
-  }
-}

@@ -8,6 +8,28 @@ import type {
 import { flattenInlineNodes } from '../../shared/flattenInline.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
+// 运行时按需加载插件：插件扩展带 tokenizer/miniRenderer 等函数，无法通过属性绑定/
+// setData 跨组件边界传入，所以在组件内部 require 并 bake（tsup 把这些 require 标为
+// external，KaTeX/highlight.js 留在各自的 plugin bundle，不会打进组件 wrapper）。
+declare const require: (id: string) => any;
+
+// 仅在命中 latex/highlight 时才 require 对应插件——未开启的页面不为 KaTeX(~487KB) 付费。
+function bakeExtensions(
+  footnote: boolean,
+  latex: boolean,
+  highlight: boolean,
+): (XMarkdownExtension | MarkedExtension)[] {
+  const exts: (XMarkdownExtension | MarkedExtension)[] = [];
+  if (footnote) exts.push(Footnote());
+  if (highlight) exts.push(require('../../../plugins/CodeHighlight/index.js').default());
+  if (latex)
+    exts.push(
+      require('../../../plugins/Latex/index.js').default({
+        katexOptions: { throwOnError: false },
+      }),
+    );
+  return exts;
+}
 
 interface MarkdownProps {
   content: string;
@@ -21,6 +43,10 @@ interface MarkdownProps {
   components: string[] | null;
   /** 开启内置脚注扩展（`[^标签:内容]`）。脚注 marker 走作用域插槽，由页面渲染。 */
   footnote: boolean;
+  /** 开启内置 KaTeX 公式插件（组件内部 require + bake）。 */
+  latex: boolean;
+  /** 开启内置代码高亮插件（组件内部 require + bake）。 */
+  highlight: boolean;
   onTap?: (e?: unknown) => void;
   onAppear?: (e?: unknown) => void;
   onRenderStart?: () => void;
@@ -36,6 +62,8 @@ const defaultProps: MarkdownProps = {
   extensions: null,
   components: null,
   footnote: false,
+  latex: false,
+  highlight: false,
 };
 
 function sameList(a: string[] | null, b: string[] | null): boolean {
@@ -61,9 +89,14 @@ Component({
 
   didUpdate(this: any, prevProps: MarkdownProps) {
     const p = this.props as MarkdownProps;
-    // `components` / `footnote` are baked into the marked instance at
-    // construction, so a change requires rebuilding the XMarkdownMini instance.
-    if (!sameList(prevProps.components, p.components) || prevProps.footnote !== p.footnote) {
+    // `components` / `footnote` / `latex` / `highlight` 都 bake 进 marked 实例（构造时），
+    // 任一变化都需要重建 XMarkdownMini 实例。
+    if (
+      !sameList(prevProps.components, p.components) ||
+      prevProps.footnote !== p.footnote ||
+      prevProps.latex !== p.latex ||
+      prevProps.highlight !== p.highlight
+    ) {
       this._build(p);
       this._render(p);
       return;
@@ -88,7 +121,7 @@ Component({
   methods: {
     _build(this: any, props: MarkdownProps) {
       const components = props.components ?? [];
-      const extensions = props.footnote ? [Footnote()] : [];
+      const extensions = bakeExtensions(!!props.footnote, !!props.latex, !!props.highlight);
       this.md?.reset();
       this.md = new XMarkdownMini({ escapeText: false, components, extensions });
       // 脚注节点（name: 'footnote'）也走 slot 路由交给页面渲染 marker + popover。

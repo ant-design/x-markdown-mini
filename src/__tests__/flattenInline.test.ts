@@ -85,6 +85,37 @@ describe('flattenInlineNodes', () => {
     expect(out[1].name).toBe('p');
   });
 
+  it('assigns stable sibling keys recursively for mini-program wx:key reuse', () => {
+    const input: MiniNode[] = [
+      {
+        name: 'pre',
+        attrs: {},
+        header: [
+          { name: 'text', attrs: { value: 'ts' } },
+          { name: 'copy-button', attrs: { 'data-copy': 'code' } },
+        ],
+        children: [
+          { name: 'code', attrs: {}, children: [{ name: 'text', attrs: { value: 'code' } }] },
+        ],
+      },
+      {
+        name: 'p',
+        attrs: {},
+        children: [
+          { name: 'text', attrs: { value: 'a' } },
+          { name: 'text', attrs: { value: 'b' } },
+        ],
+      },
+    ];
+
+    const out = flattenInlineNodes(input);
+
+    expect(out.map((n) => n.k)).toEqual([0, 1]);
+    expect(out[0].header?.map((n) => n.k)).toEqual([0, 1]);
+    expect(out[0].children?.map((n) => n.k)).toEqual([0]);
+    expect(out[1].children?.map((n) => n.k)).toEqual([0, 1]);
+  });
+
   it('top-level anchor goes through the anchor walk branch (flattens children but keeps <a>)', () => {
     const input: MiniNode[] = [
       {

@@ -1,7 +1,0 @@
-/* 基础 markdown 节点样式（含表格）+ 代码高亮 + KaTeX 公式样式。
-   插件含函数，无法通过 setData 跨组件传递，因此在本组件内 require 并 bake。
-   微信 WXSS @import 只认相对路径（不支持裸包名 / 根绝对 /），所以用相对路径指向
-   构建 npm 产物 miniprogram_npm；../../ 从本组件目录回到小程序根。 */
-@import "../../miniprogram_npm/@ant-design/x-markdown-mini/components/Markdown/index.wxss";
-@import "../../miniprogram_npm/@ant-design/x-markdown-mini/plugins/CodeHighlight/style.wxss";
-@import "../../miniprogram_npm/@ant-design/x-markdown-mini/plugins/Latex/style.wxss";

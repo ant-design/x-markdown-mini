@@ -1,3 +1,8 @@
+/* 高层 <Markdown> 组件自带插件样式：开启 latex/highlight 后无需页面再 @import。
+   路径相对输出端 dist/{es,components}/Markdown/ → ../../plugins/<N>。Latex/style.acss 自带 ./fonts.acss。 */
+@import "../../plugins/CodeHighlight/style.acss";
+@import "../../plugins/Latex/style.acss";
+
 .md-root {
   display: block;
   font-size: 28rpx;

@@ -1,6 +1,6 @@
 {
   "name": "@ant-design/x-markdown-mini",
-  "version": "0.1.0-beta.2",
+  "version": "0.1.0-beta.3",
   "description": "多小程序场景下的高性能、强扩展、流式友好的 Markdown 渲染器",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -24,14 +24,16 @@
       "types": "./dist/plugins/CodeHighlight/index.d.ts",
       "import": "./dist/plugins/CodeHighlight/index.mjs",
       "require": "./dist/plugins/CodeHighlight/index.js"
-    }
+    },
+    "./package.json": "./package.json",
+    "./dist/*": "./dist/*"
   },
   "sideEffects": false,
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "node scripts/clean.mjs && tsup && node scripts/patch-modern-regex.mjs && node scripts/copy-miniprogram-dist.mjs && node scripts/copy-component-assets.mjs",
+    "build": "node scripts/generate-katex-fonts.mjs && node scripts/clean.mjs && tsup && node scripts/patch-modern-regex.mjs && node scripts/copy-miniprogram-dist.mjs && node scripts/copy-component-assets.mjs",
     "clean": "node scripts/clean.mjs",
     "clean:all": "node scripts/clean.mjs --all",
     "test": "vitest run --coverage",
