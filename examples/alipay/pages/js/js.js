@@ -20,6 +20,8 @@ Page({
     nodes: [],
     streamingEnabled: false,
     streamingActive: false,
+    semanticEnabled: true,
+    animationEnabled: true,
     streamingStatus: STATUS_TEXT.idle,
   },
 
@@ -38,13 +40,26 @@ Page({
           streamingActive: streaming,
           streamingStatus: STATUS_TEXT[status],
         });
-        this._render(content, streaming);
+        this._render(content, streaming, status !== 'idle');
       },
     });
     this.streamPlayer.showAll();
   },
 
-  _render(content, streaming) {
+  _streamingConfig(hasNextChunk) {
+    return {
+      hasNextChunk,
+      semantic: this.data.semanticEnabled
+        ? true
+        : false,
+      enableAnimation: this.data.animationEnabled,
+    };
+  },
+
+  _render(content, hasNextChunk, inStreamingSession) {
+    const streaming = inStreamingSession
+      ? this._streamingConfig(hasNextChunk)
+      : false;
     this.md.renderNodes({
       content,
       platform: 'alipay',
@@ -60,6 +75,22 @@ Page({
     this.md.reset();
     if (enabled) this.streamPlayer.play();
     else this.streamPlayer.showAll();
+  },
+
+  _changeOption(name, enabled) {
+    const restart = this.data.streamingEnabled;
+    this.streamPlayer.showAll();
+    this.md.reset();
+    this.setData({ [name]: enabled });
+    if (restart) setTimeout(() => this.streamPlayer.play(), 0);
+  },
+
+  onSemanticChange(e) {
+    this._changeOption('semanticEnabled', e.detail.value);
+  },
+
+  onAnimationChange(e) {
+    this._changeOption('animationEnabled', e.detail.value);
   },
 
   onUnload() {

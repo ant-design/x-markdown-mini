@@ -14,6 +14,9 @@ Page({
     streamContent: SAMPLE,
     streamingEnabled: false,
     streamingActive: false,
+    semanticEnabled: true,
+    animationEnabled: true,
+    streamingConfig: false,
     streamingStatus: STATUS_TEXT.idle,
   },
 
@@ -24,6 +27,7 @@ Page({
         this.setData({
           streamContent: content,
           streamingActive: streaming,
+          streamingConfig: status === 'idle' ? false : this._streamingConfig(streaming),
           streamingStatus: STATUS_TEXT[status],
         }),
     });
@@ -34,6 +38,31 @@ Page({
     this.setData({ streamingEnabled: enabled });
     if (enabled) this.streamPlayer.play();
     else this.streamPlayer.showAll();
+  },
+
+  _streamingConfig(hasNextChunk) {
+    return {
+      hasNextChunk,
+      semantic: this.data.semanticEnabled
+        ? true
+        : false,
+      enableAnimation: this.data.animationEnabled,
+    };
+  },
+
+  _changeOption(name, enabled) {
+    const restart = this.data.streamingEnabled;
+    if (restart) this.streamPlayer.showAll();
+    this.setData({ [name]: enabled });
+    if (restart) setTimeout(() => this.streamPlayer.play(), 0);
+  },
+
+  onSemanticChange(e) {
+    this._changeOption('semanticEnabled', e.detail.value);
+  },
+
+  onAnimationChange(e) {
+    this._changeOption('animationEnabled', e.detail.value);
   },
 
   onUnload() {

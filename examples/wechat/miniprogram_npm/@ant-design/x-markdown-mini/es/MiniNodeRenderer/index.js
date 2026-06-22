@@ -59,6 +59,12 @@ Component({
   options: {
     multipleSlots: true,
     styleIsolation: "shared"
+    // No virtualHost: it suppressed the host node so depth-2 recursive instances
+    // rendered into the parent flow, but under `style: v2` that detached inline
+    // text/anchors (links dropped to their own line) and stopped text-decoration
+    // (strikethrough) from painting. KaTeX — the only reason it was added — now
+    // renders inside a single <rich-text>, so the continuous-box-tree need is gone.
+    // Alipay uses the identical recursive structure without virtualHost and is correct.
   },
   properties: {
     nodes: { type: Array, value: [] },

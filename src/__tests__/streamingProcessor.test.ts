@@ -136,6 +136,18 @@ describe('StreamingProcessor — typewriter mode (fake timers)', () => {
     expect(next.collector.completed).toBe(true);
   });
 
+  it('waits for upstream input without polling when a semantic tail has no delimiter', () => {
+    const { proc, collector } = make({ chunkDelay: 20, charDelay: 10 });
+    proc.handleContentUpdate('unfinished tail');
+    proc.runRenderLoop(true);
+
+    vi.runOnlyPendingTimers();
+
+    expect(proc.getRenderedText()).toBe('');
+    expect(collector.patches).toHaveLength(0);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('splitIntoChunks (semanticEnabled=false) splits by maxChunkSize while hasNextChunk=true', () => {
     const { proc, collector } = make({
       chunkDelay: 5,

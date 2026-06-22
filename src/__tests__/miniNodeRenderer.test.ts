@@ -43,7 +43,7 @@ describe('renderTokensToMiniNodes', () => {
     expect(find(nodes, 'img')?.attrs?.src).toBe('https://e.com/i.png');
   });
 
-  it('omits empty attrs to keep mini-program setData payload smaller', () => {
+  it('classes block nodes but omits empty attrs on attr-less inline nodes (smaller setData payload)', () => {
     const adapter: MiniNodePlatformAdapter = {
       linkAttrs: (href) => ({ href }),
       imageSrc: (src) => src,
@@ -52,7 +52,7 @@ describe('renderTokensToMiniNodes', () => {
 
     const nodes = renderTokensToMiniNodes(Lexer.lex('# T\n\n**b**'), adapter);
 
-    expect(nodes[0]).not.toHaveProperty('attrs');
+    expect(nodes[0].attrs?.class).toBe('md-heading md-h1');
     expect(find(nodes, 'strong')).not.toHaveProperty('attrs');
   });
 

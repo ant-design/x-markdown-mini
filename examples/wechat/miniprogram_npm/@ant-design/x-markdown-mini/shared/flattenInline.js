@@ -55,10 +55,15 @@ function prefixLength(a, b) {
   while (i < max && a[i] === b[i]) i++;
   return i;
 }
-function visualSegment(segment, now) {
+function visualSegment(segment, now, complete) {
   const elapsed = Math.max(0, Math.floor(now - segment.bornAt));
-  if (elapsed >= ANIMATION_DURATION) {
-    return { k: segment.k, value: segment.value, bornAt: segment.bornAt };
+  if (complete || elapsed >= ANIMATION_DURATION) {
+    return {
+      k: segment.k,
+      value: segment.value,
+      bornAt: segment.bornAt,
+      style: `animation-delay:-${ANIMATION_DURATION}ms;animation-play-state:paused`
+    };
   }
   return {
     k: segment.k,
@@ -68,14 +73,14 @@ function visualSegment(segment, now) {
     style: elapsed ? `animation-delay:-${elapsed}ms` : "animation-delay:0ms"
   };
 }
-function reconcileTextAnimation(nodes, state, now = Date.now()) {
+function reconcileTextAnimation(nodes, state, now = Date.now(), complete = false) {
   const seen = /* @__PURE__ */ new Set();
   const visit = (list, path) => {
     var _a, _b, _c, _d;
     for (let i = 0; i < list.length; i++) {
       const node = list[i];
       const nodePath = `${path}/${(_a = node.k) != null ? _a : i}:${node.name}`;
-      if (node.name === "text") {
+      if (node.name === "text" || node.name === "a") {
         const value = String((_c = (_b = node.attrs) == null ? void 0 : _b.value) != null ? _c : "");
         const prev = (_d = state.leaves.get(nodePath)) != null ? _d : { prev: "", nextId: 0, segments: [] };
         const prefix = prefixLength(prev.prev, value);
@@ -96,7 +101,9 @@ function reconcileTextAnimation(nodes, state, now = Date.now()) {
         if (tail) segments.push({ k: nextId++, value: tail, bornAt: now });
         state.leaves.set(nodePath, { prev: value, nextId, segments });
         seen.add(nodePath);
-        node.animationSegments = segments.map((segment) => visualSegment(segment, now));
+        node.animationSegments = segments.map(
+          (segment) => visualSegment(segment, now, complete)
+        );
       }
       if (node.children) visit(node.children, `${nodePath}/children`);
       if (node.header) visit(node.header, `${nodePath}/header`);
@@ -114,7 +121,7 @@ function resetTextAnimation(state) {
 
 // src/components/shared/flattenInline.ts
 function flattenInlineNodes(nodes) {
-  const flat = nodes.map(walk);
+  const flat = flattenChildren(nodes);
   assignKeys(flat);
   return flat;
 }
@@ -149,9 +156,6 @@ function isKatex(node) {
 function walk(node) {
   if (isKatex(node)) return node;
   if (!node.children || node.children.length === 0) return node;
-  if (node.name === "a") {
-    return __spreadProps(__spreadValues({}, node), { children: flattenChildren(node.children) });
-  }
   return __spreadProps(__spreadValues({}, node), { children: flattenChildren(node.children) });
 }
 function flattenChildren(children) {
@@ -161,12 +165,12 @@ function flattenChildren(children) {
   }
   return out;
 }
-function flattenOne(n, classChain, out) {
-  var _a, _b, _c, _d, _e, _f, _g;
+function flattenOne(n, classes, out) {
+  var _a, _b, _c, _d, _e, _f;
   if (n.name === "text") {
     const value = (_b = (_a = n.attrs) == null ? void 0 : _a.value) != null ? _b : "";
     if (!value) return;
-    const merged = mergeClass(classChain, (_c = n.attrs) == null ? void 0 : _c.class);
+    const merged = mergeClass(classes, (_c = n.attrs) == null ? void 0 : _c.class);
     if (hasClass(merged, "hljs") && value.indexOf("\n") >= 0) {
       const lines = value.split("\n");
       for (let i = 0; i < lines.length; i++) {
@@ -192,7 +196,7 @@ function flattenOne(n, classChain, out) {
     return;
   }
   if (n.name === "a") {
-    out.push(__spreadProps(__spreadValues({}, n), { children: flattenChildren((_d = n.children) != null ? _d : []) }));
+    flattenA(n, classes, out);
     return;
   }
   if (n.name === "img") {
@@ -201,14 +205,27 @@ function flattenOne(n, classChain, out) {
   }
   if (INLINE_TAGS[n.name]) {
     const next = mergeClass(
-      classChain,
-      (_e = n.attrs) == null ? void 0 : _e.class,
-      (_f = TAG_CLASS[n.name]) != null ? _f : ""
+      classes,
+      (_d = n.attrs) == null ? void 0 : _d.class,
+      (_e = TAG_CLASS[n.name]) != null ? _e : ""
     );
-    for (const c of (_g = n.children) != null ? _g : []) flattenOne(c, next, out);
+    for (const c of (_f = n.children) != null ? _f : []) flattenOne(c, next, out);
     return;
   }
   out.push(walk(n));
+}
+function flattenA(node, classes, out) {
+  var _a, _b;
+  const runs = [];
+  const linkClass = mergeClass(classes, (_a = node.attrs) == null ? void 0 : _a.class);
+  for (const child of (_b = node.children) != null ? _b : []) flattenOne(child, linkClass, runs);
+  for (const run of runs) {
+    if (run.name === "text") {
+      run.name = "a";
+      run.attrs = Object.assign({}, node.attrs, run.attrs);
+    }
+    out.push(run);
+  }
 }
 function hasClass(className, target) {
   return ` ${className} `.indexOf(` ${target} `) >= 0;

@@ -75,15 +75,16 @@
   display: table-cell;
   vertical-align: bottom;
   position: relative;
+  /* WeChat rounds the inline-table baseline slightly upward; keep KaTeX's
+     calculated top values intact and compensate only the painted vlist. */
+  transform: translateY(0.04em);
 }
 
-.katex .vlist .katex-node {
+.katex .vlist .katex-vlist-child {
   display: block;
   height: 0;
   position: relative;
 }
-
-.katex .vlist .katex-node .katex-node { display: inline-block; }
 
 .katex .vlist .pstrut {
   overflow: hidden;
@@ -402,7 +403,8 @@
 
 /* --- Display math --- */
 .katex-display {
-  display: inline-block;
+  display: block;
+  width: 100%;
   margin: 0.8em 0;
   text-align: center;
 }

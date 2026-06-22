@@ -15,10 +15,15 @@ function prefixLength(a, b) {
   while (i < max && a[i] === b[i]) i++;
   return i;
 }
-function visualSegment(segment, now) {
+function visualSegment(segment, now, complete) {
   const elapsed = Math.max(0, Math.floor(now - segment.bornAt));
-  if (elapsed >= ANIMATION_DURATION) {
-    return { k: segment.k, value: segment.value, bornAt: segment.bornAt };
+  if (complete || elapsed >= ANIMATION_DURATION) {
+    return {
+      k: segment.k,
+      value: segment.value,
+      bornAt: segment.bornAt,
+      style: `animation-delay:-${ANIMATION_DURATION}ms;animation-play-state:paused`
+    };
   }
   return {
     k: segment.k,
@@ -28,14 +33,14 @@ function visualSegment(segment, now) {
     style: elapsed ? `animation-delay:-${elapsed}ms` : "animation-delay:0ms"
   };
 }
-function reconcileTextAnimation(nodes, state, now = Date.now()) {
+function reconcileTextAnimation(nodes, state, now = Date.now(), complete = false) {
   const seen = /* @__PURE__ */ new Set();
   const visit = (list, path) => {
     var _a, _b, _c, _d;
     for (let i = 0; i < list.length; i++) {
       const node = list[i];
       const nodePath = `${path}/${(_a = node.k) != null ? _a : i}:${node.name}`;
-      if (node.name === "text") {
+      if (node.name === "text" || node.name === "a") {
         const value = String((_c = (_b = node.attrs) == null ? void 0 : _b.value) != null ? _c : "");
         const prev = (_d = state.leaves.get(nodePath)) != null ? _d : { prev: "", nextId: 0, segments: [] };
         const prefix = prefixLength(prev.prev, value);
@@ -56,7 +61,9 @@ function reconcileTextAnimation(nodes, state, now = Date.now()) {
         if (tail) segments.push({ k: nextId++, value: tail, bornAt: now });
         state.leaves.set(nodePath, { prev: value, nextId, segments });
         seen.add(nodePath);
-        node.animationSegments = segments.map((segment) => visualSegment(segment, now));
+        node.animationSegments = segments.map(
+          (segment) => visualSegment(segment, now, complete)
+        );
       }
       if (node.children) visit(node.children, `${nodePath}/children`);
       if (node.header) visit(node.header, `${nodePath}/header`);
@@ -73,9 +80,8 @@ function resetTextAnimation(state) {
 }
 
 // src/components/wechat/Markdown/index.ts
-function bakeExtensions(footnote, latex, highlight) {
+function bakeExtensions(latex, highlight) {
   const exts = [];
-  if (footnote) exts.push((0, import__.Footnote)());
   if (highlight) exts.push(require("../../plugins/CodeHighlight/index.js").default());
   if (latex)
     exts.push(
@@ -99,7 +105,6 @@ Component({
     className: { type: String, value: "" },
     extensions: { type: null, value: null },
     components: { type: null, value: null },
-    footnote: { type: Boolean, value: false },
     // 开启内置插件（组件内部 require + bake），无需页面传入函数型扩展。
     latex: { type: Boolean, value: false },
     highlight: { type: Boolean, value: false }
@@ -125,8 +130,8 @@ Component({
     }
   },
   observers: {
-    // `components` / `footnote` / `latex` / `highlight` 都 bake 进 marked 实例，变更需重建。
-    "components, footnote, latex, highlight"() {
+    // `components` / `latex` / `highlight` 都 bake 进 marked 实例，变更需重建。
+    "components, latex, highlight"() {
       if (this.md) {
         this._build();
         this._render();
@@ -140,18 +145,18 @@ Component({
     _build() {
       var _a, _b;
       const components = (_a = this.data.components) != null ? _a : [];
-      const footnote = !!this.data.footnote;
-      const extensions = bakeExtensions(footnote, !!this.data.latex, !!this.data.highlight);
+      const extensions = bakeExtensions(!!this.data.latex, !!this.data.highlight);
       (_b = this.md) == null ? void 0 : _b.reset();
       resetTextAnimation(this.textAnimation);
       this.md = new import__.XMarkdownMini({ escapeText: false, components, extensions });
-      const slotComponents = footnote ? components.concat(["footnote"]) : components;
-      this.setData({ slotComponents });
+      this.setData({ slotComponents: components });
     },
     _render() {
       var _a, _b, _c;
       const data = this.data;
-      this.setData({ animation: !!data.streaming });
+      const streamConfig = data.streaming;
+      const animation = streamConfig === true || !!streamConfig && typeof streamConfig === "object" && streamConfig.enableAnimation !== false;
+      this.setData({ animation });
       this.md.renderNodes({
         content: data.content,
         platform: "wechat",
@@ -165,9 +170,14 @@ Component({
         onRenderComplete: () => this.triggerEvent("rendercomplete"),
         onPatch: (nodes) => {
           const flat = (0, import_flattenInline.flattenInlineNodes)(nodes);
-          if (!data.streaming) resetTextAnimation(this.textAnimation);
+          if (!animation) resetTextAnimation(this.textAnimation);
           this.setData({
-            nodes: data.streaming ? reconcileTextAnimation(flat, this.textAnimation) : flat
+            nodes: animation ? reconcileTextAnimation(
+              flat,
+              this.textAnimation,
+              Date.now(),
+              typeof streamConfig === "object" && !streamConfig.hasNextChunk
+            ) : flat
           });
         }
       });

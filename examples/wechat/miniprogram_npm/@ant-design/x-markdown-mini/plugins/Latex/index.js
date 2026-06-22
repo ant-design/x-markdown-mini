@@ -14727,15 +14727,19 @@ function renderKatex(tex, displayMode, options) {
     return options.onError ? options.onError(tex, err) : [];
   }
   const nodes = htmlToMiniNodes(html, false);
-  const markNodes = (list) => {
+  const markNodes = (list, parentIsVlist = false) => {
     var _a, _b;
     for (const node of list) {
       if (node.name !== "text" && node.name !== "br") {
         const current = String((_b = (_a = node.attrs) == null ? void 0 : _a.class) != null ? _b : "");
-        const marker = node.name === "img" ? "katex-node katex-img" : "katex-node";
+        let marker = node.name === "img" ? "katex-node katex-img" : "katex-node";
+        if (parentIsVlist) marker += " katex-vlist-child";
         node.attrs = __spreadProps(__spreadValues({}, node.attrs), { class: current ? `${current} ${marker}` : marker });
+        const isVlist = current.split(/\s+/).includes("vlist");
+        if (node.children) markNodes(node.children, isVlist);
+        continue;
       }
-      if (node.children) markNodes(node.children);
+      if (node.children) markNodes(node.children, false);
     }
   };
   markNodes(nodes);

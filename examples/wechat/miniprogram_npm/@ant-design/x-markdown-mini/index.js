@@ -50,7 +50,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
-  Footnote: () => Footnote,
   StreamingProcessor: () => StreamingProcessor,
   XMarkdownMini: () => XMarkdownMini,
   alipayRenderer: () => alipayRenderer,
@@ -1514,7 +1513,7 @@ function supports(adapter, capability) {
   return ((_a2 = adapter.capabilities) == null ? void 0 : _a2[capability]) !== false;
 }
 function textBlock(value, animate, adapter, token) {
-  return block("p", value ? [{ name: "text", attrs: { value } }] : [], animate, adapter, token);
+  return block("p", value ? [{ name: "text", attrs: { value } }] : [], animate, adapter, token, { class: "md-paragraph" });
 }
 function collectText(nodes) {
   var _a2, _b;
@@ -1579,11 +1578,13 @@ function blockTok(tok, adapter, animate, enc, ctx) {
     case "heading": {
       const t = tok;
       const depth = Math.min(6, Math.max(1, (_a2 = t.depth) != null ? _a2 : 1));
-      return block(`h${depth}`, inlineTokens((_b = t.tokens) != null ? _b : [], adapter, enc, ctx), animate, adapter, tok);
+      return block(`h${depth}`, inlineTokens((_b = t.tokens) != null ? _b : [], adapter, enc, ctx), animate, adapter, tok, {
+        class: `md-heading md-h${depth}`
+      });
     }
     case "paragraph": {
       const t = tok;
-      return block("p", inlineTokens((_c = t.tokens) != null ? _c : [], adapter, enc, ctx), animate, adapter, tok);
+      return block("p", inlineTokens((_c = t.tokens) != null ? _c : [], adapter, enc, ctx), animate, adapter, tok, { class: "md-paragraph" });
     }
     case "code": {
       const t = tok;
@@ -1602,14 +1603,14 @@ function blockTok(tok, adapter, animate, enc, ctx) {
       return withHeader(block("pre", [codeChild], animate, adapter, tok, preAttrs), header);
     }
     case "hr":
-      return block("hr", [], animate, adapter, tok);
+      return block("hr", [], animate, adapter, tok, { class: "md-hr" });
     case "blockquote": {
       const t = tok;
       const children = blockTokens((_i = t.tokens) != null ? _i : [], adapter, animate, enc, ctx);
       if (!supports(adapter, "supportsBlockquote")) {
         return textBlock(collectText(children), animate, adapter, tok);
       }
-      return block("blockquote", children, animate, adapter, tok);
+      return block("blockquote", children, animate, adapter, tok, { class: "md-blockquote" });
     }
     case "list": {
       const t = tok;
@@ -1617,7 +1618,8 @@ function blockTok(tok, adapter, animate, enc, ctx) {
       const start = typeof t.start === "number" ? t.start : 1;
       const tag = ordered ? "ol" : "ul";
       const children = t.items.map((item) => listItemTok(item, adapter, animate, enc, ctx));
-      return block(tag, children, animate, adapter, tok, ordered ? adapter.olAttrs(start, t) : void 0);
+      const listAttrs = __spreadValues({ class: "md-list" }, ordered ? adapter.olAttrs(start, t) : {});
+      return block(tag, children, animate, adapter, tok, listAttrs);
     }
     case "html": {
       const t = tok;
@@ -1698,7 +1700,7 @@ function listItemTok(item, adapter, animate, enc, ctx) {
       }
     }
   }
-  return block("li", children, false, adapter, item);
+  return block("li", children, false, adapter, item, { class: "md-list-item" });
 }
 function inlineTokens(tokens, adapter, enc, ctx) {
   const out = [];
@@ -1915,9 +1917,7 @@ var RENDERERS = {
   wechat: wechatRenderer
 };
 function isRuntimeObject(obj) {
-  if (!obj || typeof obj !== "object") return false;
-  const target = obj;
-  return typeof target.getSystemInfo === "function" || typeof target.getSystemInfoSync === "function";
+  return obj !== null && (typeof obj === "object" || typeof obj === "function");
 }
 function detectPlatformRuntime() {
   for (const { read, platform } of DETECTORS) {
@@ -2113,7 +2113,12 @@ var StreamingProcessor = class {
       if (this.chunkIndex >= this.pendingChunks.length) {
         if (this.buffer.length > 0) {
           this.splitIntoChunks(this.currentHasNextChunk);
-          this.scheduleNext();
+          this.chunkIndex = 0;
+          if (this.pendingChunks.length > 0) {
+            this.scheduleNext();
+          } else {
+            this.timer = null;
+          }
           return;
         }
         this.timer = null;
@@ -3053,44 +3058,6 @@ var XMarkdownMini = class {
   }
 };
 
-// src/plugins/Footnote/index.ts
-var RULE = /^\[\^(?:([^\]:]+):)?([\s\S]+?)\]/;
-function Footnote(options = {}) {
-  var _a2;
-  const defaultLabel = (_a2 = options.defaultLabel) != null ? _a2 : "\u6CE8";
-  return {
-    extensions: [
-      {
-        name: "footnote",
-        level: "inline",
-        start(src) {
-          const i = src.indexOf("[^");
-          return i < 0 ? void 0 : i;
-        },
-        tokenizer(src) {
-          var _a3;
-          const m3 = RULE.exec(src);
-          if (!m3) return void 0;
-          return {
-            type: "footnote",
-            raw: m3[0],
-            label: ((_a3 = m3[1]) != null ? _a3 : defaultLabel).trim(),
-            content: m3[2].trim()
-          };
-        },
-        miniRenderer(token, _ctx) {
-          const t = token;
-          return {
-            name: "footnote",
-            tag: "footnote",
-            attrs: { label: t.label, content: t.content, class: "md-footnote" }
-          };
-        }
-      }
-    ]
-  };
-}
-
 // src/components/shared/flattenInlineTokens.ts
 var TAG_CLASS = {
   strong: "md-strong",
@@ -3234,7 +3201,6 @@ function renderNodes(props) {
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  Footnote,
   StreamingProcessor,
   XMarkdownMini,
   alipayRenderer,

@@ -7,6 +7,17 @@
     <switch checked="{{streamingEnabled}}" color="#165dff" bindchange="onStreamingChange" />
   </view>
 
+  <view class="stream-options">
+    <view class="option-row">
+      <text>语义分块</text>
+      <switch checked="{{semanticEnabled}}" color="#165dff" bindchange="onSemanticChange" />
+    </view>
+    <view class="option-row">
+      <text>文字动画</text>
+      <switch checked="{{animationEnabled}}" color="#165dff" bindchange="onAnimationChange" />
+    </view>
+  </view>
+
   <view class="note">
     <text class="note-tag">组件接入</text>
     一行 usingComponents 引入 &lt;markdown&gt;，加 latex / highlight 属性即开启公式与代码高亮。
@@ -16,7 +27,7 @@
   <view class="card">
     <markdown
       content="{{streamContent}}"
-      streaming="{{streamingActive}}"
+      streaming="{{streamingConfig}}"
       latex="{{true}}"
       highlight="{{true}}"
     />

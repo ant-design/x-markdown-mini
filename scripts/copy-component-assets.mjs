@@ -7,7 +7,7 @@
 // 注意：examples/{alipay,wechat} 现在通过 `npm i @ant-design/x-markdown-mini` 真实消费
 // 已发布包（alipay 走 node_modules + dist/ 前缀，wechat 走 miniprogram_npm），不再向
 // examples 目录回灌 dist/，所以本脚本不再同步 examples。
-import { readdirSync, statSync, mkdirSync, copyFileSync, existsSync } from 'node:fs';
+import { readdirSync, statSync, mkdirSync, copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -50,6 +50,41 @@ const wechatSrc = join(srcRoot, 'wechat');
 copyComponentAssets(alipaySrc, distRoot, ALIPAY_EXT);
 copyComponentAssets(wechatSrc, distMpRoot, WECHAT_EXT);
 console.log('[x-markdown-mini] component static assets copied to es/* and components/* entries');
+
+// 1a. 共享元素样式 — 单一来源 src/components/shared/elements.css「内联拼接」到各端
+// MiniNodeRenderer 的 index.{wxss,acss} 输出开头。不产出独立分片、不用 @import：在含
+// index.json 的组件目录里放裸 .wxss 分片会让微信「构建 npm」的编译器崩溃
+// (getDevCodeByFileList)。内联后产物与历史上「元素样式直接写在 index 里」的结构一致。
+const sharedElements = join(srcRoot, 'shared', 'elements.css');
+if (existsSync(sharedElements)) {
+  const shared = readFileSync(sharedElements, 'utf8').replace(/\s*$/, '\n');
+  const inlineTargets = [
+    {
+      src: join(srcRoot, 'alipay', 'MiniNodeRenderer', 'index.acss'),
+      outs: [
+        join(distRoot, 'es', 'MiniNodeRenderer', 'index.acss'),
+        join(distRoot, 'components', 'MiniNodeRenderer', 'index.acss'),
+      ],
+    },
+    {
+      src: join(srcRoot, 'wechat', 'MiniNodeRenderer', 'index.wxss'),
+      outs: [
+        join(distMpRoot, 'es', 'MiniNodeRenderer', 'index.wxss'),
+        join(distMpRoot, 'components', 'MiniNodeRenderer', 'index.wxss'),
+      ],
+    },
+  ];
+  for (const { src, outs } of inlineTargets) {
+    if (!existsSync(src)) continue;
+    const own = readFileSync(src, 'utf8');
+    const merged = `${shared}\n${own}`;
+    for (const out of outs) {
+      mkdirSync(dirname(out), { recursive: true });
+      writeFileSync(out, merged);
+    }
+  }
+  console.log('[x-markdown-mini] shared element styles inlined into MiniNodeRenderer index.{wxss,acss}');
+}
 
 // 1b. Plugin styles — copy .acss to dist/plugins/<Name>/ and .wxss to dist/miniprogram_dist/plugins/<Name>/
 const pluginsSrc = join(root, 'src', 'plugins');

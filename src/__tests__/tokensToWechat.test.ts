@@ -38,19 +38,19 @@ describe('tokensToWechat — platform-specific behavior', () => {
     expect(img.attrs?.src).toBe('http://e.com/i.png');
   });
 
-  it('strips class on non-anchor nodes', () => {
+  it('assigns semantic classes to block nodes; inline emphasis is classed later by the flatten layer', () => {
     const out = tokensToWechat('# Hi\n\n**bold**');
     const h1 = out[0];
     expect(h1.name).toBe('h1');
-    expect(h1.attrs?.class).toBeUndefined();
+    expect(h1.attrs?.class).toBe('md-heading md-h1');
     const strong = find(out, 'strong')!;
     expect(strong.attrs?.class).toBeUndefined();
   });
 
-  it('preserves animation flag (md-animate-block class still stripped)', () => {
+  it('preserves animation flag alongside the semantic heading class', () => {
     const out = tokensToWechat('# X', { animation: true });
     expect(out[0].animate).toBe(true);
-    expect(out[0].attrs?.class).toBeUndefined();
+    expect(out[0].attrs?.class).toBe('md-heading md-h1');
   });
 
   it('marks single- and multi-column tables for responsive column sizing', () => {

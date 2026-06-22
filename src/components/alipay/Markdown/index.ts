@@ -123,7 +123,12 @@ Component({
     },
 
     _render(this: any, props: MarkdownProps) {
-      this.setData({ animation: !!props.streaming });
+      const streamConfig = props.streaming;
+      const animation = streamConfig === true || (
+        !!streamConfig && typeof streamConfig === 'object' &&
+        streamConfig.enableAnimation !== false
+      );
+      this.setData({ animation });
       this.md.renderNodes({
         content: props.content,
         platform: 'alipay',

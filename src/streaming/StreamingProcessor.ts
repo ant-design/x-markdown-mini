@@ -249,7 +249,14 @@ export class StreamingProcessor<T = unknown> {
       if (this.chunkIndex >= this.pendingChunks.length) {
         if (this.buffer.length > 0) {
           this.splitIntoChunks(this.currentHasNextChunk);
-          this.scheduleNext();
+          this.chunkIndex = 0;
+          if (this.pendingChunks.length > 0) {
+            this.scheduleNext();
+          } else {
+            // An unfinished semantic tail has nothing renderable yet. Wait for
+            // the next upstream update instead of polling with a 0ms timer.
+            this.timer = null;
+          }
           return;
         }
         this.timer = null;

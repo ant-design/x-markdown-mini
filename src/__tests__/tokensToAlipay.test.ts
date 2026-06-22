@@ -44,17 +44,17 @@ describe('tokensToAlipay — platform-specific behavior', () => {
     expect(img.attrs?.src).toBe('https://secure.com/i.png');
   });
 
-  it('strips class on all nodes', () => {
+  it('assigns semantic classes to block nodes; inline emphasis is classed later by the flatten layer', () => {
     const out = tokensToAlipay('# Hi\n\n**bold**');
-    expect(out[0].attrs?.class).toBeUndefined();
+    expect(out[0].attrs?.class).toBe('md-heading md-h1');
     const strong = find(out, 'strong')!;
     expect(strong.attrs?.class).toBeUndefined();
   });
 
-  it('preserves animation flag', () => {
+  it('preserves animation flag alongside the semantic heading class', () => {
     const out = tokensToAlipay('# X', { animation: true });
     expect(out[0].animate).toBe(true);
-    expect(out[0].attrs?.class).toBeUndefined();
+    expect(out[0].attrs?.class).toBe('md-heading md-h1');
   });
 
   it('marks single- and multi-column tables for responsive column sizing', () => {

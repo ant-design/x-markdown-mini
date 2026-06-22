@@ -75,6 +75,28 @@ describe('mini-program streaming examples', () => {
       expect(frames.at(-1)).toEqual([content, false, 'done']);
       vi.useRealTimers();
     });
+
+    it(`${platform} reveals one character per upstream frame by default`, () => {
+      const helper = resolve(root, `examples/${platform}/pages/streaming.js`);
+      const { createStreamPlayer } = require(helper) as {
+        createStreamPlayer: (options: {
+          content: string;
+          interval?: number;
+          onFrame: (content: string, streaming: boolean, status: string) => void;
+        }) => { play: () => void };
+      };
+
+      vi.useFakeTimers();
+      const frames: string[] = [];
+      createStreamPlayer({
+        content: '逐字',
+        interval: 20,
+        onFrame: (content) => frames.push(content),
+      }).play();
+      vi.runAllTimers();
+      expect(frames).toEqual(['', '逐', '逐字']);
+      vi.useRealTimers();
+    });
   }
 
   it('all four integration pages expose a top streaming switch', () => {
@@ -89,6 +111,28 @@ describe('mini-program streaming examples', () => {
       const source = readFileSync(resolve(root, file), 'utf8');
       expect(source, file).toContain('class="stream-control"');
       expect(source, file).toContain('onStreamingChange');
+      expect(source, file).toContain('onSemanticChange');
+      expect(source, file).toContain('onAnimationChange');
+    }
+  });
+
+  it('all four integration scripts derive the same public streaming config', () => {
+    const files = [
+      'examples/alipay/pages/component/component.js',
+      'examples/alipay/pages/js/js.js',
+      'examples/wechat/pages/component/component.js',
+      'examples/wechat/pages/js/js.js',
+    ];
+
+    for (const file of files) {
+      const source = readFileSync(resolve(root, file), 'utf8');
+      expect(source, file).toContain('semanticEnabled: true');
+      expect(source, file).toContain('animationEnabled: true');
+      expect(source, file).toContain('hasNextChunk');
+      expect(source, file).toMatch(
+        /semantic:\s*this\.data\.semanticEnabled\s*\?\s*true\s*:\s*false/,
+      );
+      expect(source, file).toContain('enableAnimation: this.data.animationEnabled');
     }
   });
 
@@ -104,7 +148,7 @@ describe('mini-program streaming examples', () => {
 
     for (const file of templates) {
       expect(readFileSync(resolve(root, file), 'utf8'), file).toContain(
-        'animation="{{streamingActive}}"',
+        'animation="{{streamingActive && animationEnabled}}"',
       );
     }
     for (const file of scripts) {
@@ -119,23 +163,35 @@ describe('mini-program streaming examples', () => {
         'utf8',
       );
       expect(source, platform).toContain('animation: false');
-      expect(source, platform).toMatch(/setData\(\{[\s\S]*?animation:\s*!!/);
+      expect(source, platform).toContain('this.setData({ animation });');
     }
 
     const wechatJsExample = readFileSync(
       resolve(root, 'examples/wechat/pages/js/js.js'),
       'utf8',
     );
-    expect(wechatJsExample).toContain('reconcileTextAnimation(flat, this.textAnimation)');
+    expect(wechatJsExample).toContain('reconcileTextAnimation');
   });
 
-  it('wechat text nodes use user-select instead of deprecated selectable', () => {
+  it('keeps Alipay pages off the broken Zephyr snapshot loader', () => {
+    for (const page of ['component/component', 'js/js']) {
+      const config = JSON.parse(
+        readFileSync(resolve(root, `examples/alipay/pages/${page}.json`), 'utf8'),
+      ) as { renderer?: string };
+      expect(config.renderer, page).toBe('native');
+    }
+  });
+
+  it('keeps WeChat text runs inline while preserving the selectable contract', () => {
     const renderer = readFileSync(
       resolve(root, 'src/components/wechat/MiniNodeRenderer/index.wxml'),
       'utf8',
     );
-    expect(renderer).not.toMatch(/^    selectable="\{\{selectable\}\}"/m);
-    expect(renderer).toContain('user-select="{{selectable}}"');
+    const textTags = renderer.match(/<text\b[^>]*>/gs) ?? [];
+    // WeChat documents that user-select changes <text> to inline-block, which
+    // breaks markdown inline flow and decoration across adjacent text runs.
+    expect(textTags.some((tag) => tag.includes('user-select='))).toBe(false);
+    expect(textTags.some((tag) => tag.includes('selectable="{{selectable}}"'))).toBe(true);
 
     // This is a custom-component property, not the deprecated native <text>
     // attribute, so the public Markdown -> MiniNodeRenderer contract stays put.
@@ -144,5 +200,15 @@ describe('mini-program streaming examples', () => {
       'utf8',
     );
     expect(markdown).toContain('selectable="{{selectable}}"');
+  });
+
+  it('the Alipay local dependency points at the publish-root dist directory', () => {
+    const pkg = JSON.parse(
+      readFileSync(resolve(root, 'examples/alipay/package.json'), 'utf8'),
+    ) as { dependencies: Record<string, string> };
+    expect(pkg.dependencies['@ant-design/x-markdown-mini']).toBe('file:../../dist');
+
+    const npmrc = readFileSync(resolve(root, 'examples/alipay/.npmrc'), 'utf8');
+    expect(npmrc).toMatch(/^install-links=true\s*$/m);
   });
 });

@@ -1,3 +1,8 @@
+/* 仅含支付宝端专属样式（块入场/逐字动画、链接按压态）。通用元素样式由
+   src/components/shared/elements.css 单一来源提供，构建时 copy-component-assets.mjs 会把它
+   「内联拼接」到本文件输出的开头（不另外产出 elements.acss、不用 @import，与微信端保持一致）。
+   表格 / 代码块 / 代码高亮 / LaTeX 样式不在此处，保持原样。 */
+
 .md-animate-block {
   animation-fill-mode: forwards;
   animation-name: md-block-appear;
@@ -23,4 +28,10 @@
 @keyframes md-char-in {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+/* 链接按压态：Alipay 走 hover-class（微信端链接无此态） */
+.md-link--active {
+  color: #0958d9;
+  opacity: 0.72;
 }

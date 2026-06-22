@@ -3,49 +3,14 @@
 @import "../../plugins/CodeHighlight/style.acss";
 @import "../../plugins/Latex/style.acss";
 
+/* 元素级样式（标题/段落/列表/引用/强调/链接/行内代码/图片/分隔线/上下标等）已统一到
+   MiniNodeRenderer 的共享 elements.acss，本文件只保留 <Markdown> 根容器与代码/表格卡片样式。 */
 .md-root {
   display: block;
   font-size: 28rpx;
   line-height: 1.65;
   color: #1f1f1f;
   word-break: break-word;
-}
-
-.md-paragraph {
-  display: block;
-  margin: 0 0 16rpx;
-}
-
-.md-heading {
-  display: block;
-  font-weight: 600;
-  margin: 24rpx 0 12rpx;
-  line-height: 1.3;
-}
-.md-h1 { font-size: 44rpx; }
-.md-h2 { font-size: 38rpx; }
-.md-h3 { font-size: 34rpx; }
-.md-h4 { font-size: 30rpx; }
-.md-h5 { font-size: 28rpx; }
-.md-h6 { font-size: 26rpx; color: #666; }
-
-.md-list {
-  display: block;
-  margin: 8rpx 0 16rpx;
-  padding-left: 32rpx;
-}
-.md-list-item {
-  display: list-item;
-  margin: 4rpx 0;
-}
-
-.md-blockquote {
-  display: block;
-  margin: 12rpx 0;
-  padding: 8rpx 16rpx;
-  border-left: 6rpx solid #d9d9d9;
-  color: #555;
-  background: #fafafa;
 }
 
 .md-code-block {
@@ -100,42 +65,6 @@
   font-size: 26rpx;
   white-space: pre;
   word-break: normal;
-}
-
-.md-inline-code {
-  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
-  font-size: 26rpx;
-  background: #f3f3f3;
-  padding: 0 6rpx;
-  border-radius: 4rpx;
-}
-
-.md-strong { font-weight: 600; }
-.md-em { font-style: italic; }
-.md-del { text-decoration: line-through; }
-
-.md-link {
-  display: inline;
-  color: #1677ff;
-  text-decoration: underline;
-}
-.md-link--active {
-  color: #0958d9;
-  opacity: 0.72;
-}
-
-.md-img {
-  display: block;
-  max-width: 100%;
-  margin: 16rpx 0;
-  border-radius: 12rpx;
-}
-
-.md-hr {
-  display: block;
-  height: 2rpx;
-  background: #e5e5e5;
-  margin: 16rpx 0;
 }
 
 /* table body scrolls horizontally inside the .md-tableblock card */

@@ -32,6 +32,24 @@
   color: #86909c;
   font-size: 22rpx;
 }
+.stream-options {
+  margin: -12rpx 0 24rpx;
+  padding: 8rpx 24rpx;
+  background: #f9f8f5;
+  border: 2rpx solid #eee9df;
+  border-radius: 16rpx;
+}
+.option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 72rpx;
+  color: #4e5969;
+  font-size: 24rpx;
+}
+.option-row + .option-row {
+  border-top: 2rpx solid #eee9df;
+}
 .note {
   margin-bottom: 24rpx;
   padding: 24rpx;

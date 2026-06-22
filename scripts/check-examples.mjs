@@ -13,14 +13,15 @@ const { createSample } = require(join(root, 'examples', 'sample.js'));
 //   - 组件接入: the shipped <Markdown> component via its package path, with
 //     latex/highlight baked inside the component (booleans, not props).
 //   - JS 接入: renderNodes() in page JS feeding the low-level MiniNodeRenderer.
-// Import paths are now SYMMETRIC — NO dist/ segment on either platform. The package
-// is published with the dist/ CONTENTS at its root (scripts/prepare-publish.mjs +
-// `npm publish ./dist`), so `es/Markdown/index` resolves on both:
+// Published package contents have no dist/ segment. Both examples use package
+// requests and let their IDE resolve the installed npm package:
 // - Alipay resolves npm subpaths RAW from the package root filesystem (it does NOT
 //   honor package.json#exports) → es/ now sits at that root, so no dist/ prefix is
 //   needed (a missing path would still be CE1000.01). It also needs Component2 plus
 //   node_modules transpilation, or the component fails to register ("reading 'options'").
-// - WeChat resolves via `package.json#miniprogram` (→ miniprogram_dist) + 构建npm.
+// - WeChat 构建npm resolves `package.json#miniprogram` (→ miniprogram_dist) into
+//   miniprogram_npm. Pages must keep using the package request; treating that
+//   generated directory as an ordinary relative component path is not supported.
 const examples = [
   {
     name: 'alipay',
@@ -64,6 +65,26 @@ for (const example of examples) {
       project.compileOptions?.component2,
       true,
       'alipay example must enable the Component2 runtime required by npm components',
+    );
+  }
+
+  if (example.name === 'wechat') {
+    const project = readJson(join(example.dir, 'project.config.json'));
+    assertEqual(
+      project.setting?.packNpmManually,
+      true,
+      'wechat example must explicitly map npm output for the local workspace dependency',
+    );
+    const npmRelation = project.setting?.packNpmRelationList?.[0];
+    assertEqual(
+      npmRelation?.packageJsonPath,
+      './package.json',
+      'wechat example npm mapping must use its own package.json',
+    );
+    assertEqual(
+      npmRelation?.miniprogramNpmDistDir,
+      './',
+      'wechat example npm mapping must emit miniprogram_npm under the mini-program root',
     );
   }
 

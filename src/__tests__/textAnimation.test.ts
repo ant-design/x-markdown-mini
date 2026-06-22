@@ -23,13 +23,57 @@ describe('reconcileTextAnimation', () => {
     ]);
   });
 
-  it('removes animation after its visual duration has completed', () => {
+  it('keeps a completed segment in the same animation layout state', () => {
     const state = createTextAnimationState();
     reconcileTextAnimation(paragraph('a'), state, 100);
 
     const completed = reconcileTextAnimation(paragraph('a'), state, 500);
     expect(completed[0].children?.[0].animationSegments).toEqual([
-      { k: 0, value: 'a', bornAt: 100 },
+      {
+        k: 0,
+        value: 'a',
+        bornAt: 100,
+        style: 'animation-delay:-360ms;animation-play-state:paused',
+      },
     ]);
+  });
+
+  it('finalizes the last stream frame without discarding segment wrappers', () => {
+    const state = createTextAnimationState();
+    reconcileTextAnimation(paragraph('a'), state, 100);
+
+    const completed = reconcileTextAnimation(paragraph('ab'), state, 160, true);
+    expect(completed[0].children?.[0].animationSegments).toEqual([
+      {
+        k: 0,
+        value: 'a',
+        bornAt: 100,
+        style: 'animation-delay:-360ms;animation-play-state:paused',
+      },
+      {
+        k: 1,
+        value: 'b',
+        bornAt: 160,
+        style: 'animation-delay:-360ms;animation-play-state:paused',
+      },
+    ]);
+  });
+
+  it('animates flattened link leaves so they stay in the same inline run', () => {
+    const state = createTextAnimationState();
+    const nodes: MiniNode[] = [
+      {
+        name: 'p',
+        children: [
+          {
+            name: 'a',
+            attrs: { value: 'link', class: 'md-link', 'data-href': 'https://e.com' },
+          },
+        ],
+      },
+    ];
+
+    const animated = reconcileTextAnimation(nodes, state, 100);
+    expect(animated[0].children?.[0].animationSegments?.[0].value).toBe('link');
   });
 });

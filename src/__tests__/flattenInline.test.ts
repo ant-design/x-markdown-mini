@@ -49,20 +49,19 @@ describe('flattenInlineNodes', () => {
     expect(cls).toContain('md-em');
   });
 
-  it('keeps anchors interactive but flattens their inline contents', () => {
+  it('flattens anchors into interactive leaf runs in the surrounding text flow', () => {
     const nodes = tokensToWechat('see [a **strong** link](https://e.com)', { escapeText: false });
     const flat = flattenInlineNodes(nodes);
-    const anchor = findFirst(flat, (n) => n.name === 'a');
-    expect(anchor).toBeTruthy();
-    // tokensToWechat rewrites href → data-href
-    expect(anchor!.attrs?.['data-href']).toBe('https://e.com');
-    const innerNames = (anchor!.children ?? []).map((c) => c.name);
-    expect(innerNames.every((n) => n === 'text' || n === 'br' || n === 'img')).toBe(true);
-    const strongRun = (anchor!.children ?? []).find((c) =>
-      String(c.attrs?.class ?? '').includes('md-strong')
+    const anchors = findAll(flat, (n) => n.name === 'a');
+    expect(anchors.length).toBeGreaterThan(0);
+    expect(anchors.every((n) => !n.children)).toBe(true);
+    expect(anchors.every((n) => n.attrs?.['data-href'] === 'https://e.com')).toBe(true);
+    expect(anchors.map((n) => n.attrs?.value).join('')).toBe('a strong link');
+    const strongRun = anchors.find((n) =>
+      String(n.attrs?.class ?? '').includes('md-strong')
     );
     expect(strongRun).toBeTruthy();
-    expect(String(strongRun?.attrs?.value ?? '')).toContain('strong');
+    expect(String(strongRun?.attrs?.class ?? '')).toContain('md-link');
   });
 
   it('preserves inline-code class on flattened run', () => {
@@ -116,7 +115,7 @@ describe('flattenInlineNodes', () => {
     expect(out[1].children?.map((n) => n.k)).toEqual([0, 1]);
   });
 
-  it('top-level anchor goes through the anchor walk branch (flattens children but keeps <a>)', () => {
+  it('flattens a top-level anchor into interactive leaf runs', () => {
     const input: MiniNode[] = [
       {
         name: 'a',
@@ -128,12 +127,10 @@ describe('flattenInlineNodes', () => {
       },
     ];
     const out = flattenInlineNodes(input);
-    expect(out[0].name).toBe('a');
-    // children should be flat — no nested strong
-    const names = (out[0].children ?? []).map((c) => c.name);
-    expect(names.every((n) => n === 'text' || n === 'br' || n === 'img')).toBe(true);
-    const boldRun = (out[0].children ?? []).find((c) =>
-      String(c.attrs?.class ?? '').includes('md-strong')
+    expect(out.every((n) => n.name === 'a' && !n.children)).toBe(true);
+    expect(out.map((n) => n.attrs?.value).join('')).toBe('bold tail');
+    const boldRun = out.find((n) =>
+      String(n.attrs?.class ?? '').includes('md-strong')
     );
     expect(boldRun).toBeTruthy();
   });
@@ -241,7 +238,7 @@ describe('flattenInlineNodes', () => {
     expect(texts[0].attrs?.value).toBe('kept');
   });
 
-  it('anchor without explicit children property still flattens', () => {
+  it('drops an empty anchor because it has no visible leaf run', () => {
     const input: MiniNode[] = [
       {
         name: 'p',
@@ -253,8 +250,7 @@ describe('flattenInlineNodes', () => {
     ];
     const out = flattenInlineNodes(input);
     const anchor = (out[0].children ?? []).find((c) => c.name === 'a');
-    expect(anchor).toBeDefined();
-    expect(anchor?.children).toEqual([]);
+    expect(anchor).toBeUndefined();
   });
 
   it('inline container without children property is treated as empty', () => {

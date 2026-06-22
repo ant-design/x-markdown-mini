@@ -1,5 +1,6 @@
 {
   "defaultTitle": "JS 接入",
+  "renderer": "native",
   "usingComponents": {
     "mini-node-renderer": "@ant-design/x-markdown-mini/es/MiniNodeRenderer/index"
   }

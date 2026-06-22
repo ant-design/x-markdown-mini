@@ -80,7 +80,7 @@ function supports(
 }
 
 function textBlock(value: string, animate: boolean, adapter: MiniNodePlatformAdapter, token?: Token): MiniNode {
-  return block('p', value ? [{ name: 'text', attrs: { value } }] : [], animate, adapter, token);
+  return block('p', value ? [{ name: 'text', attrs: { value } }] : [], animate, adapter, token, { class: 'md-paragraph' });
 }
 
 function collectText(nodes: MiniNode[]): string {
@@ -171,11 +171,13 @@ function blockTok(
     case 'heading': {
       const t = tok as Tokens.Heading;
       const depth = Math.min(6, Math.max(1, t.depth ?? 1));
-      return block(`h${depth}`, inlineTokens(t.tokens ?? [], adapter, enc, ctx), animate, adapter, tok);
+      return block(`h${depth}`, inlineTokens(t.tokens ?? [], adapter, enc, ctx), animate, adapter, tok, {
+        class: `md-heading md-h${depth}`,
+      });
     }
     case 'paragraph': {
       const t = tok as Tokens.Paragraph;
-      return block('p', inlineTokens(t.tokens ?? [], adapter, enc, ctx), animate, adapter, tok);
+      return block('p', inlineTokens(t.tokens ?? [], adapter, enc, ctx), animate, adapter, tok, { class: 'md-paragraph' });
     }
     case 'code': {
       const t = tok as Tokens.Code;
@@ -196,14 +198,14 @@ function blockTok(
       return withHeader(block('pre', [codeChild], animate, adapter, tok, preAttrs), header);
     }
     case 'hr':
-      return block('hr', [], animate, adapter, tok);
+      return block('hr', [], animate, adapter, tok, { class: 'md-hr' });
     case 'blockquote': {
       const t = tok as Tokens.Blockquote;
       const children = blockTokens(t.tokens ?? [], adapter, animate, enc, ctx);
       if (!supports(adapter, 'supportsBlockquote')) {
         return textBlock(collectText(children), animate, adapter, tok);
       }
-      return block('blockquote', children, animate, adapter, tok);
+      return block('blockquote', children, animate, adapter, tok, { class: 'md-blockquote' });
     }
     case 'list': {
       const t = tok as Tokens.List;
@@ -211,7 +213,8 @@ function blockTok(
       const start = typeof t.start === 'number' ? t.start : 1;
       const tag = ordered ? 'ol' : 'ul';
       const children = t.items.map((item) => listItemTok(item, adapter, animate, enc, ctx));
-      return block(tag, children, animate, adapter, tok, ordered ? adapter.olAttrs(start, t) : undefined);
+      const listAttrs: MiniNodeAttrs = { class: 'md-list', ...(ordered ? adapter.olAttrs(start, t) : {}) };
+      return block(tag, children, animate, adapter, tok, listAttrs);
     }
     case 'html': {
       const t = tok as Tokens.HTML;
@@ -298,7 +301,7 @@ function listItemTok(
       }
     }
   }
-  return block('li', children, false, adapter, item);
+  return block('li', children, false, adapter, item, { class: 'md-list-item' });
 }
 
 function inlineTokens(

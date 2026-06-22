@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@ant-design/x-markdown-mini": "0.1.0-beta.6"
+    "@ant-design/x-markdown-mini": "file:../../dist"
   },
   "devDependencies": {
     "@mini-types/alipay": "^3"

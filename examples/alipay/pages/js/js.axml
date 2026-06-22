@@ -7,6 +7,17 @@
     <switch checked="{{streamingEnabled}}" color="#ff7d00" onChange="onStreamingChange" />
   </view>
 
+  <view class="stream-options">
+    <view class="option-row">
+      <text>语义分块</text>
+      <switch checked="{{semanticEnabled}}" color="#ff7d00" onChange="onSemanticChange" />
+    </view>
+    <view class="option-row">
+      <text>文字动画</text>
+      <switch checked="{{animationEnabled}}" color="#ff7d00" onChange="onAnimationChange" />
+    </view>
+  </view>
+
   <view class="note">
     <text class="note-tag">JS 接入</text>
     页面 require 核心 + 插件，renderNodes() 直出节点，交给 MiniNodeRenderer 渲染。
@@ -14,6 +25,9 @@
   </view>
 
   <view class="card">
-    <mini-node-renderer nodes="{{nodes}}" animation="{{streamingActive}}" />
+    <mini-node-renderer
+      nodes="{{nodes}}"
+      animation="{{streamingActive && animationEnabled}}"
+    />
   </view>
 </view>

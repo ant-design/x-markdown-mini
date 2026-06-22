@@ -2,7 +2,7 @@
 // 与真实聊天接口的前端消费方式一致。页面卸载或关闭开关时必须取消定时器。
 function createStreamPlayer(options) {
   const content = options.content;
-  const chunkSize = options.chunkSize == null ? 3 : options.chunkSize;
+  const chunkSize = options.chunkSize == null ? 1 : options.chunkSize;
   const interval = options.interval == null ? 120 : options.interval;
   const chars = Array.from(content);
   const chunks = [];

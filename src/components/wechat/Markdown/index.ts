@@ -94,7 +94,12 @@ Component({
     },
     _render(this: any) {
       const data = this.data;
-      this.setData({ animation: !!data.streaming });
+      const streamConfig = data.streaming as false | true | StreamingConfig;
+      const animation = streamConfig === true || (
+        !!streamConfig && typeof streamConfig === 'object' &&
+        streamConfig.enableAnimation !== false
+      );
+      this.setData({ animation });
       this.md.renderNodes({
         content: data.content,
         platform: 'wechat',
@@ -109,10 +114,15 @@ Component({
         onRenderComplete: () => this.triggerEvent('rendercomplete'),
         onPatch: (nodes: MiniNode[]) => {
           const flat = flattenInlineNodes(nodes);
-          if (!data.streaming) resetTextAnimation(this.textAnimation);
+          if (!animation) resetTextAnimation(this.textAnimation);
           this.setData({
-            nodes: data.streaming
-              ? reconcileTextAnimation(flat, this.textAnimation)
+            nodes: animation
+              ? reconcileTextAnimation(
+                  flat,
+                  this.textAnimation,
+                  Date.now(),
+                  typeof streamConfig === 'object' && !streamConfig.hasNextChunk,
+                )
               : flat,
           });
         },

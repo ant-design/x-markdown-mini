@@ -26,10 +26,16 @@ function prefixLength(a: string, b: string): number {
 function visualSegment(
   segment: MiniNodeAnimationSegment,
   now: number,
+  complete: boolean,
 ): MiniNodeAnimationSegment {
   const elapsed = Math.max(0, Math.floor(now - segment.bornAt));
-  if (elapsed >= ANIMATION_DURATION) {
-    return { k: segment.k, value: segment.value, bornAt: segment.bornAt };
+  if (complete || elapsed >= ANIMATION_DURATION) {
+    return {
+      k: segment.k,
+      value: segment.value,
+      bornAt: segment.bornAt,
+      style: `animation-delay:-${ANIMATION_DURATION}ms;animation-play-state:paused`,
+    };
   }
   return {
     k: segment.k,
@@ -44,6 +50,7 @@ export function reconcileTextAnimation(
   nodes: MiniNode[],
   state: TextAnimationState,
   now = Date.now(),
+  complete = false,
 ): MiniNode[] {
   const seen = new Set<string>();
 
@@ -52,7 +59,7 @@ export function reconcileTextAnimation(
       const node = list[i];
       const nodePath = `${path}/${node.k ?? i}:${node.name}`;
 
-      if (node.name === 'text') {
+      if (node.name === 'text' || node.name === 'a') {
         const value = String(node.attrs?.value ?? '');
         const prev = state.leaves.get(nodePath) ?? { prev: '', nextId: 0, segments: [] };
         const prefix = prefixLength(prev.prev, value);
@@ -78,7 +85,9 @@ export function reconcileTextAnimation(
 
         state.leaves.set(nodePath, { prev: value, nextId, segments });
         seen.add(nodePath);
-        node.animationSegments = segments.map((segment) => visualSegment(segment, now));
+        node.animationSegments = segments.map((segment) =>
+          visualSegment(segment, now, complete),
+        );
       }
 
       if (node.children) visit(node.children, `${nodePath}/children`);

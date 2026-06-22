@@ -1,49 +1,46 @@
 <wxs src="./index.wxs" module="u" />
 
-<!-- KaTeX relies on one uninterrupted positioning tree. Rendering every span
-     through a recursive custom component inserts host boxes and displaces
-     fraction/overline rules, so the formula subtree stays in this template. -->
-<template name="katexTree">
-  <text
-    wx:if="{{name === 'text'}}"
-    class="{{attrs.class || ''}}"
-    style="{{attrs.style || ''}}"
-  >{{attrs.value || ''}}</text>
-  <image
-    wx:elif="{{name === 'img'}}"
-    class="{{attrs.class || ''}}"
-    style="{{attrs.style || ''}}"
-    src="{{attrs.src || ''}}"
-    mode="widthFix"
-  />
-  <view
-    wx:else
-    class="{{attrs.class || ''}}"
-    style="{{attrs.style || ''}}"
-  >
-    <block wx:for="{{children}}" wx:for-item="child" wx:key="k">
-      <template is="katexTree" data="{{...child}}" />
-    </block>
-  </view>
-</template>
-
 <block wx:for="{{nodes}}" wx:for-item="node" wx:for-index="i" wx:key="k">
-  <!-- 微信重建节点时，以负 delay 从字符原有时间点续播，避免整段重新闪。 -->
+  <!-- 链接在 flatten 阶段已展开成叶子 run，与前后文本共享同一兄弟流。 -->
   <text
-    wx:if="{{u.isText(node.name) && animation && node.animationSegments}}"
+    wx:if="{{node.name === 'a' && animation && node.animationSegments}}"
     class="{{u.classOf(node)}}"
-    user-select="{{selectable}}"
+    style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
   ><text
       wx:for="{{node.animationSegments}}"
       wx:for-item="segment"
       wx:key="k"
-      class="{{segment.animate ? 'md-anim-char' : ''}}"
+      class="{{u.classOf(node)}} {{segment.animate ? 'md-anim-char' : ''}}"
+      style="{{segment.style || ''}}"
+    >{{segment.value}}</text></text>
+  <text
+    wx:elif="{{node.name === 'a'}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  >{{u.valueOf(node)}}</text>
+
+  <!-- 微信重建节点时，以负 delay 从字符原有时间点续播，避免整段重新闪。 -->
+  <text
+    wx:elif="{{u.isText(node.name) && animation && node.animationSegments}}"
+    class="{{u.classOf(node)}}"
+    selectable="{{selectable}}"
+  ><text
+      wx:for="{{node.animationSegments}}"
+      wx:for-item="segment"
+      wx:key="k"
+      class="{{u.classOf(node)}} {{segment.animate ? 'md-anim-char' : ''}}"
       style="{{segment.style || ''}}"
     >{{segment.value}}</text></text>
   <text
     wx:elif="{{u.isText(node.name)}}"
     class="{{u.classOf(node)}}"
-    user-select="{{selectable}}"
+    selectable="{{selectable}}"
   >{{u.valueOf(node)}}</text>
 
   <!-- br -->
@@ -63,16 +60,16 @@
     catch:tap="_tap"
   />
 
-  <!-- Keep deep KaTeX layout inside this component boundary. -->
-  <view
+  <!-- KaTeX trees are 14–15 levels deep. Rendering each level through this
+       recursive custom component exceeds WeChat's practical component depth;
+       rich-text keeps the static span tree inside one native boundary. -->
+  <rich-text
     wx:elif="{{u.isKatex(node)}}"
     class="{{u.classOf(node)}}"
     style="{{u.styleOf(node)}}"
-  >
-    <block wx:for="{{node.children}}" wx:for-item="child" wx:key="k">
-      <template is="katexTree" data="{{...child}}" />
-    </block>
-  </view>
+    nodes="{{u.toRichTextNodes(node.children)}}"
+    user-select="{{selectable}}"
+  />
 
   <!-- pre: code block with language label + copy toolbar, scrollable body -->
   <view
@@ -185,30 +182,12 @@
     </view>
   </view>
 
-  <!-- anchor: kept interactive, children are already flattened text runs -->
-  <text
-    wx:elif="{{node.name === 'a'}}"
-    class="{{u.classOf(node)}}"
-    style="{{u.styleOf(node)}}"
-    user-select="{{selectable}}"
-    data-data="{{node}}"
-    catch:tap="_tap"
-  >
-    <text
-      wx:for="{{node.children}}"
-      wx:for-item="c"
-      wx:for-index="ci"
-      wx:key="k"
-      class="{{u.classOf(c)}}"
-    >{{u.valueOf(c)}}</text>
-  </text>
-
   <!-- inline tag rendered as <text>: children are flat text runs -->
   <text
     wx:elif="{{u.isInline(node.name) && !u.isRich(node)}}"
     class="{{u.classOf(node)}}"
     style="{{u.styleOf(node)}}"
-    user-select="{{selectable}}"
+    selectable="{{selectable}}"
     data-data="{{node}}"
     catch:tap="_tap"
   >
