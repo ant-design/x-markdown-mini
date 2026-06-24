@@ -7,6 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const require = createRequire(import.meta.url);
 const { createSample } = require(join(root, 'examples', 'sample.js'));
+const PUBLISHED_VERSION = '0.1.0-beta.9';
 
 // Each example demonstrates the same two integration paths, as a real npm
 // consumer would wire them (no reaching into source):
@@ -58,6 +59,12 @@ function assertEqual(actual, expected, message) {
 for (const example of examples) {
   const appJson = join(example.dir, 'app.json');
   assertExists(appJson, `${example.name} app.json is missing`);
+  const packageJson = readJson(join(example.dir, 'package.json'));
+  assertEqual(
+    packageJson.dependencies?.['@ant-design/x-markdown-mini'],
+    PUBLISHED_VERSION,
+    `${example.name} example must consume the published beta package`,
+  );
 
   if (example.name === 'alipay') {
     const project = readJson(join(example.dir, 'mini.project.json'));
@@ -73,7 +80,7 @@ for (const example of examples) {
     assertEqual(
       project.setting?.packNpmManually,
       true,
-      'wechat example must explicitly map npm output for the local workspace dependency',
+      'wechat example must explicitly map npm output for the installed package',
     );
     const npmRelation = project.setting?.packNpmRelationList?.[0];
     assertEqual(

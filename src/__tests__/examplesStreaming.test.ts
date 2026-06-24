@@ -202,13 +202,12 @@ describe('mini-program streaming examples', () => {
     expect(markdown).toContain('selectable="{{selectable}}"');
   });
 
-  it('the Alipay local dependency points at the publish-root dist directory', () => {
-    const pkg = JSON.parse(
-      readFileSync(resolve(root, 'examples/alipay/package.json'), 'utf8'),
-    ) as { dependencies: Record<string, string> };
-    expect(pkg.dependencies['@ant-design/x-markdown-mini']).toBe('file:../../dist');
-
-    const npmrc = readFileSync(resolve(root, 'examples/alipay/.npmrc'), 'utf8');
-    expect(npmrc).toMatch(/^install-links=true\s*$/m);
+  it('both examples consume the published beta package', () => {
+    for (const platform of ['alipay', 'wechat']) {
+      const pkg = JSON.parse(
+        readFileSync(resolve(root, `examples/${platform}/package.json`), 'utf8'),
+      ) as { dependencies: Record<string, string> };
+      expect(pkg.dependencies['@ant-design/x-markdown-mini'], platform).toBe('0.1.0-beta.9');
+    }
   });
 });
