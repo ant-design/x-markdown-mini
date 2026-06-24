@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { tokensToWechat } from '../platforms/wechat/tokensToWechat.js';
-import { flattenInlineNodes } from '../components/shared/flattenInline.js';
+import { tokensToAlipay } from '../platforms/alipay/tokensToAlipay.js';
+import { flattenInlineNodes, resolveLinkHref } from '../components/shared/flattenInline.js';
 import type { MiniNode } from '../types.js';
 
 function findAll(nodes: MiniNode[], pred: (n: MiniNode) => boolean): MiniNode[] {
@@ -62,6 +63,28 @@ describe('flattenInlineNodes', () => {
     );
     expect(strongRun).toBeTruthy();
     expect(String(strongRun?.attrs?.class ?? '')).toContain('md-link');
+  });
+
+  it('resolveLinkHref reads the href off a flattened anchor leaf on both platforms', () => {
+    // WeChat anchors carry `data-href`; Alipay anchors carry `href`. The shared
+    // _tap handler must extract a clickable URL from either.
+    const wechatAnchor = findFirst(
+      flattenInlineNodes(tokensToWechat('go [here](https://w.com)', { escapeText: false })),
+      (n) => n.name === 'a',
+    );
+    const alipayAnchor = findFirst(
+      flattenInlineNodes(tokensToAlipay('go [here](https://a.com)', { escapeText: false })),
+      (n) => n.name === 'a',
+    );
+    expect(resolveLinkHref(wechatAnchor)).toBe('https://w.com');
+    expect(resolveLinkHref(alipayAnchor)).toBe('https://a.com');
+  });
+
+  it('resolveLinkHref returns null for non-anchor or hrefless nodes', () => {
+    expect(resolveLinkHref(undefined)).toBeNull();
+    expect(resolveLinkHref(null)).toBeNull();
+    expect(resolveLinkHref({ name: 'text', attrs: { value: 'x' } })).toBeNull();
+    expect(resolveLinkHref({ name: 'a', attrs: {} })).toBeNull();
   });
 
   it('preserves inline-code class on flattened run', () => {

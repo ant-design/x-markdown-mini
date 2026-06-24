@@ -1,6 +1,7 @@
 export {};
 
 import { getTableShadowState } from '../../shared/tableScroll.js';
+import { resolveLinkHref } from '../../shared/flattenInline.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
 declare const wx: any;
@@ -50,7 +51,19 @@ Component({
     },
   },
   methods: {
-    _tap(this: any, e: unknown) {
+    _tap(this: any, e: any) {
+      // 链接内置交互：小程序无法直接打开外部 http(s) 链接，命中 anchor 叶子时把
+      // href 复制到剪贴板并 Toast 提示。叶子 <text> 的原生 tap 带 dataset.data（整棵
+      // node）；上层 mini-node-renderer 经 triggerEvent 重新包裹后 currentTarget 上无
+      // data-data → resolveLinkHref 返回 null，因此复制只在叶子层触发一次、不会重复。
+      const href = resolveLinkHref(e?.currentTarget?.dataset?.data);
+      if (href) {
+        wx.setClipboardData({
+          data: href,
+          success: () => wx.showToast({ title: '链接已复制', icon: 'none', duration: 1500 }),
+        });
+      }
+      // 仍向上冒泡 tap，宿主与页面可自定义（如跳转 web-view）。
       this.triggerEvent('tap', e, { bubbles: true, composed: true });
     },
     _appear(this: any, e: unknown) {

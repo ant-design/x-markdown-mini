@@ -59,8 +59,10 @@ const BUDGETS = [
   // 共享 helper（alipay 包根 + wechat 包根 各一份）。JS 接入复用时间戳
   // 动画协调器完整内联后约 7.59 KB，只让新增字符渐显，避免微信旧字符重复播放；
   // 入口必须自包含，不能留下未发布的 ./textAnimation.js require。
-  { file: 'shared/flattenInline.js', rawMax: 8 * KB },
-  { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 8 * KB },
+  // 8→9：新增 resolveLinkHref（anchor 叶子取 href 供 _tap 复制+Toast，两端共用），未压缩
+  // 入口含注释后约 8.28 KB。
+  { file: 'shared/flattenInline.js', rawMax: 9 * KB },
+  { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 9 * KB },
   // Alipay 组件
   { file: 'es/Markdown/index.js', rawMax: 5 * KB },
   // MiniNodeRenderer 表格溢出测量、缓存和滚动阴影增加约 4 KB wrapper 源码。

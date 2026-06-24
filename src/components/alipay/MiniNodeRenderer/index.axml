@@ -154,31 +154,21 @@
     </view>
   </view>
 
-  <!-- Anchor runs must be direct <text> siblings. An outer Alipay <view>
-       creates a layout box even with display:inline and breaks surrounding text. -->
-  <block a:elif="{{node.name === 'a'}}">
-    <text
-      a:for="{{node.children}}"
-      a:for-item="c"
-      a:for-index="ci"
-      a:key="k"
-      a:if="{{u.isText(c.name)}}"
-      class="{{u.classOf(node)}} {{u.classOf(c)}}"
-      style="{{u.styleOf(node)}}"
-      data-data="{{node}}"
-      hover-class="md-link--active"
-      hover-start-time="0"
-      hover-stay-time="80"
-      catchTap="_tap"
-    >{{u.valueOf(c)}}</text>
-    <text
-      a:for="{{node.children}}"
-      a:for-item="c"
-      a:for-index="ci"
-      a:key="k"
-      a:if="{{u.isBr(c.name)}}"
-    >{{'\n'}}</text>
-  </block>
+  <!-- anchor：flatten 已把链接展开成「自带 value、无 children」的叶子 run（每段文本一个
+       a 节点，br 单独成兄弟节点走上面的 isBr 分支）。这里直接渲染为单个可点击 <text>，
+       与前后文本同级——外包 <view> 即使 display:inline 也会生成布局盒、打断行内排版。
+       旧版误用 node.children 遍历，扁平化后子节点为空导致支付宝链接整段不显示。 -->
+  <text
+    a:elif="{{node.name === 'a'}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
+    data-data="{{node}}"
+    hover-class="md-link--active"
+    hover-start-time="0"
+    hover-stay-time="80"
+    catchTap="_tap"
+  >{{u.valueOf(node)}}</text>
 
   <!-- inline tag rendered as a flat container because Alipay SDK 2.x rejects nested <text>. -->
   <view

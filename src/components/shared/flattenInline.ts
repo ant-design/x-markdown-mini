@@ -20,6 +20,19 @@ export function flattenInlineNodes(nodes: MiniNode[]): MiniNode[] {
 }
 
 /**
+ * 取扁平化后 anchor 叶子节点的链接地址。小程序无法直接打开外部 http(s) 链接，
+ * 组件在 _tap 里用它把 href 复制到剪贴板 + Toast 提示。微信 anchor attrs 用
+ * `data-href`（rich-text 血统的保留命名），支付宝用 `href`，这里两者都读，
+ * 因此同一个 _tap 处理器在两端通用。命中非 anchor 节点时返回 null（不响应）。
+ */
+export function resolveLinkHref(node: MiniNode | null | undefined): string | null {
+  if (!node || node.name !== 'a') return null;
+  const attrs = node.attrs ?? {};
+  const href = (attrs['href'] as string | undefined) ?? (attrs['data-href'] as string | undefined);
+  return href || null;
+}
+
+/**
  * 递归给每个节点（含 children 与 header 项）打上「兄弟内稳定下标」key。
  * 小程序 wx:for 的 wx:key 只能取 item 的属性名，不能引用 for-index 变量；缺了
  * 稳定唯一 key，流式每帧整树 setData 会让框架无法 diff 复用 → 整树重建 → 入场

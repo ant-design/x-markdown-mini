@@ -21,10 +21,15 @@ describe('Alipay inline links', () => {
       'utf8',
     );
 
+    // flatten 已把 anchor 展开成「自带 value、无 children」的叶子 run，模板直接
+    // 渲染单个 <text>{{u.valueOf(node)}} 而非遍历 node.children（后者扁平化后为空，
+    // 会导致整段链接不显示）。仍是可点击的 inline <text>，带按压态。
     expect(axml).toMatch(
-      /<block\s+a:elif="\{\{node\.name === 'a'\}\}">[\s\S]*?<text[\s\S]*?hover-class="md-link--active"/,
+      /<text\s+a:elif="\{\{node\.name === 'a'\}\}"[\s\S]*?hover-class="md-link--active"[\s\S]*?>\{\{u\.valueOf\(node\)\}\}<\/text>/,
     );
     expect(axml).not.toMatch(/<view\s+a:elif="\{\{node\.name === 'a'\}\}"/);
+    // 不能再用 <block> 遍历 node.children——扁平化后 anchor 无 children。
+    expect(axml).not.toMatch(/<block\s+a:elif="\{\{node\.name === 'a'\}\}"/);
     expect(sharedElements).toMatch(/\.md-link\s*\{[\s\S]*?display:\s*inline/);
     expect(sharedElements).toMatch(/\.md-del[\s\S]*?text-decoration:\s*line-through/);
     expect(rendererAcss).toContain('.md-link--active');

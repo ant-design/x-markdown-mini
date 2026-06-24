@@ -1,6 +1,7 @@
 export {};
 
 import { getTableShadowState } from '../../shared/tableScroll.js';
+import { resolveLinkHref } from '../../shared/flattenInline.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
 declare const my: any;
@@ -50,7 +51,18 @@ Component({
     this.tableMeasureTimer = null;
   },
   methods: {
-    _tap(this: any, e: unknown) {
+    _tap(this: any, e: any) {
+      // 链接内置交互：小程序无法直接打开外部 http(s) 链接，命中 anchor 叶子时把
+      // href 复制到剪贴板并 Toast 提示。dataset.data 是被点 <text> 上绑的整棵 node；
+      // 只有 anchor 叶子带 href，普通文本/块返回 null，因此该分支只在点链接时触发。
+      const href = resolveLinkHref(e?.currentTarget?.dataset?.data);
+      if (href) {
+        my.setClipboard({
+          text: href,
+          success: () => my.showToast({ content: '链接已复制', duration: 1500 }),
+        });
+      }
+      // 仍向页面转发 tap，消费方可自定义（如跳转 web-view）。
       this.props.onTap?.(e);
     },
     _appear(this: any, e: unknown) {
