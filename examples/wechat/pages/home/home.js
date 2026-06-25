@@ -13,6 +13,12 @@ Page({
         desc: 'renderNodes() 直出节点 + MiniNodeRenderer，精细控制渲染',
         url: '/pages/js/js',
       },
+      {
+        id: 'benchmark',
+        title: '性能对比',
+        desc: '与 towxml、mp-html、wxParse/wemark 等业内方案做本机基准测试',
+        url: '/pages/benchmark/benchmark',
+      },
     ],
   },
   onTapEntry(e) {

@@ -13,6 +13,12 @@ Page({
         desc: 'renderNodes() 直出节点 + MiniNodeRenderer，精细控制渲染',
         url: '/pages/js/js',
       },
+      {
+        id: 'benchmark',
+        title: '性能对比',
+        desc: '与 mp-html、rich-text 管线等业内方案做本机基准测试',
+        url: '/pages/benchmark/benchmark',
+      },
     ],
   },
   onTapEntry(e) {

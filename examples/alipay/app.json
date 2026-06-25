@@ -2,7 +2,8 @@
   "pages": [
     "pages/home/home",
     "pages/component/component",
-    "pages/js/js"
+    "pages/js/js",
+    "pages/benchmark/benchmark"
   ],
   "window": {
     "defaultTitle": "x-markdown-mini",

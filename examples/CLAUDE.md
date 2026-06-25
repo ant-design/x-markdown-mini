@@ -14,15 +14,16 @@ These examples must reflect a pristine real-user integration. **Never hand-modif
 
 If a demo renders wrong or an import won't resolve, the fix belongs in the **published package**, not in the example: change `src/`, rebuild, **republish a new version**, then bump the example's `dependencies` and reinstall. The only files you should ever edit in an example are its own page/app sources (`pages/**`, `app.*`, `*.json` config, `*.acss`/`*.wxss`, `sample.js`) and `package.json`'s version pin.
 
-Corollary: the examples depend on a **published** version (currently `@ant-design/x-markdown-mini@0.1.0-beta.3` via npm), never on a local `file:`/`link:` path. A change to the library is only "done" for the examples once it's republished and reinstalled.
+Corollary: the examples depend on a **published** version (currently `@ant-design/x-markdown-mini@0.1.0-beta.9` via npm), never on a local `file:`/`link:` path. A change to the library is only "done" for the examples once it's republished and reinstalled.
 
-## Layout — two apps, same three pages, two integration modes
+## Layout — two apps, same four pages, two integration modes plus benchmarks
 
 `alipay/` and `wechat/` are independent mini-program projects, each opened in its own IDE. Both expose the identical page set, so the two platforms can be compared side by side:
 
-- `pages/home` — landing page linking to the two integration demos.
+- `pages/home` — landing page linking to the integration demos.
 - `pages/component` — **组件接入 (component mode)**: a one-line `usingComponents` brings in the `markdown` component; `<markdown content latex highlight />`. No page-level `require`, no manual style `@import`. The lowest-cost path.
 - `pages/js` — **JS 接入 (JS mode)**: the page itself `require`s the core + plugins, constructs `new XMarkdownMini({ escapeText: false, extensions: [...] })`, calls `renderNodes({ content, platform, onPatch })`, and feeds the result to the lower-level `<mini-node-renderer>` component. More wiring, full control over the instance/extensions. Styles must be `@import`ed manually (see `js.acss`/`js.wxss`).
+- `pages/benchmark` — **性能对比 (benchmark mode)**: runs pure-JS throughput/latency and single-renderer streaming benchmarks against real installed mini-program markdown renderers. WeChat compares `towxml`, `mp-html markdown`, and `marked + rich-text`; Alipay compares `mp-html markdown` and `marked + rich-text`.
 
 `examples/sample.js` is the single Markdown source shared by both platforms. Run `npm run sync:examples` after editing it; the script generates each app's self-contained `pages/sample.js`, and `npm run check:examples` rejects stale copies. The fixture covers long paragraphs, headings, lists, a table, code highlighting, inline + block LaTeX, and a blockquote so component mode and JS mode render the **same** content for visual diffing. Key things baked into the demos: a **fresh `XMarkdownMini` per view** (streaming state isn't shared), `escapeText: false` (because `<mini-node-renderer>`'s `<text>{{value}}</text>` doesn't decode entities), and `flattenInlineNodes(nodes)` before `setData` (mini-program `<text>` can't nest custom components).
 

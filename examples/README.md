@@ -6,7 +6,7 @@ npm 包** `@ant-design/x-markdown-mini`，不内置本仓库的 `dist/` 拷贝�
 > 不要手改任何安装产物：`node_modules/@ant-design/x-markdown-mini/**`、`wechat/miniprogram_npm/**`。
 > 渲染有问题就改库、重新发布、再升级依赖——不要在示例里打补丁。详见 `examples/CLAUDE.md`。
 
-## 三个页面 · 两种接入方式
+## 四个页面 · 两种接入方式 + 性能对比
 
 两端页面完全一致，便于左右对照：
 
@@ -15,6 +15,7 @@ npm 包** `@ant-design/x-markdown-mini`，不内置本仓库的 `dist/` 拷贝�
 | `pages/home` | — | 首页，跳转到两种接入示例 |
 | `pages/component` | **组件接入** | 一行 `usingComponents` 引入 `markdown` 组件：`<markdown content latex highlight />`。页面无需 `require` 插件、无需 `@import` 样式。接入成本最低。 |
 | `pages/js` | **JS 接入** | 页面自己 `require` 核心 + 插件，`new XMarkdownMini({...})` → `renderNodes()` 直出节点，交给底层 `<mini-node-renderer>` 渲染。多了显式装配，换来对实例/扩展的完全控制；样式需自行 `@import`（见 `js.acss` / `js.wxss`）。 |
+| `pages/benchmark` | **性能对比** | 在当前开发者工具内执行两类基准：纯 JS 吞吐率，以及单渲染器真实流式 `setData` + 组件渲染。微信对照 `towxml`、`mp-html markdown`、`marked + rich-text`，支付宝对照 `mp-html markdown`、`marked + rich-text`。 |
 
 `examples/sample.js` 是微信和支付宝的唯一 Markdown 内容源（标题 / 长段落 / 列表 / 表格 / 行内代码 /
 代码高亮 / 行内 + 块级 LaTeX / 引用）。修改后在仓库根目录运行 `npm run sync:examples`，脚本会生成
@@ -47,6 +48,11 @@ npm 包** `@ant-design/x-markdown-mini`，不内置本仓库的 `dist/` 拷贝�
 cd examples/alipay && npm install   # 之后用支付宝开发者工具打开 examples/alipay（直接读 node_modules）
 cd examples/wechat && npm install   # 之后用微信开发者工具打开 examples/wechat → 工具 → 构建 npm
 ```
+
+性能对比页分成两个实验：
+
+1. **JS 吞吐率**：`x-markdown-mini` 测 `Markdown -> MiniNode[]`，`towxml` 测 `Markdown -> WXML tree`，`mp-html markdown` 测插件里的 `Markdown -> HTML`。这不是完整首屏渲染耗时，也不包含图片加载、组件排版、`setData` 传输和真实设备绘制；它用于快速定位解析/转换阶段的量级差异。
+2. **真实流式渲染**：用固定 chunk 序列模拟 AI/SSE 累积输出，一次只挂载并驱动一个渲染器，方便在开发者工具性能面板里看单一方案的真实成本。`x-markdown-mini` 跑 `renderNodes({ streaming }) -> flattenInlineNodes -> setData -> MiniNodeRenderer`；`mp-html` 跑 markdown 插件转 HTML 后交给 `<mp-html>`；`marked + rich-text` 跑 marked 转 HTML 后交给原生 `<rich-text>`；微信额外跑 `towxml` 转 WXML tree 后交给 `<towxml>`。页面记录帧数、总耗时、每帧耗时、JS 转换耗时和 `setData` 回调等待。
 
 - **支付宝**：`mini.project.json` 已设 `compileOptions.transpile: {}`——发布的代码是 ES2018
   （含对象展开 / `class`），IDE 需转译。改完依赖直接重新编译即可（无独立 npm 构建步骤）。
