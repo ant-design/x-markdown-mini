@@ -100,8 +100,6 @@ function createXMarkdownSuite() {
 
 function createMpHtmlSuite() {
   const Markdown = tryRequire([
-    '/node_modules/mp-html/plugins/markdown/index',
-    '/node_modules/mp-html/plugins/markdown/index.js',
     '../../node_modules/mp-html/plugins/markdown/index',
     '../../node_modules/mp-html/plugins/markdown/index.js',
     'mp-html/plugins/markdown/index',
@@ -130,8 +128,6 @@ function createMpHtmlSuite() {
 
 function createMarkedRichTextSuite() {
   const markedModule = tryRequire([
-    '/node_modules/mp-html/plugins/markdown/marked.min',
-    '/node_modules/mp-html/plugins/markdown/marked.min.js',
     '../../node_modules/mp-html/plugins/markdown/marked.min',
     '../../node_modules/mp-html/plugins/markdown/marked.min.js',
     'mp-html/plugins/markdown/marked.min',
@@ -159,8 +155,6 @@ function createMarkedRichTextSuite() {
 
 function createTowxmlSuite() {
   const towxml = tryRequire([
-    '/node_modules/towxml/index',
-    '/node_modules/towxml/index.js',
     '../../node_modules/towxml/index',
     '../../node_modules/towxml/index.js',
     'towxml/index',

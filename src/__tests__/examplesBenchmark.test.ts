@@ -49,6 +49,8 @@ describe('mini-program benchmark examples', () => {
       if (platform === 'wechat') {
         expect(script).toContain('/miniprogram_npm/mp-html/plugins/markdown/index');
         expect(script).toContain('miniprogram_npm/mp-html/plugins/markdown/index');
+      } else {
+        expect(script).not.toContain("'/node_modules/");
       }
       expect(script).toContain('node_modules/mp-html/plugins/markdown/index');
       expect(script).not.toContain('../../../../node_modules/mp-html');
@@ -77,6 +79,7 @@ describe('mini-program benchmark examples', () => {
     expect(alipay).toContain('rich-text');
     expect(alipay).toContain('createTowxmlSuite');
     expect(alipay).not.toContain('Wechat only');
+    expect(alipay).not.toContain("'/node_modules/towxml");
   });
 
   it('keeps the WeChat run button from clipping text', () => {
