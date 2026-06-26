@@ -7,8 +7,8 @@ const MpHtmlParser = safeRequire('mp-html parser', () => require('mp-html/dist/m
 const RichTextParser = safeRequire('mini-html-parser2', () => require('mini-html-parser2'));
 
 const PLATFORM = 'alipay';
-const STREAM_CHUNK_SIZE = 48;
-const STREAM_FRAME_DELAY = 40;
+const STREAM_CHUNK_SIZE = 16;
+const STREAM_FRAME_DELAY = 80;
 
 const CASES = [
   { id: 'short', name: '短文', repeat: 1, desc: '约 1 篇示例回复' },
@@ -273,20 +273,33 @@ Page({
     }, extra || {}));
   },
 
+  nextBenchmarkRunId() {
+    this._benchmarkRunId = (this._benchmarkRunId || 0) + 1;
+    return this._benchmarkRunId;
+  },
+
+  isActiveBenchmarkRun(runId) {
+    return this._benchmarkRunId === runId;
+  },
+
   onModeTap(e) {
+    this.nextBenchmarkRunId();
     this.resetOutput({ mode: e.currentTarget.dataset.mode });
   },
 
   onRendererTap(e) {
+    this.nextBenchmarkRunId();
     this.resetOutput({ streamRenderer: e.currentTarget.dataset.id });
   },
 
   onCaseTap(e) {
     const id = e.currentTarget.dataset.id;
+    this.nextBenchmarkRunId();
     this.resetOutput({ selectedCase: CASES.filter((item) => item.id === id)[0] || CASES[1] });
   },
 
   onIterationTap(e) {
+    this.nextBenchmarkRunId();
     this.setData({ iterations: Number(e.currentTarget.dataset.value), results: [], skipped: [] });
   },
 
@@ -296,6 +309,7 @@ Page({
   },
 
   runJsBenchmark() {
+    const runId = this.nextBenchmarkRunId();
     const content = repeatMarkdown(this.data.selectedCase.repeat);
     const suites = JS_BENCHMARKS.map((create) => create());
     const skipped = suites
@@ -304,6 +318,7 @@ Page({
 
     this.setData({ running: true, summary: 'JS 吞吐率测试运行中...', results: [], skipped });
     setTimeout(() => {
+      if (!this.isActiveBenchmarkRun(runId)) return;
       const results = suites
         .filter((suite) => suite.runnable)
         .map((suite) => benchmarkSuite(suite, content, this.data.iterations))
@@ -323,6 +338,7 @@ Page({
   },
 
   runStreamingBenchmark() {
+    const runId = this.nextBenchmarkRunId();
     const rendererId = this.data.streamRenderer;
     const renderer = STREAM_RENDERERS.filter((item) => item.id === rendererId)[0] || STREAM_RENDERERS[0];
     const suite = rendererId === 'x-markdown-mini' ? null : createSuite(rendererId);
@@ -349,6 +365,10 @@ Page({
     this.resetOutput({ running: true, summary: `${renderer.name} 真实流式渲染测试运行中...`, streamProgressText: `0 / ${chunks.length} 帧` });
 
     const step = () => {
+      if (!this.isActiveBenchmarkRun(runId)) {
+        md.reset();
+        return;
+      }
       if (index >= chunks.length) {
         const total = Math.max(now() - started, 1);
         md.reset();
@@ -379,18 +399,27 @@ Page({
       accumulated += chunks[index];
       index += 1;
       const renderStarted = now();
-      this.renderStreamingFrame(rendererId, accumulated, index < chunks.length, md, suite)
+      this.renderStreamingFrame(rendererId, accumulated, index < chunks.length, md, suite, runId)
         .then((outputSize) => {
+          if (!this.isActiveBenchmarkRun(runId)) {
+            md.reset();
+            return;
+          }
           transformTotal += now() - renderStarted;
           maxNodes = Math.max(maxNodes, outputSize);
           frames += 1;
           const setDataStarted = now();
           this.setData({ streamProgressText: `${frames} / ${chunks.length} 帧` }, () => {
+            if (!this.isActiveBenchmarkRun(runId)) {
+              md.reset();
+              return;
+            }
             setDataTotal += now() - setDataStarted;
             setTimeout(step, STREAM_FRAME_DELAY);
           });
         })
         .catch((err) => {
+          if (!this.isActiveBenchmarkRun(runId)) return;
           md.reset();
           this.setData({
             running: false,
@@ -402,14 +431,22 @@ Page({
     setTimeout(step, 30);
   },
 
-  renderStreamingFrame(rendererId, markdown, hasNextChunk, md, suite) {
+  renderStreamingFrame(rendererId, markdown, hasNextChunk, md, suite, runId) {
     return new Promise((resolve) => {
+      if (!this.isActiveBenchmarkRun(runId)) {
+        resolve(0);
+        return;
+      }
       if (rendererId === 'x-markdown-mini') {
         md.renderNodes({
           content: markdown,
           platform: PLATFORM,
           streaming: { hasNextChunk, semantic: true, enableAnimation: false },
           onPatch: (nodes) => {
+            if (!this.isActiveBenchmarkRun(runId)) {
+              resolve(0);
+              return;
+            }
             const flat = flattenInlineNodes(nodes);
             this.setData({ benchmarkNodes: flat }, () => resolve(countNodes(flat)));
           },
@@ -417,6 +454,10 @@ Page({
         return;
       }
       const output = suite.run(markdown);
+      if (!this.isActiveBenchmarkRun(runId)) {
+        resolve(0);
+        return;
+      }
       if (rendererId === 'marked-rich-text') {
         this.setData({ richTextHtml: output }, () => resolve(countNodes(output)));
       } else {

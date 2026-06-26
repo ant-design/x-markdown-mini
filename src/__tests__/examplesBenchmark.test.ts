@@ -43,7 +43,12 @@ describe('mini-program benchmark examples', () => {
       expect(script).toContain('framesText');
       expect(script).toContain('setDataText');
       expect(script).toContain('STREAM_FRAME_DELAY');
+      expect(script).toContain('const STREAM_CHUNK_SIZE = 16');
+      expect(script).toContain('const STREAM_FRAME_DELAY = 80');
       expect(script).toContain('streamProgressText');
+      expect(script).toContain('nextBenchmarkRunId');
+      expect(script).toContain('isActiveBenchmarkRun');
+      expect(script).toContain('renderStreamingFrame(rendererId, accumulated, index < chunks.length, md, suite, runId)');
       expect(script).toContain('MiniNodeRenderer');
       expect(script).toContain('safeRequire');
       expect(script).toContain('JS_BENCHMARKS');
