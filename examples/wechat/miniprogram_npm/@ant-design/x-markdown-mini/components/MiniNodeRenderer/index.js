@@ -47,6 +47,7 @@ function getTableShadowState(scrollLeft, scrollWidth, viewportWidth) {
 }
 
 // src/components/wechat/MiniNodeRenderer/index.ts
+var import_flattenInline = require("../../shared/flattenInline.js");
 function copyToClipboard(text) {
   if (!text) return;
   wx.setClipboardData({
@@ -92,6 +93,14 @@ Component({
   },
   methods: {
     _tap(e) {
+      var _a, _b;
+      const href = (0, import_flattenInline.resolveLinkHref)((_b = (_a = e == null ? void 0 : e.currentTarget) == null ? void 0 : _a.dataset) == null ? void 0 : _b.data);
+      if (href) {
+        wx.setClipboardData({
+          data: href,
+          success: () => wx.showToast({ title: "\u94FE\u63A5\u5DF2\u590D\u5236", icon: "none", duration: 1500 })
+        });
+      }
       this.triggerEvent("tap", e, { bubbles: true, composed: true });
     },
     _appear(e) {

@@ -40,7 +40,8 @@ __export(flattenInline_exports, {
   createTextAnimationState: () => createTextAnimationState,
   flattenInlineNodes: () => flattenInlineNodes,
   reconcileTextAnimation: () => reconcileTextAnimation,
-  resetTextAnimation: () => resetTextAnimation
+  resetTextAnimation: () => resetTextAnimation,
+  resolveLinkHref: () => resolveLinkHref
 });
 module.exports = __toCommonJS(flattenInline_exports);
 
@@ -124,6 +125,13 @@ function flattenInlineNodes(nodes) {
   const flat = flattenChildren(nodes);
   assignKeys(flat);
   return flat;
+}
+function resolveLinkHref(node) {
+  var _a, _b;
+  if (!node || node.name !== "a") return null;
+  const attrs = (_a = node.attrs) != null ? _a : {};
+  const href = (_b = attrs["href"]) != null ? _b : attrs["data-href"];
+  return href || null;
 }
 function assignKeys(list) {
   for (let i = 0; i < list.length; i++) {
@@ -245,5 +253,6 @@ function mergeClass(...parts) {
   createTextAnimationState,
   flattenInlineNodes,
   reconcileTextAnimation,
-  resetTextAnimation
+  resetTextAnimation,
+  resolveLinkHref
 });
