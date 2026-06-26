@@ -48,8 +48,10 @@ describe('mini-program benchmark examples', () => {
       expect(script).toContain('streamProgressText');
       expect(script).toContain('nextBenchmarkRunId');
       expect(script).toContain('isActiveBenchmarkRun');
-      expect(script).toContain('renderStreamingFrame(rendererId, accumulated, index < chunks.length, md, suite, runId)');
-      expect(script).toContain('MiniNodeRenderer');
+      expect(script).toContain('renderStreamingFrame(rendererId, accumulated, index < chunks.length, suite, runId)');
+      expect(script).toContain('xMarkdownContent');
+      expect(script).toContain('xMarkdownStreaming');
+      expect(template).toContain('<markdown');
       expect(script).toContain('safeRequire');
       expect(script).toContain('JS_BENCHMARKS');
       expect(script).not.toContain('require(paths[i])');
@@ -68,8 +70,8 @@ describe('mini-program benchmark examples', () => {
       expect(script).toContain('Markdown -> HTML -> rich-text nodes');
       expect(script).not.toContain('node_modules/mp-html/plugins/markdown/index');
       expect(script).not.toContain('../../../../node_modules/mp-html');
-      expect(config.usingComponents?.['mini-node-renderer']).toContain(
-        '@ant-design/x-markdown-mini/es/MiniNodeRenderer/index',
+      expect(config.usingComponents?.markdown).toContain(
+        '@ant-design/x-markdown-mini/es/Markdown/index',
       );
       expect(config.usingComponents?.['mp-html']).toBe(
         platform === 'wechat' ? 'mp-html' : 'mp-html/dist/mp-alipay/index',

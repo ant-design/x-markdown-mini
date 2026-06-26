@@ -91,7 +91,7 @@
         </view>
         <view class="metric">
           <text class="metric-value">{{item.renderText}}</text>
-          <text class="metric-label">renderNodes</text>
+          <text class="metric-label">渲染更新</text>
         </view>
         <view class="metric">
           <text class="metric-value">{{item.setDataText}}</text>
@@ -104,7 +104,7 @@
 
   <view class="render-panel" wx:if="{{mode === 'stream' && streamRenderer === 'x-markdown-mini'}}">
     <view class="section-title">x-markdown-mini</view>
-    <mini-node-renderer nodes="{{benchmarkNodes}}" animation="{{false}}" />
+    <markdown content="{{xMarkdownContent}}" streaming="{{xMarkdownStreaming}}" />
   </view>
   <view class="render-panel" wx:if="{{mode === 'stream' && streamRenderer === 'marked-rich-text'}}">
     <view class="section-title">marked + rich-text</view>

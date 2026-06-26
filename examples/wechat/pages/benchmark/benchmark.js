@@ -1,5 +1,4 @@
 const { XMarkdownMini } = require('@ant-design/x-markdown-mini/index.js');
-const { flattenInlineNodes } = require('@ant-design/x-markdown-mini/shared/flattenInline.js');
 const { SAMPLE } = require('../sample.js');
 const Towxml = safeRequire('towxml', () => require('../../miniprogram_npm/towxml/index'));
 const MpHtmlMarkdown = safeRequire('mp-html markdown', () => require('../../miniprogram_npm/mp-html/plugins/markdown/index'));
@@ -289,7 +288,8 @@ Page({
     results: [],
     skipped: [],
     research: RESEARCH,
-    benchmarkNodes: [],
+    xMarkdownContent: '',
+    xMarkdownStreaming: false,
     richTextHtml: '',
     mpHtmlContent: '',
     towxmlNodes: null,
@@ -300,7 +300,8 @@ Page({
     this.setData(Object.assign({
       results: [],
       skipped: [],
-      benchmarkNodes: [],
+      xMarkdownContent: '',
+      xMarkdownStreaming: false,
       richTextHtml: '',
       mpHtmlContent: '',
       towxmlNodes: null,
@@ -389,7 +390,6 @@ Page({
 
     const content = repeatMarkdown(this.data.selectedCase.repeat);
     const chunks = splitChunks(content, STREAM_CHUNK_SIZE);
-    const md = new XMarkdownMini({ escapeText: false });
     let index = 0;
     let accumulated = '';
     let frames = 0;
@@ -401,18 +401,18 @@ Page({
 
     const step = () => {
       if (!this.isActiveBenchmarkRun(runId)) {
-        md.reset();
         return;
       }
       if (index >= chunks.length) {
         const total = Math.max(now() - started, 1);
-        md.reset();
         this.setData({
           running: false,
           results: [{
             id: `${rendererId}-stream`,
             name: renderer.name,
-            stage: 'Cumulative Markdown -> selected renderer',
+            stage: rendererId === 'x-markdown-mini'
+              ? 'Cumulative Markdown -> Markdown component'
+              : 'Cumulative Markdown -> selected renderer',
             rank: 1,
             total,
             avg: total / Math.max(frames, 1),
@@ -434,10 +434,9 @@ Page({
       accumulated += chunks[index];
       index += 1;
       const renderStarted = now();
-      this.renderStreamingFrame(rendererId, accumulated, index < chunks.length, md, suite, runId)
+      this.renderStreamingFrame(rendererId, accumulated, index < chunks.length, suite, runId)
         .then((outputSize) => {
           if (!this.isActiveBenchmarkRun(runId)) {
-            md.reset();
             return;
           }
           transformTotal += now() - renderStarted;
@@ -446,7 +445,6 @@ Page({
           const setDataStarted = now();
           this.setData({ streamProgressText: `${frames} / ${chunks.length} 帧` }, () => {
             if (!this.isActiveBenchmarkRun(runId)) {
-              md.reset();
               return;
             }
             setDataTotal += now() - setDataStarted;
@@ -455,7 +453,6 @@ Page({
         })
         .catch((err) => {
           if (!this.isActiveBenchmarkRun(runId)) return;
-          md.reset();
           this.setData({
             running: false,
             skipped: [{ id: rendererId, name: renderer.name, stage: 'Streaming render', reason: err && err.message ? err.message : String(err) }],
@@ -466,26 +463,17 @@ Page({
     setTimeout(step, 30);
   },
 
-  renderStreamingFrame(rendererId, markdown, hasNextChunk, md, suite, runId) {
+  renderStreamingFrame(rendererId, markdown, hasNextChunk, suite, runId) {
     return new Promise((resolve) => {
       if (!this.isActiveBenchmarkRun(runId)) {
         resolve(0);
         return;
       }
       if (rendererId === 'x-markdown-mini') {
-        md.renderNodes({
-          content: markdown,
-          platform: PLATFORM,
-          streaming: { hasNextChunk, semantic: true, enableAnimation: false },
-          onPatch: (nodes) => {
-            if (!this.isActiveBenchmarkRun(runId)) {
-              resolve(0);
-              return;
-            }
-            const flat = flattenInlineNodes(nodes);
-            this.setData({ benchmarkNodes: flat }, () => resolve(countNodes(flat)));
-          },
-        });
+        this.setData({
+          xMarkdownContent: markdown,
+          xMarkdownStreaming: { hasNextChunk, semantic: true, enableAnimation: false },
+        }, () => resolve(markdown.length));
         return;
       }
       const output = suite.run(markdown);
