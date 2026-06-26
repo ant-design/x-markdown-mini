@@ -15,6 +15,7 @@ export interface MiniNodePlatformAdapter {
   linkAttrs: (href: string, token: Tokens.Link) => MiniNodeAttrs;
   imageSrc: (src: string, token: Tokens.Image) => string;
   olAttrs: (start: number, token: Tokens.List) => MiniNodeAttrs;
+  listItemMarker?: (meta: { ordered: boolean; start: number; index: number; token: Tokens.ListItem }) => string;
   node?: (node: MiniNode, meta: MiniNodeRenderMeta) => MiniNode | null | undefined;
 }
 
@@ -212,7 +213,13 @@ function blockTok(
       const ordered = !!t.ordered;
       const start = typeof t.start === 'number' ? t.start : 1;
       const tag = ordered ? 'ol' : 'ul';
-      const children = t.items.map((item) => listItemTok(item, adapter, animate, enc, ctx));
+      const children = t.items.map((item, index) =>
+        listItemTok(item, adapter, animate, enc, ctx, {
+          ordered,
+          start,
+          index,
+        }),
+      );
       const listAttrs: MiniNodeAttrs = { class: 'md-list', ...(ordered ? adapter.olAttrs(start, t) : {}) };
       return block(tag, children, animate, adapter, tok, listAttrs);
     }
@@ -278,9 +285,14 @@ function listItemTok(
   animate: boolean,
   enc: (s: string) => string,
   ctx: RenderContext,
+  meta: { ordered: boolean; start: number; index: number },
 ): MiniNode {
   const blocks = item.tokens ?? [];
   const children: MiniNode[] = [];
+  const marker = adapter.listItemMarker?.({ ...meta, token: item });
+  if (marker) {
+    children.push({ name: 'text', attrs: { class: 'md-list-marker', value: marker } });
+  }
   if (blocks.length === 1 && blocks[0].type === 'paragraph') {
     const p = blocks[0] as Tokens.Paragraph;
     children.push(...inlineTokens(p.tokens ?? [], adapter, enc, ctx));

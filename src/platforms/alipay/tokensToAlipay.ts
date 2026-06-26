@@ -24,6 +24,7 @@ const alipayAdapter: MiniNodePlatformAdapter = {
   linkAttrs: (href) => ({ href, class: 'md-link' }),
   imageSrc: (src) => src.replace(/^http:\/\//, 'https://'),
   olAttrs: () => ({}),
+  listItemMarker: ({ ordered, start, index }) => (ordered ? `${start + index}.` : '•'),
   node: (node, meta) => {
     if (node.name !== 'table') return node;
     const table = meta.token as Tokens.Table;

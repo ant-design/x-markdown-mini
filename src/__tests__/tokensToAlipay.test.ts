@@ -32,6 +32,24 @@ describe('tokensToAlipay — platform-specific behavior', () => {
     expect(out[0].attrs?.start).toBeUndefined();
   });
 
+  it('renders explicit list markers instead of relying on native list-item markers', () => {
+    const unordered = tokensToAlipay('- a');
+    const ordered = tokensToAlipay('3. c\n4. d');
+
+    expect(unordered[0].children?.[0].children?.[0]).toEqual({
+      name: 'text',
+      attrs: { class: 'md-list-marker', value: '•' },
+    });
+    expect(ordered[0].children?.[0].children?.[0]).toEqual({
+      name: 'text',
+      attrs: { class: 'md-list-marker', value: '3.' },
+    });
+    expect(ordered[0].children?.[1].children?.[0]).toEqual({
+      name: 'text',
+      attrs: { class: 'md-list-marker', value: '4.' },
+    });
+  });
+
   it('rewrites http:// in <img src> to https://', () => {
     const out = tokensToAlipay('![alt](http://e.com/i.png)');
     const img = find(out, 'img')!;
