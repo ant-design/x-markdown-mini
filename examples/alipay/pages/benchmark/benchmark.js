@@ -1,6 +1,10 @@
 const { XMarkdownMini } = require('@ant-design/x-markdown-mini/index.js');
 const { flattenInlineNodes } = require('@ant-design/x-markdown-mini/shared/flattenInline.js');
 const { SAMPLE } = require('../sample.js');
+const MpHtmlMarkdown = safeRequire('mp-html markdown', () => require('mp-html/plugins/markdown/index'));
+const MpHtmlMarked = safeRequire('mp-html marked', () => require('mp-html/plugins/markdown/marked.min'));
+const MpHtmlParser = safeRequire('mp-html parser', () => require('mp-html/dist/mp-alipay/parser'));
+const RichTextParser = safeRequire('mini-html-parser2', () => require('mini-html-parser2'));
 
 const PLATFORM = 'alipay';
 const STREAM_CHUNK_SIZE = 48;
@@ -14,15 +18,15 @@ const CASES = [
 
 const STREAM_RENDERERS = [
   { id: 'x-markdown-mini', name: 'x-markdown-mini', desc: 'streaming renderNodes -> MiniNodeRenderer' },
-  { id: 'marked-rich-text', name: 'marked + rich-text', desc: 'marked HTML -> rich-text' },
+  { id: 'marked-rich-text', name: 'marked + rich-text', desc: 'marked HTML -> rich-text nodes' },
   { id: 'mp-html-markdown', name: 'mp-html', desc: 'markdown plugin -> mp-html component' },
 ];
 
 const RESEARCH = [
   { name: 'x-markdown-mini', scope: '微信 / 支付宝', status: 'JS + 流式自动执行', note: 'JS 模式测 Markdown -> MiniNode[]；流式模式开启 streaming。' },
-  { name: 'marked + rich-text', scope: '支付宝常见自拼管线', status: 'JS + 流式自动执行', note: '使用 mp-html markdown 插件内置 marked，再交给原生 rich-text。' },
-  { name: 'mp-html + markdown plugin', scope: '支付宝主流跨端方案', status: 'JS + 流式自动执行', note: 'Markdown 先经插件转 HTML，再由 mp-html 组件渲染。' },
-  { name: 'towxml', scope: '微信主流 parser', status: 'JS 自动检测', note: '仅在 JS 吞吐率模式跑 Markdown -> WXML tree；不作为支付宝真实组件渲染。' },
+  { name: 'marked + rich-text', scope: '支付宝常见自拼管线', status: 'JS + 流式自动执行', note: 'JS 模式测 Markdown -> HTML -> rich-text nodes；流式模式交给原生 rich-text。' },
+  { name: 'mp-html + markdown plugin', scope: '支付宝主流跨端方案', status: 'JS + 流式自动执行', note: 'JS 模式测 Markdown -> HTML -> mp-html nodes；流式模式交给 mp-html 组件渲染。' },
+  { name: 'towxml', scope: '微信主流 parser', status: '微信示例执行', note: '支付宝页面不执行微信 WXML tree parser；跨端对照只保留 mp-html 与 rich-text 管线。' },
 ];
 
 function now() {
@@ -54,29 +58,58 @@ function countNodes(value) {
   return 1;
 }
 
-function tryRequire(paths) {
-  const tried = [];
-  let lastError = null;
-  for (let i = 0; i < paths.length; i += 1) {
-    try {
-      return require(paths[i]);
-    } catch (err) {
-      tried.push(paths[i]);
-      lastError = err;
-    }
+function safeRequire(name, load) {
+  try {
+    return load();
+  } catch (err) {
+    return {
+      __benchmarkMissing: true,
+      name,
+      message: err && err.message ? err.message : String(err),
+    };
   }
+}
+
+function missingSuite(id, name, stage, loaded, action) {
   return {
-    __benchmarkMissing: true,
-    tried,
-    lastError: lastError && lastError.message ? lastError.message : String(lastError || ''),
+    id,
+    name,
+    stage,
+    runnable: false,
+    reason: `未检测到 ${loaded.name || name}。${action} 最后错误：${loaded.message || 'unknown'}`,
   };
 }
 
-function formatRequireFailure(name, result, action) {
-  const detail = result && result.__benchmarkMissing
-    ? `尝试路径：${result.tried.join('、')}；最后错误：${result.lastError || 'unknown'}`
-    : '';
-  return `未检测到 ${name}。${action}${detail ? ` ${detail}` : ''}`;
+function createMpHtmlMarkdownPlugin() {
+  return new MpHtmlMarkdown({
+    properties: { markdown: true },
+    options: { markdown: true },
+    _ids: {},
+  });
+}
+
+function renderMpHtmlNodes(content) {
+  const parser = new MpHtmlParser({
+    props: { markdown: true, scrollTable: true },
+    imgList: [],
+    plugins: [createMpHtmlMarkdownPlugin()],
+  });
+  return parser.parse(content);
+}
+
+function renderMpHtmlHtml(content) {
+  return createMpHtmlMarkdownPlugin().onUpdate(content);
+}
+
+function parseRichTextNodes(html) {
+  let result = [];
+  let failure = null;
+  RichTextParser(html, (err, nodes) => {
+    failure = err;
+    result = nodes || [];
+  });
+  if (failure) throw failure;
+  return result;
 }
 
 function formatRate(value) {
@@ -99,48 +132,59 @@ function createXMarkdownSuite() {
 }
 
 function createMpHtmlSuite() {
-  const Markdown = tryRequire([
-    '../../node_modules/mp-html/plugins/markdown/index',
-    '../../node_modules/mp-html/plugins/markdown/index.js',
-    'mp-html/plugins/markdown/index',
-    'mp-html/plugins/markdown/index.js',
-  ]);
-  if (!Markdown || Markdown.__benchmarkMissing) {
-    return {
-      id: 'mp-html-markdown',
-      name: 'mp-html',
-      stage: 'Markdown -> HTML -> mp-html',
-      runnable: false,
-      reason: formatRequireFailure('mp-html markdown', Markdown, '请确认 examples/alipay/node_modules 中存在 mp-html 后重新编译。'),
-    };
+  if (!MpHtmlMarkdown || MpHtmlMarkdown.__benchmarkMissing) {
+    return missingSuite('mp-html-markdown', 'mp-html', 'Markdown -> HTML -> mp-html nodes', MpHtmlMarkdown, '请确认 examples/alipay/package.json 含 mp-html，并在支付宝开发者工具重新编译 npm。');
   }
-  const plugin = new Markdown({ properties: { markdown: true }, options: { markdown: true }, _ids: {} });
+  if (!MpHtmlParser || MpHtmlParser.__benchmarkMissing) {
+    return missingSuite('mp-html-markdown', 'mp-html', 'Markdown -> HTML -> mp-html nodes', MpHtmlParser, '请确认 examples/alipay/package.json 含 mp-html，并在支付宝开发者工具重新编译 npm。');
+  }
+  return {
+    id: 'mp-html-markdown',
+    name: 'mp-html',
+    stage: 'Markdown -> HTML -> mp-html nodes',
+    runnable: true,
+    run(content) {
+      return renderMpHtmlNodes(content);
+    },
+  };
+}
+
+function createMpHtmlHtmlSuite() {
+  if (!MpHtmlMarkdown || MpHtmlMarkdown.__benchmarkMissing) {
+    return missingSuite('mp-html-markdown', 'mp-html', 'Markdown -> HTML -> mp-html', MpHtmlMarkdown, '请确认 examples/alipay/package.json 含 mp-html，并在支付宝开发者工具重新编译 npm。');
+  }
   return {
     id: 'mp-html-markdown',
     name: 'mp-html',
     stage: 'Markdown -> HTML -> mp-html',
     runnable: true,
     run(content) {
-      return plugin.onUpdate(content);
+      return renderMpHtmlHtml(content);
     },
   };
 }
 
 function createMarkedRichTextSuite() {
-  const markedModule = tryRequire([
-    '../../node_modules/mp-html/plugins/markdown/marked.min',
-    '../../node_modules/mp-html/plugins/markdown/marked.min.js',
-    'mp-html/plugins/markdown/marked.min',
-    'mp-html/plugins/markdown/marked.min.js',
-  ]);
-  if (!markedModule || markedModule.__benchmarkMissing || !markedModule.marked) {
-    return {
-      id: 'marked-rich-text',
-      name: 'marked + rich-text',
-      stage: 'Markdown -> HTML -> rich-text',
-      runnable: false,
-      reason: formatRequireFailure('mp-html 内置 marked', markedModule, '请确认 examples/alipay/node_modules 中存在 mp-html 后重新编译。'),
-    };
+  if (!MpHtmlMarked || MpHtmlMarked.__benchmarkMissing || !MpHtmlMarked.marked) {
+    return missingSuite('marked-rich-text', 'marked + rich-text', 'Markdown -> HTML -> rich-text nodes', MpHtmlMarked, '请确认 examples/alipay/package.json 含 mp-html，并在支付宝开发者工具重新编译 npm。');
+  }
+  if (!RichTextParser || RichTextParser.__benchmarkMissing) {
+    return missingSuite('marked-rich-text', 'marked + rich-text', 'Markdown -> HTML -> rich-text nodes', RichTextParser, '请确认 examples/alipay/package.json 含 mini-html-parser2，并在支付宝开发者工具重新编译 npm。');
+  }
+  return {
+    id: 'marked-rich-text',
+    name: 'marked + rich-text',
+    stage: 'Markdown -> HTML -> rich-text nodes',
+    runnable: true,
+    run(content) {
+      return parseRichTextNodes(MpHtmlMarked.marked(content));
+    },
+  };
+}
+
+function createMarkedRichTextHtmlSuite() {
+  if (!MpHtmlMarked || MpHtmlMarked.__benchmarkMissing || !MpHtmlMarked.marked) {
+    return missingSuite('marked-rich-text', 'marked + rich-text', 'Markdown -> HTML -> rich-text', MpHtmlMarked, '请确认 examples/alipay/package.json 含 mp-html，并在支付宝开发者工具重新编译 npm。');
   }
   return {
     id: 'marked-rich-text',
@@ -148,44 +192,23 @@ function createMarkedRichTextSuite() {
     stage: 'Markdown -> HTML -> rich-text',
     runnable: true,
     run(content) {
-      return markedModule.marked(content);
-    },
-  };
-}
-
-function createTowxmlSuite() {
-  const towxml = tryRequire([
-    '../../node_modules/towxml/index',
-    '../../node_modules/towxml/index.js',
-    'towxml/index',
-    'towxml/index.js',
-  ]);
-  if (!towxml || towxml.__benchmarkMissing) {
-    return {
-      id: 'towxml',
-      name: 'towxml',
-      stage: 'Markdown -> WXML tree',
-      runnable: false,
-      reason: formatRequireFailure('towxml', towxml, '请确认 examples/alipay/node_modules 中存在 towxml 后重新编译。'),
-    };
-  }
-  return {
-    id: 'towxml',
-    name: 'towxml',
-    stage: 'Markdown -> WXML tree',
-    runnable: true,
-    run(content) {
-      return towxml(content, 'markdown', { theme: 'light' });
+      return MpHtmlMarked.marked(content);
     },
   };
 }
 
 function createSuite(id) {
   if (id === 'x-markdown-mini') return createXMarkdownSuite();
-  if (id === 'marked-rich-text') return createMarkedRichTextSuite();
-  if (id === 'mp-html-markdown') return createMpHtmlSuite();
-  return createTowxmlSuite();
+  if (id === 'marked-rich-text') return createMarkedRichTextHtmlSuite();
+  if (id === 'mp-html-markdown') return createMpHtmlHtmlSuite();
+  return createXMarkdownSuite();
 }
+
+const JS_BENCHMARKS = [
+  createXMarkdownSuite,
+  createMarkedRichTextSuite,
+  createMpHtmlSuite,
+];
 
 function benchmarkSuite(suite, content, iterations) {
   try {
@@ -274,7 +297,7 @@ Page({
 
   runJsBenchmark() {
     const content = repeatMarkdown(this.data.selectedCase.repeat);
-    const suites = [createXMarkdownSuite(), createMarkedRichTextSuite(), createMpHtmlSuite(), createTowxmlSuite()];
+    const suites = JS_BENCHMARKS.map((create) => create());
     const skipped = suites
       .filter((suite) => !suite.runnable)
       .map((suite) => ({ id: suite.id, name: suite.name, stage: suite.stage, reason: suite.reason }));

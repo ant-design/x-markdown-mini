@@ -1,6 +1,11 @@
 const { XMarkdownMini } = require('@ant-design/x-markdown-mini/index.js');
 const { flattenInlineNodes } = require('@ant-design/x-markdown-mini/shared/flattenInline.js');
 const { SAMPLE } = require('../sample.js');
+const Towxml = safeRequire('towxml', () => require('../../miniprogram_npm/towxml/index'));
+const MpHtmlMarkdown = safeRequire('mp-html markdown', () => require('../../miniprogram_npm/mp-html/plugins/markdown/index'));
+const MpHtmlMarked = safeRequire('mp-html marked', () => require('../../miniprogram_npm/mp-html/plugins/markdown/marked.min'));
+const MpHtmlParser = safeRequire('mp-html parser', () => require('../../miniprogram_npm/mp-html/parser'));
+const RichTextParser = safeRequire('mini-html-parser2', () => require('../../miniprogram_npm/mini-html-parser2/lib/index'));
 
 const PLATFORM = 'wechat';
 const STREAM_CHUNK_SIZE = 48;
@@ -14,7 +19,7 @@ const CASES = [
 
 const STREAM_RENDERERS = [
   { id: 'x-markdown-mini', name: 'x-markdown-mini', desc: 'streaming renderNodes -> MiniNodeRenderer' },
-  { id: 'marked-rich-text', name: 'marked + rich-text', desc: 'marked HTML -> rich-text' },
+  { id: 'marked-rich-text', name: 'marked + rich-text', desc: 'marked HTML -> rich-text nodes' },
   { id: 'mp-html-markdown', name: 'mp-html', desc: 'markdown plugin -> mp-html component' },
   { id: 'towxml', name: 'towxml', desc: 'Markdown -> WXML tree -> towxml component' },
 ];
@@ -22,8 +27,8 @@ const STREAM_RENDERERS = [
 const RESEARCH = [
   { name: 'x-markdown-mini', scope: '微信 / 支付宝', status: 'JS + 流式自动执行', note: 'JS 模式测 Markdown -> MiniNode[]；流式模式开启 streaming。' },
   { name: 'towxml', scope: '微信主流', status: 'JS + 流式自动执行', note: 'Towxml 官方定位是 HTML/Markdown 转微信 WXML 的渲染库。' },
-  { name: 'marked + rich-text', scope: '多端常见自拼管线', status: 'JS + 流式自动执行', note: '使用 mp-html markdown 插件内置 marked，再交给原生 rich-text。' },
-  { name: 'mp-html + markdown plugin', scope: '多端主流', status: 'JS + 流式自动执行', note: 'Markdown 先经插件转 HTML，再由 mp-html 组件渲染。' },
+  { name: 'marked + rich-text', scope: '多端常见自拼管线', status: 'JS + 流式自动执行', note: 'JS 模式测 Markdown -> HTML -> rich-text nodes；流式模式交给原生 rich-text。' },
+  { name: 'mp-html + markdown plugin', scope: '多端主流', status: 'JS + 流式自动执行', note: 'JS 模式测 Markdown -> HTML -> mp-html nodes；流式模式交给 mp-html 组件渲染。' },
   { name: 'wxParse / wemark', scope: '微信历史方案', status: '手动接入', note: '停止维护或维护不足；保留为手动 adapter，不作为默认依赖。' },
 ];
 
@@ -58,29 +63,58 @@ function countNodes(value) {
   return 1;
 }
 
-function tryRequire(paths) {
-  const tried = [];
-  let lastError = null;
-  for (let i = 0; i < paths.length; i += 1) {
-    try {
-      return require(paths[i]);
-    } catch (err) {
-      tried.push(paths[i]);
-      lastError = err;
-    }
+function safeRequire(name, load) {
+  try {
+    return load();
+  } catch (err) {
+    return {
+      __benchmarkMissing: true,
+      name,
+      message: err && err.message ? err.message : String(err),
+    };
   }
+}
+
+function missingSuite(id, name, stage, loaded, action) {
   return {
-    __benchmarkMissing: true,
-    tried,
-    lastError: lastError && lastError.message ? lastError.message : String(lastError || ''),
+    id,
+    name,
+    stage,
+    runnable: false,
+    reason: `未检测到 ${loaded.name || name}。${action} 最后错误：${loaded.message || 'unknown'}`,
   };
 }
 
-function formatRequireFailure(name, result, action) {
-  const detail = result && result.__benchmarkMissing
-    ? `尝试路径：${result.tried.join('、')}；最后错误：${result.lastError || 'unknown'}`
-    : '';
-  return `未检测到 ${name}。${action}${detail ? ` ${detail}` : ''}`;
+function createMpHtmlMarkdownPlugin() {
+  return new MpHtmlMarkdown({
+    properties: { markdown: true },
+    options: { markdown: true },
+    _ids: {},
+  });
+}
+
+function renderMpHtmlNodes(content) {
+  const parser = new MpHtmlParser({
+    data: { markdown: true, scrollTable: true },
+    imgList: [],
+    plugins: [createMpHtmlMarkdownPlugin()],
+  });
+  return parser.parse(content);
+}
+
+function renderMpHtmlHtml(content) {
+  return createMpHtmlMarkdownPlugin().onUpdate(content);
+}
+
+function parseRichTextNodes(html) {
+  let result = [];
+  let failure = null;
+  RichTextParser(html, (err, nodes) => {
+    failure = err;
+    result = nodes || [];
+  });
+  if (failure) throw failure;
+  return result;
 }
 
 function formatRate(value) {
@@ -103,25 +137,8 @@ function createXMarkdownSuite() {
 }
 
 function createTowxmlSuite() {
-  const towxml = tryRequire([
-    '/miniprogram_npm/towxml/index',
-    '/miniprogram_npm/towxml/index.js',
-    '../../miniprogram_npm/towxml/index',
-    '../../miniprogram_npm/towxml/index.js',
-    'towxml',
-    '../../node_modules/towxml/index',
-    '../../node_modules/towxml/index.js',
-    'towxml/index',
-    'towxml/index.js',
-  ]);
-  if (!towxml || towxml.__benchmarkMissing) {
-    return {
-      id: 'towxml',
-      name: 'towxml',
-      stage: 'Markdown -> WXML tree',
-      runnable: false,
-      reason: formatRequireFailure('towxml', towxml, '请确认 examples/wechat/package.json 含 towxml，执行 npm install 后在微信开发者工具执行「构建 npm」。'),
-    };
+  if (!Towxml || Towxml.__benchmarkMissing) {
+    return missingSuite('towxml', 'towxml', 'Markdown -> WXML tree', Towxml, '请确认 examples/wechat/miniprogram_npm/towxml 已同步。');
   }
   return {
     id: 'towxml',
@@ -129,62 +146,65 @@ function createTowxmlSuite() {
     stage: 'Markdown -> WXML tree',
     runnable: true,
     run(content) {
-      return towxml(content, 'markdown', { theme: 'light' });
+      return Towxml(content, 'markdown', { theme: 'light' });
     },
   };
 }
 
 function createMpHtmlSuite() {
-  const Markdown = tryRequire([
-    '/miniprogram_npm/mp-html/plugins/markdown/index',
-    '/miniprogram_npm/mp-html/plugins/markdown/index.js',
-    '../../miniprogram_npm/mp-html/plugins/markdown/index',
-    '../../miniprogram_npm/mp-html/plugins/markdown/index.js',
-    '../../node_modules/mp-html/plugins/markdown/index',
-    '../../node_modules/mp-html/plugins/markdown/index.js',
-    'mp-html/plugins/markdown/index',
-    'mp-html/plugins/markdown/index.js',
-  ]);
-  if (!Markdown || Markdown.__benchmarkMissing) {
-    return {
-      id: 'mp-html-markdown',
-      name: 'mp-html',
-      stage: 'Markdown -> HTML -> mp-html',
-      runnable: false,
-      reason: formatRequireFailure('mp-html markdown', Markdown, '请确认 examples/wechat/package.json 含 mp-html，执行 npm install 后在微信开发者工具执行「构建 npm」。'),
-    };
+  if (!MpHtmlMarkdown || MpHtmlMarkdown.__benchmarkMissing) {
+    return missingSuite('mp-html-markdown', 'mp-html', 'Markdown -> HTML -> mp-html nodes', MpHtmlMarkdown, '请确认 examples/wechat/miniprogram_npm/mp-html 已同步。');
   }
-  const plugin = new Markdown({ properties: { markdown: true }, options: { markdown: true }, _ids: {} });
+  if (!MpHtmlParser || MpHtmlParser.__benchmarkMissing) {
+    return missingSuite('mp-html-markdown', 'mp-html', 'Markdown -> HTML -> mp-html nodes', MpHtmlParser, '请确认 examples/wechat/miniprogram_npm/mp-html 已同步。');
+  }
+  return {
+    id: 'mp-html-markdown',
+    name: 'mp-html',
+    stage: 'Markdown -> HTML -> mp-html nodes',
+    runnable: true,
+    run(content) {
+      return renderMpHtmlNodes(content);
+    },
+  };
+}
+
+function createMpHtmlHtmlSuite() {
+  if (!MpHtmlMarkdown || MpHtmlMarkdown.__benchmarkMissing) {
+    return missingSuite('mp-html-markdown', 'mp-html', 'Markdown -> HTML -> mp-html', MpHtmlMarkdown, '请确认 examples/wechat/miniprogram_npm/mp-html 已同步。');
+  }
   return {
     id: 'mp-html-markdown',
     name: 'mp-html',
     stage: 'Markdown -> HTML -> mp-html',
     runnable: true,
     run(content) {
-      return plugin.onUpdate(content);
+      return renderMpHtmlHtml(content);
     },
   };
 }
 
 function createMarkedRichTextSuite() {
-  const markedModule = tryRequire([
-    '/miniprogram_npm/mp-html/plugins/markdown/marked.min',
-    '/miniprogram_npm/mp-html/plugins/markdown/marked.min.js',
-    '../../miniprogram_npm/mp-html/plugins/markdown/marked.min',
-    '../../miniprogram_npm/mp-html/plugins/markdown/marked.min.js',
-    '../../node_modules/mp-html/plugins/markdown/marked.min',
-    '../../node_modules/mp-html/plugins/markdown/marked.min.js',
-    'mp-html/plugins/markdown/marked.min',
-    'mp-html/plugins/markdown/marked.min.js',
-  ]);
-  if (!markedModule || markedModule.__benchmarkMissing || !markedModule.marked) {
-    return {
-      id: 'marked-rich-text',
-      name: 'marked + rich-text',
-      stage: 'Markdown -> HTML -> rich-text',
-      runnable: false,
-      reason: formatRequireFailure('mp-html 内置 marked', markedModule, '请确认 examples/wechat/package.json 含 mp-html，执行 npm install 后在微信开发者工具执行「构建 npm」。'),
-    };
+  if (!MpHtmlMarked || MpHtmlMarked.__benchmarkMissing || !MpHtmlMarked.marked) {
+    return missingSuite('marked-rich-text', 'marked + rich-text', 'Markdown -> HTML -> rich-text nodes', MpHtmlMarked, '请确认 examples/wechat/miniprogram_npm/mp-html 已同步。');
+  }
+  if (!RichTextParser || RichTextParser.__benchmarkMissing) {
+    return missingSuite('marked-rich-text', 'marked + rich-text', 'Markdown -> HTML -> rich-text nodes', RichTextParser, '请确认 examples/wechat/miniprogram_npm/mini-html-parser2 已同步。');
+  }
+  return {
+    id: 'marked-rich-text',
+    name: 'marked + rich-text',
+    stage: 'Markdown -> HTML -> rich-text nodes',
+    runnable: true,
+    run(content) {
+      return parseRichTextNodes(MpHtmlMarked.marked(content));
+    },
+  };
+}
+
+function createMarkedRichTextHtmlSuite() {
+  if (!MpHtmlMarked || MpHtmlMarked.__benchmarkMissing || !MpHtmlMarked.marked) {
+    return missingSuite('marked-rich-text', 'marked + rich-text', 'Markdown -> HTML -> rich-text', MpHtmlMarked, '请确认 examples/wechat/miniprogram_npm/mp-html 已同步。');
   }
   return {
     id: 'marked-rich-text',
@@ -192,7 +212,7 @@ function createMarkedRichTextSuite() {
     stage: 'Markdown -> HTML -> rich-text',
     runnable: true,
     run(content) {
-      return markedModule.marked(content);
+      return MpHtmlMarked.marked(content);
     },
   };
 }
@@ -209,11 +229,19 @@ function createManualSuite() {
 
 function createSuite(id) {
   if (id === 'x-markdown-mini') return createXMarkdownSuite();
-  if (id === 'marked-rich-text') return createMarkedRichTextSuite();
-  if (id === 'mp-html-markdown') return createMpHtmlSuite();
+  if (id === 'marked-rich-text') return createMarkedRichTextHtmlSuite();
+  if (id === 'mp-html-markdown') return createMpHtmlHtmlSuite();
   if (id === 'towxml') return createTowxmlSuite();
   return createManualSuite();
 }
+
+const JS_BENCHMARKS = [
+  createXMarkdownSuite,
+  createTowxmlSuite,
+  createMarkedRichTextSuite,
+  createMpHtmlSuite,
+  createManualSuite,
+];
 
 function benchmarkSuite(suite, content, iterations) {
   try {
@@ -304,13 +332,7 @@ Page({
 
   runJsBenchmark() {
     const content = repeatMarkdown(this.data.selectedCase.repeat);
-    const suites = [
-      createXMarkdownSuite(),
-      createTowxmlSuite(),
-      createMarkedRichTextSuite(),
-      createMpHtmlSuite(),
-      createManualSuite(),
-    ];
+    const suites = JS_BENCHMARKS.map((create) => create());
     const skipped = suites
       .filter((suite) => !suite.runnable)
       .map((suite) => ({ id: suite.id, name: suite.name, stage: suite.stage, reason: suite.reason }));

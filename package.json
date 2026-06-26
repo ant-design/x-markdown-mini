@@ -46,7 +46,8 @@
     "bench:update": "npm run bench && node scripts/bench-update.mjs",
     "bench:compare": "tsx benchmark/compare.ts",
     "check:examples": "node scripts/check-examples.mjs",
-    "sync:examples": "node scripts/sync-example-sample.mjs",
+    "sync:examples": "node scripts/sync-example-sample.mjs && node examples/wechat/scripts/sync-npm-fixtures.mjs && node examples/alipay/scripts/patch-mp-html.mjs",
+    "patch:examples": "node examples/wechat/scripts/sync-npm-fixtures.mjs && node examples/alipay/scripts/patch-mp-html.mjs",
     "lint": "eslint src --ext .ts",
     "docs": "npm run build && cd docs-site && npm run dev",
     "docs:build": "npm run build && cd docs-site && npm run build",
@@ -61,7 +62,6 @@
     "mini-program-nodes"
   ],
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
     "@vitest/coverage-v8": "^2.1.0",
     "es-check": "^7.2.1",
@@ -69,6 +69,7 @@
     "katex": "^0.16.11",
     "markdown-it": "^14.1.0",
     "marked": "^18.0.3",
+    "mini-html-parser2": "^0.3.0",
     "mp-html": "^2.5.2",
     "remark": "^15.0.1",
     "remend": "^1.3.0",
