@@ -25,16 +25,108 @@ text {
 
 .md-list-item {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   margin: 4rpx 0;
 }
 
 .md-list-marker {
   flex: 0 0 28rpx;
   width: 28rpx;
+  padding-top: 6rpx;
   margin-right: 8rpx;
-  line-height: inherit;
+  line-height: 1;
   text-align: center;
+}
+
+/* Alipay real devices do not consistently honor CSS table display inside custom
+   components. Keep table layout in the actual renderer component and use
+   non-shrinking flex rows so columns cannot collapse into one line. */
+.md-table-scroll {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.markdownx-table-content {
+  position: relative;
+  overflow: hidden;
+}
+.markdownx-table-content--left-shadow::before,
+.markdownx-table-content--right-shadow::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 24rpx;
+  pointer-events: none;
+}
+.markdownx-table-content--left-shadow::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(51, 51, 51, 0.16), rgba(51, 51, 51, 0));
+}
+.markdownx-table-content--right-shadow::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(51, 51, 51, 0.16), rgba(51, 51, 51, 0));
+}
+.md-table {
+  display: block;
+  width: 100%;
+  min-width: 100%;
+  overflow: visible;
+  font-size: 26rpx;
+  white-space: normal;
+}
+.md-tr {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: max-content;
+  min-width: 100%;
+}
+.md-th, .md-td {
+  display: block;
+  flex: 0 0 240rpx;
+  width: 240rpx;
+  min-width: 240rpx;
+  padding: 12rpx 20rpx;
+  box-sizing: border-box;
+  border-right: 2rpx solid #e5e5e5;
+  border-bottom: 2rpx solid #e5e5e5;
+  text-align: left;
+  vertical-align: top;
+  word-break: break-word;
+  white-space: normal;
+}
+.md-table-multi .md-th:first-child,
+.md-table-multi .md-td:first-child {
+  flex-basis: 180rpx;
+  width: 180rpx;
+  min-width: 180rpx;
+  max-width: 180rpx;
+}
+.md-table-multi .md-th:not(:first-child),
+.md-table-multi .md-td:not(:first-child) {
+  flex-basis: 240rpx;
+  width: 240rpx;
+  min-width: 240rpx;
+}
+.md-table-single .md-th,
+.md-table-single .md-td {
+  flex: 1 0 100%;
+  width: 100%;
+  max-width: none;
+}
+.md-th {
+  background: #fafafa;
+  font-weight: 600;
+}
+.md-tr .md-th:last-child,
+.md-tr .md-td:last-child {
+  border-right: none;
+}
+.md-table .md-tr:last-child .md-td {
+  border-bottom: none;
 }
 
 .md-anim-text {

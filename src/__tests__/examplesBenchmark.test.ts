@@ -93,6 +93,12 @@ describe('mini-program benchmark examples', () => {
     expect(existsSync(resolve(root, 'examples/wechat/miniprogram_npm/mp-html/index.json'))).toBe(
       true,
     );
+    expect(existsSync(resolve(root, 'examples/wechat/miniprogram_npm/domelementtype/index.js'))).toBe(
+      true,
+    );
+    expect(existsSync(resolve(root, 'examples/wechat/miniprogram_npm/domhandler/domelementtype.js'))).toBe(
+      true,
+    );
     expect(existsSync(resolve(root, 'examples/wechat/miniprogram_npm/towxml/towxml.json'))).toBe(
       true,
     );

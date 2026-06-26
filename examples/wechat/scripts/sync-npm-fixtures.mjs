@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const exampleRoot = fileURLToPath(new URL('..', import.meta.url));
 const miniprogramNpm = join(exampleRoot, 'miniprogram_npm');
 const nodeOnlyTowxmlDeps = ['fs-extra', 'graceful-fs', 'jsonfile', 'universalify'];
-const richTextParserDeps = ['mini-html-parser2', 'domhandler', 'entities', 'events'];
+const richTextParserDeps = ['mini-html-parser2', 'domhandler', 'domelementtype', 'entities', 'events'];
 
 function copyDir(source, target) {
   if (!existsSync(source)) {
@@ -32,6 +32,13 @@ for (const dep of nodeOnlyTowxmlDeps) {
 for (const dep of richTextParserDeps) {
   copyDir(join(exampleRoot, 'node_modules', dep), join(miniprogramNpm, dep));
 }
+
+// WeChat's npm compiler resolves domhandler's bare require("domelementtype") as
+// miniprogram_npm/domhandler/domelementtype.js in some tool versions.
+writeFileSync(
+  join(miniprogramNpm, 'domhandler', 'domelementtype.js'),
+  "module.exports = require('../domelementtype/index');\n",
+);
 
 const towxmlDecodeConfig = join(miniprogramNpm, 'towxml', 'decode.json');
 const decodeConfig = readFileSync(towxmlDecodeConfig, 'utf8').replaceAll('"/towxml/', '"./');
