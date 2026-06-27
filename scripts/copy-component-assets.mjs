@@ -58,6 +58,14 @@ console.log('[x-markdown-mini] component static assets copied to es/* and compon
 const sharedElements = join(srcRoot, 'shared', 'elements.css');
 if (existsSync(sharedElements)) {
   const shared = readFileSync(sharedElements, 'utf8').replace(/\s*$/, '\n');
+  const splitLeadingImports = (css) => {
+    const match = css.match(/^((?:@import\s+[^;]+;\s*)+)/);
+    if (!match) return { imports: '', body: css };
+    return {
+      imports: match[1].replace(/\s*$/, '\n'),
+      body: css.slice(match[1].length).replace(/^\s*/, ''),
+    };
+  };
   const inlineTargets = [
     {
       src: join(srcRoot, 'alipay', 'MiniNodeRenderer', 'index.acss'),
@@ -77,7 +85,8 @@ if (existsSync(sharedElements)) {
   for (const { src, outs } of inlineTargets) {
     if (!existsSync(src)) continue;
     const own = readFileSync(src, 'utf8');
-    const merged = `${shared}\n${own}`;
+    const { imports, body } = splitLeadingImports(own);
+    const merged = `${imports}${shared}\n${body}`;
     for (const out of outs) {
       mkdirSync(dirname(out), { recursive: true });
       writeFileSync(out, merged);

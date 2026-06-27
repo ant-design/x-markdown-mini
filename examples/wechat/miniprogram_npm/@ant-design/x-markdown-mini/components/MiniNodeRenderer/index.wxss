@@ -1,3 +1,5 @@
+@import "../../plugins/Latex/fonts.wxss";
+@import "../../plugins/Latex/style.wxss";
 /* 微信 / 支付宝共享的通用 Markdown 元素样式（单一来源）。
  *
  * 构建时 scripts/copy-component-assets.mjs 把本文件「内联拼接」到各端
@@ -48,8 +50,21 @@
   padding-left: 32rpx;
 }
 .md-list-item {
-  display: list-item;
+  display: flex;
+  align-items: flex-start;
   margin: 4rpx 0;
+}
+.md-list-marker {
+  flex: 0 0 28rpx;
+  width: 28rpx;
+  margin-right: 8rpx;
+  line-height: 1.65;
+  text-align: center;
+}
+.md-list-content {
+  display: block;
+  flex: 1;
+  min-width: 0;
 }
 
 /* 分隔线 */
@@ -109,7 +124,13 @@
    单一来源提供，构建时 copy-component-assets.mjs 会把它「内联拼接」到本文件输出的开头
    （不另外产出 elements.wxss、不用 @import：在含 index.json 的组件目录里放裸 .wxss 分片会
    让微信「构建 npm」的编译器崩溃 getDevCodeByFileList）。
-   表格 / 代码块 / 代码高亮 / LaTeX 样式不在此处，保持原样。 */
+   LaTeX 样式必须由 MiniNodeRenderer 自身引入，因为公式节点实际渲染在这里。 */
+
+.md-list-content {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
 
 .md-animate-block {
   animation-fill-mode: forwards;

@@ -28,6 +28,7 @@ const wechatAdapter: MiniNodePlatformAdapter = {
     if (start !== 1) attrs.start = start;
     return attrs;
   },
+  listItemMarker: ({ ordered, start, index }) => (ordered ? start + index + '.' : '•'),
   node: (node, meta) => {
     if (node.name !== 'table') return node;
     const table = meta.token as Tokens.Table;

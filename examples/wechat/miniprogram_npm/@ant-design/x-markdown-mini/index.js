@@ -1617,7 +1617,9 @@ function blockTok(tok, adapter, animate, enc, ctx) {
       const ordered = !!t.ordered;
       const start = typeof t.start === "number" ? t.start : 1;
       const tag = ordered ? "ol" : "ul";
-      const children = t.items.map((item) => listItemTok(item, adapter, animate, enc, ctx));
+      const children = t.items.map(
+        (item, index) => listItemTok(item, adapter, animate, enc, ctx, { ordered, start, index, token: item })
+      );
       const listAttrs = __spreadValues({ class: "md-list" }, ordered ? adapter.olAttrs(start, t) : {});
       return block(tag, children, animate, adapter, tok, listAttrs);
     }
@@ -1678,27 +1680,35 @@ function blockTok(tok, adapter, animate, enc, ctx) {
     }
   }
 }
-function listItemTok(item, adapter, animate, enc, ctx) {
-  var _a2, _b, _c, _d;
+function listItemTok(item, adapter, animate, enc, ctx, meta) {
+  var _a2, _b, _c, _d, _e2;
   const blocks = (_a2 = item.tokens) != null ? _a2 : [];
   const children = [];
+  const marker = (_b = adapter.listItemMarker) == null ? void 0 : _b.call(adapter, meta);
+  if (marker) {
+    children.push({ name: "text", attrs: { class: "md-list-marker", value: marker } });
+  }
+  const content = marker ? [] : children;
   if (blocks.length === 1 && blocks[0].type === "paragraph") {
     const p2 = blocks[0];
-    children.push(...inlineTokens((_b = p2.tokens) != null ? _b : [], adapter, enc, ctx));
+    content.push(...inlineTokens((_c = p2.tokens) != null ? _c : [], adapter, enc, ctx));
   } else {
     for (const b3 of blocks) {
       if (b3.type === "paragraph") {
         const p2 = b3;
-        children.push(...inlineTokens((_c = p2.tokens) != null ? _c : [], adapter, enc, ctx));
+        content.push(...inlineTokens((_d = p2.tokens) != null ? _d : [], adapter, enc, ctx));
       } else if (b3.type === "text") {
         const t = b3;
-        const inline = t.tokens ? inlineTokens(t.tokens, adapter, enc, ctx) : [{ name: "text", attrs: { value: enc((_d = t.text) != null ? _d : "") } }];
-        children.push(...inline);
+        const inline = t.tokens ? inlineTokens(t.tokens, adapter, enc, ctx) : [{ name: "text", attrs: { value: enc((_e2 = t.text) != null ? _e2 : "") } }];
+        content.push(...inline);
       } else {
         const node = blockTok(b3, adapter, animate, enc, ctx);
-        if (node) children.push(node);
+        if (node) content.push(node);
       }
     }
+  }
+  if (marker) {
+    children.push({ name: "div", attrs: { class: "md-list-content" }, children: content });
   }
   return block("li", children, false, adapter, item, { class: "md-list-item" });
 }
@@ -1821,16 +1831,26 @@ var alipayAdapter = {
   linkAttrs: (href) => ({ href, class: "md-link" }),
   imageSrc: (src) => src.replace(/^http:\/\//, "https://"),
   olAttrs: () => ({}),
+  listItemMarker: ({ ordered, start, index }) => ordered ? start + index + "." : "\u2022",
   node: (node, meta) => {
-    var _a2, _b;
+    var _a2, _b, _c;
     if (node.name !== "table") return node;
-    const table = meta.token;
-    const columnCount = (_b = (_a2 = table.header) == null ? void 0 : _a2.length) != null ? _b : 0;
-    return __spreadProps(__spreadValues({}, node), {
-      attrs: __spreadProps(__spreadValues({}, node.attrs), {
-        class: columnCount > 1 ? "md-table md-table-multi" : "md-table md-table-single"
-      })
+    const columnCount = (_b = (_a2 = meta.token.header) == null ? void 0 : _a2.length) != null ? _b : 0;
+    const width = columnCount > 1 ? columnCount * 240 - 60 + "rpx" : "100%";
+    const style = `width:${width};min-width:100%`;
+    node.attrs = node.attrs || {};
+    node.attrs.class = columnCount > 1 ? "md-table md-table-multi" : "md-table md-table-single";
+    node.attrs.style = style;
+    (_c = node.children) == null ? void 0 : _c.forEach((row) => {
+      var _a3;
+      row.attrs = row.attrs || {};
+      row.attrs.style = style;
+      (_a3 = row.children) == null ? void 0 : _a3.forEach((cell, index) => {
+        cell.attrs = cell.attrs || {};
+        cell.attrs.class += index ? " md-tc-r" : " md-tc-f";
+      });
     });
+    return node;
   }
 };
 function tokensToAlipay(content, opts = {}) {
@@ -1870,6 +1890,7 @@ var wechatAdapter = {
     if (start !== 1) attrs.start = start;
     return attrs;
   },
+  listItemMarker: ({ ordered, start, index }) => ordered ? start + index + "." : "\u2022",
   node: (node, meta) => {
     var _a2, _b;
     if (node.name !== "table") return node;

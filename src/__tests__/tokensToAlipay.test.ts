@@ -17,6 +17,10 @@ function find(nodes: MiniNode[], name: string): MiniNode | undefined {
   return flatten(nodes).find((n) => n.name === name);
 }
 
+function findAll(nodes: MiniNode[], name: string): MiniNode[] {
+  return flatten(nodes).filter((n) => n.name === name);
+}
+
 describe('tokensToAlipay — platform-specific behavior', () => {
   it('keeps <a href> and marks it as an interactive link', () => {
     const out = tokensToAlipay('[L](https://e.com)');
@@ -48,6 +52,23 @@ describe('tokensToAlipay — platform-specific behavior', () => {
       name: 'text',
       attrs: { class: 'md-list-marker', value: '4.' },
     });
+    expect(ordered[0].children?.[0].children?.[1].attrs?.class).toBe('md-list-content');
+  });
+
+  it('keeps nested lists inside the list content column', () => {
+    const out = tokensToAlipay([
+      '1. 接收增量字符。',
+      '2. 识别稳定块。',
+      '3. 将 token 转换成节点。',
+      '   - 微信使用 `tokensToWechat`。',
+      '   - 支付宝使用 `tokensToAlipay`。',
+    ].join('\n'));
+    const thirdItem = out[0].children?.[2];
+    const content = thirdItem?.children?.[1];
+
+    expect(thirdItem?.children?.[0].attrs?.value).toBe('3.');
+    expect(content?.attrs?.class).toBe('md-list-content');
+    expect(content?.children?.map((node) => node.name)).toEqual(['text', 'ul']);
   });
 
   it('rewrites http:// in <img src> to https://', () => {
@@ -80,7 +101,21 @@ describe('tokensToAlipay — platform-specific behavior', () => {
     const multi = tokensToAlipay('| a | b |\n| - | - |\n| 1 | 2 |');
 
     expect(find(single, 'table')?.attrs?.class).toBe('md-table md-table-single');
+    expect(find(single, 'table')?.attrs?.style).toBe('width:100%;min-width:100%');
     expect(find(multi, 'table')?.attrs?.class).toBe('md-table md-table-multi');
+    expect(find(multi, 'table')?.attrs?.style).toBe('width:420rpx;min-width:100%');
+    expect(findAll(multi, 'tr').map((row) => row.attrs?.style)).toEqual([
+      'width:420rpx;min-width:100%',
+      'width:420rpx;min-width:100%',
+    ]);
+    expect(findAll(multi, 'th').map((cell) => cell.attrs?.class)).toEqual([
+      'md-th md-tc-f',
+      'md-th md-tc-r',
+    ]);
+    expect(findAll(multi, 'td').map((cell) => cell.attrs?.class)).toEqual([
+      'md-td md-tc-f',
+      'md-td md-tc-r',
+    ]);
   });
 });
 

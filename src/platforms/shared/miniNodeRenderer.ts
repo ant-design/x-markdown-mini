@@ -15,7 +15,7 @@ export interface MiniNodePlatformAdapter {
   linkAttrs: (href: string, token: Tokens.Link) => MiniNodeAttrs;
   imageSrc: (src: string, token: Tokens.Image) => string;
   olAttrs: (start: number, token: Tokens.List) => MiniNodeAttrs;
-  listItemMarker?: (meta: { ordered: boolean; start: number; index: number; token: Tokens.ListItem }) => string;
+  listItemMarker?: (meta: ListItemMeta) => string;
   node?: (node: MiniNode, meta: MiniNodeRenderMeta) => MiniNode | null | undefined;
 }
 
@@ -214,11 +214,7 @@ function blockTok(
       const start = typeof t.start === 'number' ? t.start : 1;
       const tag = ordered ? 'ol' : 'ul';
       const children = t.items.map((item, index) =>
-        listItemTok(item, adapter, animate, enc, ctx, {
-          ordered,
-          start,
-          index,
-        }),
+        listItemTok(item, adapter, animate, enc, ctx, { ordered, start, index, token: item }),
       );
       const listAttrs: MiniNodeAttrs = { class: 'md-list', ...(ordered ? adapter.olAttrs(start, t) : {}) };
       return block(tag, children, animate, adapter, tok, listAttrs);
@@ -279,39 +275,50 @@ function blockTok(
   }
 }
 
+interface ListItemMeta {
+  ordered: boolean;
+  start: number;
+  index: number;
+  token: Tokens.ListItem;
+}
+
 function listItemTok(
   item: Tokens.ListItem,
   adapter: MiniNodePlatformAdapter,
   animate: boolean,
   enc: (s: string) => string,
   ctx: RenderContext,
-  meta: { ordered: boolean; start: number; index: number },
+  meta: ListItemMeta,
 ): MiniNode {
   const blocks = item.tokens ?? [];
   const children: MiniNode[] = [];
-  const marker = adapter.listItemMarker?.({ ...meta, token: item });
+  const marker = adapter.listItemMarker?.(meta);
   if (marker) {
     children.push({ name: 'text', attrs: { class: 'md-list-marker', value: marker } });
   }
+  const content: MiniNode[] = marker ? [] : children;
   if (blocks.length === 1 && blocks[0].type === 'paragraph') {
     const p = blocks[0] as Tokens.Paragraph;
-    children.push(...inlineTokens(p.tokens ?? [], adapter, enc, ctx));
+    content.push(...inlineTokens(p.tokens ?? [], adapter, enc, ctx));
   } else {
     for (const b of blocks) {
       if (b.type === 'paragraph') {
         const p = b as Tokens.Paragraph;
-        children.push(...inlineTokens(p.tokens ?? [], adapter, enc, ctx));
+        content.push(...inlineTokens(p.tokens ?? [], adapter, enc, ctx));
       } else if (b.type === 'text') {
         const t = b as Tokens.Text;
         const inline = t.tokens
           ? inlineTokens(t.tokens, adapter, enc, ctx)
           : [{ name: 'text', attrs: { value: enc(t.text ?? '') } } as MiniNode];
-        children.push(...inline);
+        content.push(...inline);
       } else {
         const node = blockTok(b, adapter, animate, enc, ctx);
-        if (node) children.push(node);
+        if (node) content.push(node);
       }
     }
+  }
+  if (marker) {
+    children.push({ name: 'div', attrs: { class: 'md-list-content' }, children: content });
   }
   return block('li', children, false, adapter, item, { class: 'md-list-item' });
 }

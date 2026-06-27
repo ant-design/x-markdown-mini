@@ -1,7 +1,11 @@
+@import "../../plugins/Latex/fonts.acss";
+@import "../../plugins/Latex/style.acss";
+
 /* 仅含支付宝端专属样式（块入场/逐字动画、链接按压态）。通用元素样式由
    src/components/shared/elements.css 单一来源提供，构建时 copy-component-assets.mjs 会把它
    「内联拼接」到本文件输出的开头（不另外产出 elements.acss、不用 @import，与微信端保持一致）。
-   表格 / 代码块 / 代码高亮 / LaTeX 样式不在此处，保持原样。 */
+   表格 / 代码块样式在此处；LaTeX 样式必须由 MiniNodeRenderer 自身引入，因为公式节点
+   实际渲染在递归的 MiniNodeRenderer 内部。 */
 
 .md-animate-block {
   animation-fill-mode: forwards;
@@ -25,7 +29,7 @@ text {
 
 .md-list-item {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   margin: 4rpx 0;
 }
 
@@ -37,10 +41,16 @@ text {
   line-height: 1;
   text-align: center;
 }
+.md-list-content {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
 
-/* Alipay real devices do not consistently honor CSS table display inside custom
-   components. Keep table layout in the actual renderer component and use
-   non-shrinking flex rows so columns cannot collapse into one line. */
+/* Alipay real devices do not consistently honor CSS table display, intrinsic
+   width keywords, or structural pseudo-classes inside custom components. The Alipay transformer
+   writes deterministic row widths and cell-position classes; the component only
+   consumes those concrete values. */
 .md-table-scroll {
   display: block;
   width: 100%;
@@ -81,7 +91,7 @@ text {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  width: max-content;
+  width: 100%;
   min-width: 100%;
 }
 .md-th, .md-td {
@@ -98,15 +108,13 @@ text {
   word-break: break-word;
   white-space: normal;
 }
-.md-table-multi .md-th:first-child,
-.md-table-multi .md-td:first-child {
+.md-table-multi .md-tc-f {
   flex-basis: 180rpx;
   width: 180rpx;
   min-width: 180rpx;
   max-width: 180rpx;
 }
-.md-table-multi .md-th:not(:first-child),
-.md-table-multi .md-td:not(:first-child) {
+.md-table-multi .md-tc-r {
   flex-basis: 240rpx;
   width: 240rpx;
   min-width: 240rpx;

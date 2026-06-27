@@ -14,8 +14,9 @@ describe('Alipay table layout', () => {
     expect(acss).toMatch(/text\s*\{[\s\S]*?line-height:\s*inherit/);
     expect(acss).toMatch(/text\s*\{[\s\S]*?vertical-align:\s*baseline/);
     expect(acss).toMatch(/\.md-list-item\s*\{[\s\S]*?display:\s*flex/);
-    expect(acss).toMatch(/\.md-list-item\s*\{[\s\S]*?align-items:\s*baseline/);
+    expect(acss).toMatch(/\.md-list-item\s*\{[\s\S]*?align-items:\s*flex-start/);
     expect(acss).toMatch(/\.md-list-marker\s*\{[\s\S]*?padding-top:\s*6rpx/);
+    expect(acss).toMatch(/\.md-list-content\s*\{[\s\S]*?flex:\s*1/);
   });
 
   it('uses a flex table layout for Alipay device compatibility', () => {
@@ -27,17 +28,18 @@ describe('Alipay table layout', () => {
     expect(acss).toMatch(/\.md-table\s*\{[\s\S]*?display:\s*block/);
     expect(acss).toMatch(/\.md-table\s*\{[\s\S]*?min-width:\s*100%/);
     expect(acss).toMatch(/\.md-tr\s*\{[\s\S]*?display:\s*flex/);
-    expect(acss).toMatch(/\.md-tr\s*\{[\s\S]*?width:\s*max-content/);
+    expect(acss).toMatch(/\.md-tr\s*\{[\s\S]*?width:\s*100%/);
     expect(acss).toMatch(/\.md-(?:th|td)\s*\{[\s\S]*?display:\s*block/);
     expect(acss).toMatch(/\.md-(?:th|td)\s*\{[\s\S]*?flex:\s*0 0 240rpx/);
     expect(acss).not.toMatch(/display:\s*table(?:;|\s)/);
     expect(acss).not.toMatch(/display:\s*table-row/);
     expect(acss).not.toMatch(/display:\s*table-cell/);
-    expect(acss).toMatch(/\.md-(?:th|td):first-child[\s\S]*?min-width:\s*180rpx/);
-    expect(acss).toMatch(/\.md-(?:th|td):first-child[\s\S]*?max-width:\s*180rpx/);
-    expect(acss).toMatch(
-      /\.md-(?:th|td):not\(:first-child\)[\s\S]*?min-width:\s*240rpx/,
-    );
+    expect(acss).not.toContain('max-content');
+    expect(acss).not.toContain(':first-child');
+    expect(acss).not.toContain(':not(');
+    expect(acss).toMatch(/\.md-table-multi \.md-tc-f[\s\S]*?min-width:\s*180rpx/);
+    expect(acss).toMatch(/\.md-table-multi \.md-tc-f[\s\S]*?max-width:\s*180rpx/);
+    expect(acss).toMatch(/\.md-table-multi \.md-tc-r[\s\S]*?min-width:\s*240rpx/);
     expect(acss).toMatch(/\.md-table-single[\s\S]*?width:\s*100%/);
   });
 

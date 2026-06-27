@@ -48,8 +48,21 @@
   padding-left: 32rpx;
 }
 .md-list-item {
-  display: list-item;
+  display: flex;
+  align-items: flex-start;
   margin: 4rpx 0;
+}
+.md-list-marker {
+  flex: 0 0 28rpx;
+  width: 28rpx;
+  margin-right: 8rpx;
+  line-height: 1.65;
+  text-align: center;
+}
+.md-list-content {
+  display: block;
+  flex: 1;
+  min-width: 0;
 }
 
 /* 分隔线 */

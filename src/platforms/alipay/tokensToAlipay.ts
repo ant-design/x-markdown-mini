@@ -24,18 +24,24 @@ const alipayAdapter: MiniNodePlatformAdapter = {
   linkAttrs: (href) => ({ href, class: 'md-link' }),
   imageSrc: (src) => src.replace(/^http:\/\//, 'https://'),
   olAttrs: () => ({}),
-  listItemMarker: ({ ordered, start, index }) => (ordered ? `${start + index}.` : '•'),
+  listItemMarker: ({ ordered, start, index }) => (ordered ? start + index + '.' : '•'),
   node: (node, meta) => {
     if (node.name !== 'table') return node;
-    const table = meta.token as Tokens.Table;
-    const columnCount = table.header?.length ?? 0;
-    return {
-      ...node,
-      attrs: {
-        ...node.attrs,
-        class: columnCount > 1 ? 'md-table md-table-multi' : 'md-table md-table-single',
-      },
-    };
+    const columnCount = (meta.token as Tokens.Table).header?.length ?? 0;
+    const width = columnCount > 1 ? columnCount * 240 - 60 + 'rpx' : '100%';
+    const style = `width:${width};min-width:100%`;
+    node.attrs = node.attrs || {};
+    node.attrs.class = columnCount > 1 ? 'md-table md-table-multi' : 'md-table md-table-single';
+    node.attrs.style = style;
+    node.children?.forEach((row) => {
+      row.attrs = row.attrs || {};
+      row.attrs.style = style;
+      row.children?.forEach((cell, index) => {
+        cell.attrs = cell.attrs || {};
+        cell.attrs.class += index ? ' md-tc-r' : ' md-tc-f';
+      });
+    });
+    return node;
   },
 };
 

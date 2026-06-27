@@ -127,6 +127,10 @@ describe('Latex — tokenizer', () => {
     // import a single style file and get working glyphs with no network/CDN.
     expect(wxss).toContain('@import "./fonts.wxss";');
     expect(acss).toContain('@import "./fonts.acss";');
+    expect(wxss).toContain('font-family: "KaTeX_Main"');
+    expect(acss).toContain('font-family: "KaTeX_Main"');
+    expect(wxss).not.toMatch(/font-family:\s*KaTeX_/);
+    expect(acss).not.toMatch(/font-family:\s*KaTeX_/);
 
     // Fonts are base64 data URIs, never CDN/http (broken inside a mini-program).
     for (const fonts of [fontsWxss, fontsAcss]) {
@@ -136,6 +140,38 @@ describe('Latex — tokenizer', () => {
     // The layout sheets must not ship dead CDN url() refs anymore.
     expect(wxss).not.toContain('http');
     expect(acss).not.toContain('http');
+  });
+
+  it('imports KaTeX fonts from the top-level Markdown component styles', () => {
+    const alipayMarkdown = readFileSync(
+      new URL('../components/alipay/Markdown/index.acss', import.meta.url),
+      'utf8',
+    );
+    const wechatMarkdown = readFileSync(
+      new URL('../components/wechat/Markdown/index.wxss', import.meta.url),
+      'utf8',
+    );
+    const alipayRenderer = readFileSync(
+      new URL('../components/alipay/MiniNodeRenderer/index.acss', import.meta.url),
+      'utf8',
+    );
+    const wechatRenderer = readFileSync(
+      new URL('../components/wechat/MiniNodeRenderer/index.wxss', import.meta.url),
+      'utf8',
+    );
+
+    expect(alipayMarkdown).toMatch(
+      /@import "\.\.\/\.\.\/plugins\/Latex\/fonts\.acss";[\s\S]*@import "\.\.\/\.\.\/plugins\/Latex\/style\.acss";/,
+    );
+    expect(wechatMarkdown).toMatch(
+      /@import "\.\.\/\.\.\/plugins\/Latex\/fonts\.wxss";[\s\S]*@import "\.\.\/\.\.\/plugins\/Latex\/style\.wxss";/,
+    );
+    expect(alipayRenderer).toMatch(
+      /^@import "\.\.\/\.\.\/plugins\/Latex\/fonts\.acss";\s*@import "\.\.\/\.\.\/plugins\/Latex\/style\.acss";/,
+    );
+    expect(wechatRenderer).toMatch(
+      /^@import "\.\.\/\.\.\/plugins\/Latex\/fonts\.wxss";\s*@import "\.\.\/\.\.\/plugins\/Latex\/style\.wxss";/,
+    );
   });
 
   it('avoids tag selectors forbidden in component wxss', () => {

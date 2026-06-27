@@ -32,6 +32,24 @@ describe('tokensToWechat — platform-specific behavior', () => {
     expect(out[0].attrs?.start).toBe(3);
   });
 
+  it('renders explicit list markers for mini-program view-based lists', () => {
+    const ordered = tokensToWechat('3. a\n4. b');
+    const unordered = tokensToWechat('- c');
+
+    expect(ordered[0].children?.[0].children?.[0]).toEqual({
+      name: 'text',
+      attrs: { class: 'md-list-marker', value: '3.' },
+    });
+    expect(ordered[0].children?.[1].children?.[0]).toEqual({
+      name: 'text',
+      attrs: { class: 'md-list-marker', value: '4.' },
+    });
+    expect(unordered[0].children?.[0].children?.[0]).toEqual({
+      name: 'text',
+      attrs: { class: 'md-list-marker', value: '•' },
+    });
+  });
+
   it('does not rewrite http:// in <img src>', () => {
     const out = tokensToWechat('![alt](http://e.com/i.png)');
     const img = find(out, 'img')!;

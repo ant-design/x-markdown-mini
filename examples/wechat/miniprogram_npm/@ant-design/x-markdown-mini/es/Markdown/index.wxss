@@ -1,6 +1,9 @@
 /* 高层 <Markdown> 组件自带插件样式：开启 latex/highlight 后无需页面再 @import。
-   路径相对输出端 dist/{es,components}/Markdown/ → ../../plugins/<N>。Latex/style.wxss 自带 ./fonts.wxss。 */
+   字体放在顶层 import，避免不同小程序构建器对嵌套 @import 行为不一致；
+   Latex/style.wxss 仍自带 fonts.wxss，保证底层直用 MiniNodeRenderer 时单独 import
+   Latex/style.wxss 仍能拿到字体。 */
 @import "../../plugins/CodeHighlight/style.wxss";
+@import "../../plugins/Latex/fonts.wxss";
 @import "../../plugins/Latex/style.wxss";
 
 /* 元素级样式（标题/段落/列表/引用/强调/链接/行内代码/图片/分隔线/上下标等）已统一到

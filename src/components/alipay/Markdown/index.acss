@@ -1,6 +1,9 @@
 /* 高层 <Markdown> 组件自带插件样式：开启 latex/highlight 后无需页面再 @import。
-   路径相对输出端 dist/{es,components}/Markdown/ → ../../plugins/<N>。Latex/style.acss 自带 ./fonts.acss。 */
+   支付宝真机对嵌套 @import 里的 @font-face 支持不稳定，所以 fonts.acss 也放在
+   Markdown 组件的顶层 import；Latex/style.acss 继续自带 fonts.acss，保证底层直用
+   MiniNodeRenderer 时单独 import Latex/style.acss 仍能拿到字体。 */
 @import "../../plugins/CodeHighlight/style.acss";
+@import "../../plugins/Latex/fonts.acss";
 @import "../../plugins/Latex/style.acss";
 
 /* 元素级样式（标题/段落/列表/引用/强调/链接/行内代码/图片/分隔线/上下标等）已统一到
