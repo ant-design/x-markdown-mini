@@ -12,11 +12,13 @@
 //     CSS 端（plugins/Latex/style.acss 的 .kxf-* 单类规则 + plugins/Latex/index.ts 把 kxf-* 类下沉到
 //     字形 <text>）据此赋字体——绕开「同名多字面」「跨组件后代选择器」「view→text 继承」三个真机坑。
 //
-// 所以支付宝走「inline ttf data URI + 唯一 family」；HTTPS / 包内本地 ttf 只作兼容兜底。beta.11
-// 证明包内 node_modules 字体 URL 不可靠；beta.12 证明公开 CDN 在真机环境仍会受域名/下载策略影响。
-// 早前真机探针里真正稳定生效的是 loadFontFace 加载 inline ttf。微信仍优先走包内 ttf，失败时保留
-// CDN woff 兜底。`onReady` 在全部字面加载完成后回调一次，供组件强制重排（兜底，即便本地
-// 几乎即时，也确保已渲染的公式在字体就绪后重新绘制）。
+// 所以支付宝走「应用根目录本地 ttf + 唯一 family」优先；inline / HTTPS / 包内 node_modules ttf
+// 只作兼容兜底。beta.11 证明包内 node_modules 字体 URL 不可靠；beta.12 证明公开 CDN 在真机环境
+// 仍会受域名/下载策略影响；beta.13 进一步暴露了一个更麻烦的点：某些 source 会回调 success，
+// 但字体仍不实际参与 <text> 排版，导致后续真正可用的本地 source 被短路。因此支付宝必须把已由
+// 真机探针验证过的 `/katex-fonts/*.ttf` 放在第一位。微信仍优先走包内 ttf，失败时保留 CDN woff
+// 兜底。`onReady` 在全部字面加载完成后回调一次，供组件强制重排（兜底，即便本地几乎即时，
+// 也确保已渲染的公式在字体就绪后重新绘制）。
 //
 // 检测沿用 `typeof my` / `typeof wx`（而非 globalThis），与 src/platforms/index.ts 一致：旧版支付宝
 // 基础库没有 globalThis，而 typeof 对未声明标识符不抛错。
@@ -29,9 +31,9 @@ declare const require: any;
 const CDN = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts';
 const PACKAGE_NAME = '@ant-design/x-markdown-mini';
 const ALIPAY_LOCAL_BASES = [
+  '/katex-fonts',
   '/node_modules/' + PACKAGE_NAME + '/dist/katex-fonts',
   '/node_modules/' + PACKAGE_NAME + '/katex-fonts',
-  '/katex-fonts',
 ];
 const WECHAT_LOCAL_BASES = [
   '/miniprogram_npm/' + PACKAGE_NAME + '/dist/miniprogram_dist/katex-fonts',
@@ -92,6 +94,18 @@ function callSafe(cb: (() => void) | null | undefined): void {
   }
 }
 
+function debugKatexFonts(): boolean {
+  return typeof my !== 'undefined' && !!my.__xmdKatexProbe;
+}
+
+function sourceKind(source: string): string {
+  if (source.indexOf('data:font/ttf') > -1) return 'inline-ttf';
+  if (source.indexOf('cdn.jsdelivr.net') > -1) return 'cdn';
+  if (source.indexOf('/node_modules/') > -1) return 'node_modules';
+  if (source.indexOf('/katex-fonts/') > -1) return 'root';
+  return 'unknown';
+}
+
 function loadInlineFontData(): Record<string, string> | null {
   if (inlineFontData !== undefined) return inlineFontData;
   try {
@@ -103,6 +117,12 @@ function loadInlineFontData(): Record<string, string> | null {
   } catch (e) {
     inlineFontData = null;
   }
+  if (debugKatexFonts()) {
+    console.log('[xmd:katex-font-data]', {
+      ok: !!inlineFontData,
+      count: inlineFontData ? Object.keys(inlineFontData).length : 0,
+    });
+  }
   return inlineFontData;
 }
 
@@ -110,9 +130,13 @@ function sourcesForFace(f: KatexFace, isAlipay: boolean): string[] {
   const localBases = isAlipay ? ALIPAY_LOCAL_BASES : WECHAT_LOCAL_BASES;
   const sources: string[] = [];
   if (isAlipay) {
+    for (let i = 0; i < localBases.length; i++) {
+      sources.push('url("' + localBases[i] + '/' + f.alipayFile + '")');
+    }
     const data = loadInlineFontData();
     if (data && data[f.alipayFile]) sources.push('url("' + data[f.alipayFile] + '")');
     sources.push('url("' + CDN + '/' + f.alipayFile + '")');
+    return sources;
   }
   for (let i = 0; i < localBases.length; i++) {
     sources.push('url("' + localBases[i] + '/' + f.alipayFile + '")');
@@ -126,16 +150,32 @@ function loadFace(api: any, opts: { family: string; desc: { style: string; weigh
   const tryNext = (): void => {
     const source = opts.sources[index++];
     if (!source) {
+      if (debugKatexFonts()) {
+        console.log('[xmd:katex-font]', opts.family, 'failed-all');
+      }
       done();
       return;
+    }
+    if (debugKatexFonts()) {
+      console.log('[xmd:katex-font]', opts.family, 'try', sourceKind(source));
     }
     api.loadFontFace({
       global: true,
       family: opts.family,
       source,
       desc: opts.desc,
-      success: done,
-      fail: tryNext,
+      success: () => {
+        if (debugKatexFonts()) {
+          console.log('[xmd:katex-font]', opts.family, 'ok', sourceKind(source));
+        }
+        done();
+      },
+      fail: (err: unknown) => {
+        if (debugKatexFonts()) {
+          console.log('[xmd:katex-font]', opts.family, 'fail', sourceKind(source), err);
+        }
+        tryNext();
+      },
     });
   };
   tryNext();

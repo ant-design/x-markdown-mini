@@ -48,6 +48,8 @@ describe('platform presentation consistency', () => {
     }
     expect(loader).toContain("alipayFile: 'KaTeX_Main-Regular.ttf'");
     expect(loader).toContain("alipayFile: 'KaTeX_Math-Italic.ttf'");
+    expect(loader).toMatch(/const ALIPAY_LOCAL_BASES = \[\s*'\/katex-fonts'/);
+    expect(loader).toMatch(/if \(isAlipay\) \{\s*for \(let i = 0; i < localBases\.length; i\+\+\)/);
     expect(loader).toContain('function loadInlineFontData()');
     expect(loader).toContain("req('../../katex-font-data.js')");
     expect(loader).toContain("data && data[f.alipayFile]");
