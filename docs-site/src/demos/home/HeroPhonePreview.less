@@ -1,0 +1,55 @@
+.xmd-hero-phone-preview {
+  .xmd-hero-phone.xmd-phone {
+    margin: 0 auto;
+  }
+
+  .xmd-phone-screen {
+    background: #ffffff;
+  }
+
+  // Play/pause control for the auto-looping streaming demo. Sits in the phone
+  // navbar, pushed to the right edge (the brand title is absolutely centered).
+  // Flat icon button — no shadow.
+  .xmd-hero-play {
+    flex-shrink: 0;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    color: rgba(23, 23, 23, 0.55);
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+    box-shadow: none;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      background: rgba(23, 23, 23, 0.06);
+      color: #171717;
+    }
+
+    &:active {
+      background: rgba(23, 23, 23, 0.1);
+    }
+
+    svg {
+      display: block;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .xmd-hero-phone.xmd-phone {
+      max-width: 100%;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xmd-hero-phone-preview .xmd-hero-play {
+    transition: none;
+  }
+}

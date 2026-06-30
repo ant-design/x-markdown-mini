@@ -1,0 +1,6 @@
+{
+  "defaultTitle": "流式输出",
+  "usingComponents": {
+    "markdown": "@ant-design/x-markdown-mini/es/Markdown/index"
+  }
+}

@@ -1,0 +1,8 @@
+<view class="page">
+  <view class="panel">
+    <mini-node-renderer nodes="{{leftNodes}}" selectable="{{true}}" />
+  </view>
+  <view class="panel">
+    <mini-node-renderer nodes="{{rightNodes}}" selectable="{{true}}" />
+  </view>
+</view>

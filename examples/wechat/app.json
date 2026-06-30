@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/component/component",
+    "pages/js/js",
+    "pages/benchmark/benchmark"
+  ],
+  "window": {
+    "navigationBarTitleText": "x-markdown-mini",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f7f8fa"
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2"
+}

@@ -1,0 +1,236 @@
+<import-sjs from="./index.sjs" name="u" />
+
+<block a:if="{{katexReflow}}">
+<block a:for="{{nodes}}" a:for-item="node" a:for-index="i" a:key="k">
+  <!-- text leaf: 流式时逐字淡入（Alipay 不能嵌套 <text>，用 inline <view> 包裹字符 <text>，
+       按下标 key 复用，只有新字触发动画）；非流式时整段渲染为单个 <text>。 -->
+  <view
+    a:if="{{u.isText(node.name) && animation}}"
+    class="md-anim-text {{u.classOf(node)}}"
+  >
+    <text
+      a:for="{{u.charsOf(node)}}"
+      a:for-item="ch"
+      a:key="k"
+      class="md-anim-char {{u.classOf(node)}}"
+      style="{{u.styleOf(node)}}"
+      selectable="{{selectable}}"
+    >{{ch.c}}</text>
+  </view>
+  <text
+    a:elif="{{u.isText(node.name)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
+  >{{u.valueOf(node)}}</text>
+
+  <!-- br -->
+  <text a:elif="{{u.isBr(node.name)}}">{{'\n'}}</text>
+
+  <!-- hr -->
+  <view a:elif="{{u.isHr(node.name)}}" class="{{u.classOf(node)}}" />
+
+  <!-- img -->
+  <image
+    a:elif="{{u.isImg(node.name)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    src="{{u.srcOf(node)}}"
+    mode="widthFix"
+    data-data="{{node}}"
+    catchTap="_tap"
+    onAppear="_appear"
+  />
+
+  <!-- pre: code block with language label + copy toolbar, scrollable body -->
+  <view
+    a:elif="{{u.isPre(node.name)}}"
+    class="md-codeblock {{node.animate ? 'md-animate-block' : ''}}"
+  >
+    <view a:if="{{node.header}}" class="md-codeblock-bar">
+      <block a:for="{{node.header}}" a:for-item="h" a:for-index="hi" a:key="k">
+        <text a:if="{{u.isText(h.name)}}" class="{{u.classOf(h)}}">{{u.valueOf(h)}}</text>
+        <image
+          a:elif="{{u.isCopy(h.name)}}"
+          class="{{u.classOf(h) || 'md-copy-icon'}}"
+          src="https://mdn.alipayobjects.com/huamei_y8xg5f/afts/img/JXzqSoHDzm4AAAAAHpAAAAgADuJhAQFr/original"
+          data-copy="{{u.copyOf(h)}}"
+          catchTap="_copy"
+        />
+        <view a:else class="{{u.classOf(h)}}" style="{{u.styleOf(h)}}">
+          <mini-node-renderer
+            a:if="{{h.children}}"
+            nodes="{{h.children}}"
+            selectable="{{selectable}}"
+            animation="{{false}}"
+            slotComponents="{{slotComponents}}"
+            onTap="onTap"
+          >
+            <slot slot-scope="prop" data="{{prop.data}}" />
+          </mini-node-renderer>
+        </view>
+      </block>
+    </view>
+    <view class="markdownx-code-scroll">
+      <view class="markdownx-edge-shadow markdownx-edge-shadow-left {{u.leftShadowClass(shadows, 'code-', i, true)}}" />
+      <view class="markdownx-edge-shadow markdownx-edge-shadow-right {{u.rightShadowClass(shadows, 'code-', i, true)}}" />
+      <scroll-view
+        scroll-x
+        class="md-code-block"
+        data-scroll-key="code-{{i}}"
+        onScroll="_codeScroll"
+      >
+        <view class="markdownx-code-body" data-scroll-key="code-{{i}}">
+          <mini-node-renderer
+            a:if="{{node.children}}"
+            nodes="{{node.children}}"
+            selectable="{{selectable}}"
+            animation="{{false}}"
+            slotComponents="{{slotComponents}}"
+            onTap="onTap"
+            onAppear="onAppear"
+          >
+            <slot slot-scope="prop" data="{{prop.data}}" />
+          </mini-node-renderer>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- table: caption + copy toolbar card, horizontal-scroll CSS table (columns kept aligned) -->
+  <view
+    a:elif="{{u.isTable(node.name)}}"
+    class="md-tableblock {{node.animate ? 'md-animate-block' : ''}}"
+  >
+    <view a:if="{{node.header}}" class="md-tableblock-bar">
+      <block a:for="{{node.header}}" a:for-item="h" a:for-index="hi" a:key="k">
+        <text a:if="{{u.isText(h.name)}}" class="{{u.classOf(h)}}">{{u.valueOf(h)}}</text>
+        <image
+          a:elif="{{u.isCopy(h.name)}}"
+          class="{{u.classOf(h) || 'md-copy-icon'}}"
+          src="https://mdn.alipayobjects.com/huamei_y8xg5f/afts/img/JXzqSoHDzm4AAAAAHpAAAAgADuJhAQFr/original"
+          data-copy="{{u.copyOf(h)}}"
+          catchTap="_copy"
+        />
+        <view a:else class="{{u.classOf(h)}}" style="{{u.styleOf(h)}}">
+          <mini-node-renderer
+            a:if="{{h.children}}"
+            nodes="{{h.children}}"
+            selectable="{{selectable}}"
+            animation="{{false}}"
+            slotComponents="{{slotComponents}}"
+            onTap="onTap"
+          >
+            <slot slot-scope="prop" data="{{prop.data}}" />
+          </mini-node-renderer>
+        </view>
+      </block>
+    </view>
+    <view class="markdownx-table-content">
+      <view class="markdownx-edge-shadow markdownx-edge-shadow-left {{u.leftShadowClass(shadows, 'table-', i, u.defaultRightShadow(node))}}" />
+      <view class="markdownx-edge-shadow markdownx-edge-shadow-right {{u.rightShadowClass(shadows, 'table-', i, u.defaultRightShadow(node))}}" />
+      <scroll-view
+        scroll-x
+        class="md-table-scroll"
+        data-table-key="{{i}}"
+        data-scroll-key="table-{{i}}"
+        data-default-right="{{u.defaultRightShadow(node)}}"
+        onScroll="_tableScroll"
+      >
+        <view class="{{u.classOf(node)}}" data-table-key="{{i}}" data-scroll-key="table-{{i}}">
+          <view
+            a:for="{{node.children}}"
+            a:for-item="row"
+            a:for-index="ri"
+            a:key="k"
+            class="{{u.classOf(row)}}"
+            style="{{u.styleOf(row)}}"
+          >
+            <view
+              a:for="{{row.children}}"
+              a:for-item="cell"
+              a:for-index="ci"
+              a:key="k"
+              class="{{u.classOf(cell)}}"
+              style="{{u.styleOf(cell)}}"
+            >
+              <mini-node-renderer
+                a:if="{{cell.children}}"
+                nodes="{{cell.children}}"
+                selectable="{{selectable}}"
+                animation="{{false}}"
+                slotComponents="{{slotComponents}}"
+                onTap="onTap"
+                onAppear="onAppear"
+              >
+                <slot slot-scope="prop" data="{{prop.data}}" />
+              </mini-node-renderer>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- anchor：flatten 已把链接展开成「自带 value、无 children」的叶子 run（每段文本一个
+       a 节点，br 单独成兄弟节点走上面的 isBr 分支）。这里直接渲染为单个可点击 <text>，
+       与前后文本同级——外包 <view> 即使 display:inline 也会生成布局盒、打断行内排版。
+       旧版误用 node.children 遍历，扁平化后子节点为空导致支付宝链接整段不显示。 -->
+  <text
+    a:elif="{{node.name === 'a'}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
+    data-data="{{node}}"
+    hover-class="md-link--active"
+    hover-start-time="0"
+    hover-stay-time="80"
+    catchTap="_tap"
+  >{{u.valueOf(node)}}</text>
+
+  <!-- inline tag rendered as a flat container because Alipay SDK 2.x rejects nested <text>. -->
+  <view
+    a:elif="{{u.isInline(node.name) && !u.isRich(node)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    data-data="{{node}}"
+    catchTap="_tap"
+  >
+    <text
+      a:for="{{node.children}}"
+      a:for-item="c"
+      a:for-index="ci"
+      a:key="k"
+      class="{{u.classOf(c)}}"
+      style="{{u.styleOf(c)}}"
+    >{{u.valueOf(c)}}</text>
+  </view>
+
+  <!-- custom component: hand off to host scoped slot, keyed by node.tag -->
+  <slot
+    a:elif="{{u.isSlot(node.name, slotComponents)}}"
+    data="{{node}}"
+  />
+
+  <!-- block tag rendered as <view> -->
+  <view
+    a:else
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    data-data="{{node}}"
+    catchTap="_tap"
+  >
+    <mini-node-renderer
+      a:if="{{node.children}}"
+      nodes="{{node.children}}"
+      selectable="{{selectable}}"
+      animation="{{animation}}"
+      slotComponents="{{slotComponents}}"
+      onTap="onTap"
+      onAppear="onAppear"
+    >
+      <slot slot-scope="prop" data="{{prop.data}}" />
+    </mini-node-renderer>
+  </view>
+</block>
+</block>

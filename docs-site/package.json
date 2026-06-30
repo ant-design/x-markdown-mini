@@ -1,0 +1,21 @@
+{
+  "name": "x-markdown-mini-docs",
+  "private": true,
+  "scripts": {
+    "check:home": "node scripts/check-homepage.mjs",
+    "dev": "dumi dev",
+    "build": "dumi build",
+    "preview": "dumi preview"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "dumi": "^2.4.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "@ant-design/x-markdown-mini": "file:.."
+  }
+}

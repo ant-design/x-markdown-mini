@@ -1,0 +1,9 @@
+{
+  "format": 2,
+  "compileOptions": {
+    "component2": true,
+    "less": true,
+    "typescript": true,
+    "transpile": {}
+  }
+}

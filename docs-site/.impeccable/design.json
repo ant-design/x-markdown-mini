@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-07T00:00:00.000Z",
+  "title": "Design System: x-markdown-mini",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Electric Blue",
+        "canonical": "#2563eb",
+        "tonalRamp": ["#0a1f4d", "#13306e", "#1c4290", "#2563eb", "#5689f0", "#8db4f6", "#bcd3fa", "#e3edfd"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#171717",
+        "tonalRamp": ["#0a0a0a", "#171717", "#262626", "#525252", "#737373", "#a3a3a3", "#d4d4d4", "#f5f5f5"]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Whiteboard White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#e5e5e5", "#f0f0f0", "#f5f5f5", "#fafafa", "#ffffff", "#ffffff", "#ffffff", "#ffffff"]
+      },
+      "code-surface": {
+        "role": "tertiary",
+        "displayName": "Terminal Black",
+        "canonical": "#0a0a0a",
+        "tonalRamp": ["#000000", "#0a0a0a", "#171717", "#262626", "#404040", "#525252", "#737373", "#a3a3a3"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Home hero title only. Inter 750, ~52-72px." },
+      "headline": { "displayName": "Headline", "purpose": "Landing section h2 and prose page titles. Primary scan anchor." },
+      "title": { "displayName": "Title", "purpose": "Prose h2 (hairline-underlined), card and demo-phone titles." },
+      "body": { "displayName": "Body", "purpose": "Prose paragraphs and list items in Ink Secondary; ~65-75ch measure." },
+      "label": { "displayName": "Label", "purpose": "Eyebrow/kicker and group headers. Uppercase, <=4 words." },
+      "mono": { "displayName": "Mono", "purpose": "Install command, code blocks, demo source lines only." }
+    },
+    "shadows": [
+      { "name": "hover-lift", "value": "0 16px 40px #e5e5e5", "purpose": "Cards and capability tiles on hover, with translateY(-1px). Neutral diffuse glow, never black." },
+      { "name": "demo-stage", "value": "0 22px 70px #d4d4d4", "purpose": "Dark demo terminal at rest; reads as a device floating above the whiteboard." },
+      { "name": "overlay", "value": "0 24px 80px rgba(0,0,0,0.15)", "purpose": "Search modal and floating panels only." }
+    ],
+    "motion": [
+      { "name": "ui-transition", "value": "0.15s ease", "purpose": "Default for color, border, background, and transform state changes on buttons, cards, nav." },
+      { "name": "stream-caret", "value": "xmd-stream-caret 4.8s infinite both", "purpose": "Per-line reveal in the demo terminal; the one place motion is the product. Must have a prefers-reduced-motion static fallback." }
+    ],
+    "breakpoints": [
+      { "name": "lg", "value": "1024px" },
+      { "name": "md", "value": "900px" },
+      { "name": "sm", "value": "767px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The main CTA (Start integrating / Read docs). Ink fill, white text.",
+      "html": "<a class=\"ds-btn-primary\" href=\"#\">Start integrating</a>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 17px; color: #ffffff; background: #171717; border: 1px solid #171717; border-radius: 8px; font: 650 14px/1 Inter, system-ui, sans-serif; text-decoration: none; transition: background 0.15s, border-color 0.15s; } .ds-btn-primary:hover { background: #262626; border-color: #262626; } .ds-btn-primary:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Lower-priority action. Transparent fill, strong border.",
+      "html": "<a class=\"ds-btn-secondary\" href=\"#\">View API</a>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 17px; color: #171717; background: transparent; border: 1px solid #d4d4d4; border-radius: 8px; font: 650 14px/1 Inter, system-ui, sans-serif; text-decoration: none; transition: background 0.15s, border-color 0.15s; } .ds-btn-secondary:hover { background: #fafafa; border-color: #a3a3a3; } .ds-btn-secondary:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }"
+    },
+    {
+      "name": "Install Command",
+      "kind": "button",
+      "refersTo": "install-command",
+      "description": "Signature hero affordance: a monospace copy-to-clipboard pill for the npm install command. Copy icon turns Electric Blue on success.",
+      "html": "<button class=\"ds-install\" type=\"button\" aria-label=\"Copy install command\"><span class=\"ds-install-prompt\">$</span><code class=\"ds-install-text\">npm i @ant-design/x-markdown-mini</code><span class=\"ds-install-copy\"><svg viewBox=\"0 0 16 16\" width=\"15\" height=\"15\" fill=\"none\"><path d=\"M5 5.5c0-.83.67-1.5 1.5-1.5h6c.83 0 1.5.67 1.5 1.5v6c0 .83-.67 1.5-1.5 1.5h-6c-.83 0-1.5-.67-1.5-1.5v-6Z\" stroke=\"currentColor\" stroke-width=\"1.4\"/><path d=\"M3 10H2.5C1.67 10 1 9.33 1 8.5v-6C1 1.67 1.67 1 2.5 1h6C9.33 1 10 1.67 10 2.5V3\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\"/></svg></span></button>",
+      "css": ".ds-install { display: inline-flex; align-items: center; gap: 10px; height: 42px; padding: 0 12px 0 15px; color: #171717; background: #ffffff; border: 1px solid #e5e5e5; border-radius: 6px; cursor: pointer; font: 400 14px/1 ui-monospace, SFMono-Regular, Menlo, monospace; transition: border-color 0.15s, background 0.15s; } .ds-install:hover { border-color: #d4d4d4; background: #fafafa; } .ds-install-prompt { color: #9aa0a6; } .ds-install-copy { display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center; color: #9aa0a6; border-radius: 4px; transition: color 0.15s, background 0.15s; } .ds-install:hover .ds-install-copy { color: #171717; background: rgba(0,0,0,0.04); } .ds-install:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }"
+    },
+    {
+      "name": "Capability Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat-at-rest bordered card for capabilities/features; lifts and borders Electric-Blue on hover.",
+      "html": "<a class=\"ds-card\" href=\"#\"><span class=\"ds-card-eyebrow\">Streaming</span><strong class=\"ds-card-title\">Stable-block cache</strong><p class=\"ds-card-body\">Committed blocks render exactly once; only the tail re-runs each tick.</p></a>",
+      "css": ".ds-card { display: block; padding: 22px; color: #171717; background: #ffffff; border: 1px solid #e5e5e5; border-radius: 8px; text-decoration: none; transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s; } .ds-card:hover { border-color: #2563eb3d; transform: translateY(-1px); box-shadow: 0 16px 40px #e5e5e5; } .ds-card-eyebrow { display: block; color: #2563eb; font: 750 12px/1 Inter, sans-serif; } .ds-card-title { display: block; margin-top: 8px; color: #171717; font: 700 16px/1.35 Inter, sans-serif; } .ds-card-body { margin: 10px 0 0; color: #737373; font: 400 13px/1.65 Inter, sans-serif; } .ds-card:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }"
+    },
+    {
+      "name": "Meta Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Quiet pill for hero metadata (platform / size facts).",
+      "html": "<span class=\"ds-badge\">WeChat + Alipay</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; padding: 6px 10px; color: #525252; background: #fafafa; border: 1px solid #e5e5e5; border-radius: 999px; font: 600 12px/1.2 Inter, sans-serif; }"
+    },
+    {
+      "name": "Demo Terminal",
+      "kind": "custom",
+      "refersTo": "code-block",
+      "description": "Signature dark stage that hosts the streaming/typewriter demo: the one high-contrast 'product is rendering' moment.",
+      "html": "<div class=\"ds-terminal\"><div class=\"ds-terminal-bar\"><span></span><span></span><span></span><strong>preview</strong></div><pre class=\"ds-terminal-body\"><code># Streaming\nrenderNodes({ platform: 'wechat' })</code></pre></div>",
+      "css": ".ds-terminal { overflow: hidden; background: #0a0a0a; border: 1px solid #d4d4d4; border-radius: 8px; box-shadow: 0 22px 70px #d4d4d4; } .ds-terminal-bar { display: flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; background: #0a0a0a; border-bottom: 1px solid #d4d4d4; } .ds-terminal-bar span { width: 9px; height: 9px; border-radius: 50%; background: #f87171; } .ds-terminal-bar span:nth-child(2) { background: #fbbf24; } .ds-terminal-bar span:nth-child(3) { background: #34d399; } .ds-terminal-bar strong { margin-inline-start: 8px; color: #a3a3a3; font: 650 12px/1 Inter, sans-serif; } .ds-terminal-body { margin: 0; padding: 18px; color: #e5e7eb; font: 400 13px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; } .ds-terminal-body code { color: inherit; background: transparent; }"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": "card",
+      "description": "Doc sidebar link; active state is Electric Blue on an 8% blue tint.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\">Overview</a><a class=\"active\" href=\"#\">Streaming Rendering</a><a href=\"#\">Typewriter Mode</a></nav>",
+      "css": ".ds-nav { display: flex; flex-direction: column; gap: 4px; width: 228px; } .ds-nav a { display: flex; align-items: center; min-height: 44px; padding: 7px 12px; color: #202020; font: 520 18px/1.45 Inter, sans-serif; text-decoration: none; border-radius: 8px; transition: background 0.15s, color 0.15s; } .ds-nav a:hover { color: #171717; background: #f7f7f7; } .ds-nav a.active { color: #2563eb; font-weight: 600; background: #2563eb17; } .ds-nav a:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Engineering Whiteboard",
+    "overview": "A white surface, near-black ink, and a single electric-blue marker. The site behaves like a senior engineer at a whiteboard explaining a sharp design decision: the architecture pipeline gets drawn cleanly, the numbers get written down, and nothing decorative competes for attention. The page is a quiet frame; the only places that go loud are the dark code terminals where the library actually performs. A brand surface in the Vercel/Linear register: confident and exact, clean enough to read like good developer documentation. It commits hard to one accent and one near-black ink against pure white, and refuses to hedge that monochrome with a second decorative hue.",
+    "keyCharacteristics": [
+      "Pure-white canvas, near-black ink, one electric-blue accent. No second hue.",
+      "Flat at rest; surfaces lift only in response to hover.",
+      "Dark #0a0a0a terminals are the single high-contrast moment: where the product renders.",
+      "Inter at large weight-and-size contrast carries the entire type voice.",
+      "Motion only where it shows streaming, tail-fixup, or typewriter behavior."
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "Electric Blue (#2563eb) is the only chromatic color on the page and appears on <=10% of any screen. Its rarity is the signal. Never introduce a second accent hue, and never use blue as a large fill.", "section": "colors" },
+      { "name": "The Whiteboard Rule", "body": "The base is pure white with a near-black ink ramp. Tint neutrals only toward black, never toward warm cream or cool slate. The body background is #ffffff, never a tinted near-white.", "section": "colors" },
+      { "name": "The Single Family Rule", "body": "Inter carries every non-code surface. Hierarchy is built from weight (400 / 650 / 700 / 750) and size, never from adding a second display or serif face. Mono is for code and commands only.", "section": "typography" },
+      { "name": "The Quiet Caps Rule", "body": "Uppercase is permitted only on the eyebrow label and short group headers (<=4 words). Body copy is never set in all caps.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest with a 1px border. Shadows appear only as a response to hover/focus, or to lift the one dark 'performing' terminal. If a card has a resting drop shadow, it's wrong.", "section": "elevation" },
+      { "name": "The Neutral-Shadow Rule", "body": "Hover shadows are tinted from the zinc ramp (#e5e5e5 / #d4d4d4), not black with opacity. The page never looks like a 2014 Material card.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep the body background pure white (#ffffff); carry depth with the masked 56px grid and the zinc ramp.",
+      "Do use Electric Blue (#2563eb) sparingly, on <=10% of any screen, as the single accent.",
+      "Do build hierarchy from Inter weight contrast (400 -> 650 -> 700 -> 750), not from a second typeface.",
+      "Do keep surfaces flat at rest; let shadow and lift appear only on hover/focus.",
+      "Do reserve the dark #0a0a0a terminal for moments where the product is rendering, and give every demo a prefers-reduced-motion static fallback.",
+      "Do keep body copy on the ink end of the ramp (#525252 or darker) to hold >=4.5:1; reserve #737373/#a3a3a3 for large or non-essential text.",
+      "Do give every interactive element a visible Electric-Blue focus ring for AA keyboard navigation."
+    ],
+    "donts": [
+      "Don't make it look like a generic Ant Design clone or a default component-library docs theme.",
+      "Don't drift into heavy enterprise/corporate SaaS: no gradient-heavy hero, no badge clutter, no 'enterprise-grade / next-generation' scaffolding.",
+      "Don't introduce toy, playful, or cartoonish elements: no mascots, bright illustration, or playful gradients.",
+      "Don't clutter or over-animate: no scroll-jacking, no fade-on-scroll on every section, no decoration competing with content. Motion is for demonstrating the product only.",
+      "Don't add a second accent hue, or use blue as a large fill (violates The One Voice Rule).",
+      "Don't tint the background toward warm cream or cool slate; the canvas is pure white (The Whiteboard Rule).",
+      "Don't use a colored left-border stripe wider than the 1px TOC rule, and never put a resting drop shadow on a card.",
+      "Don't set body copy in all caps; uppercase is for <=4-word labels only."
+    ]
+  }
+}

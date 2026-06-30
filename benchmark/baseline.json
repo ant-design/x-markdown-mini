@@ -1,0 +1,715 @@
+{
+  "node": "v20.19.5",
+  "timestamp": "2026-05-20T01:59:05.125Z",
+  "options": {
+    "time": 500,
+    "warmupIterations": 50
+  },
+  "scenarios": {
+    "parse/x-markdown-mini/block-bq-flat.md": {
+      "hz": 103655.96531635539,
+      "rme": 0.4230224730081873,
+      "samples": 50756
+    },
+    "parse/markdown-it/block-bq-flat.md": {
+      "hz": 235773.9459186881,
+      "rme": 0.4342725549504013,
+      "samples": 115091
+    },
+    "parse/marked/block-bq-flat.md": {
+      "hz": 129446.49025087996,
+      "rme": 0.2756626746355098,
+      "samples": 64128
+    },
+    "parse/remark/block-bq-flat.md": {
+      "hz": 9437.429269288774,
+      "rme": 0.4869341218826913,
+      "samples": 4655
+    },
+    "parse/x-markdown-mini/block-bq-nested.md": {
+      "hz": 10039.70935701527,
+      "rme": 0.31822228669696306,
+      "samples": 4988
+    },
+    "parse/markdown-it/block-bq-nested.md": {
+      "hz": 123719.94115513563,
+      "rme": 1.5639939843604285,
+      "samples": 58753
+    },
+    "parse/marked/block-bq-nested.md": {
+      "hz": 10094.968812982836,
+      "rme": 0.6980460110466347,
+      "samples": 4940
+    },
+    "parse/remark/block-bq-nested.md": {
+      "hz": 5220.502316391003,
+      "rme": 2.797636619630055,
+      "samples": 2458
+    },
+    "parse/x-markdown-mini/block-code.md": {
+      "hz": 657640.3126576991,
+      "rme": 0.5963942132902879,
+      "samples": 313726
+    },
+    "parse/markdown-it/block-code.md": {
+      "hz": 908076.1688983146,
+      "rme": 1.6029904914900597,
+      "samples": 436244
+    },
+    "parse/marked/block-code.md": {
+      "hz": 1009437.0346360259,
+      "rme": 0.371614993444111,
+      "samples": 494636
+    },
+    "parse/remark/block-code.md": {
+      "hz": 23703.53743669379,
+      "rme": 0.47167673171097735,
+      "samples": 11597
+    },
+    "parse/x-markdown-mini/block-fences.md": {
+      "hz": 1143593.7984083602,
+      "rme": 0.6616436082498117,
+      "samples": 533144
+    },
+    "parse/markdown-it/block-fences.md": {
+      "hz": 842233.5865392339,
+      "rme": 0.4380065430971708,
+      "samples": 411129
+    },
+    "parse/marked/block-fences.md": {
+      "hz": 1944165.0079589707,
+      "rme": 1.6662023584814654,
+      "samples": 940552
+    },
+    "parse/remark/block-fences.md": {
+      "hz": 18972.35076020887,
+      "rme": 0.7897823791103674,
+      "samples": 9119
+    },
+    "parse/x-markdown-mini/block-heading.md": {
+      "hz": 122969.50460521365,
+      "rme": 0.43828787680163006,
+      "samples": 59914
+    },
+    "parse/markdown-it/block-heading.md": {
+      "hz": 196984.59966050542,
+      "rme": 3.725617605255929,
+      "samples": 90280
+    },
+    "parse/marked/block-heading.md": {
+      "hz": 139405.72700587983,
+      "rme": 1.0766707973318368,
+      "samples": 66498
+    },
+    "parse/remark/block-heading.md": {
+      "hz": 13187.46607018654,
+      "rme": 0.507309582154414,
+      "samples": 6478
+    },
+    "parse/x-markdown-mini/block-hr.md": {
+      "hz": 82364.22800612742,
+      "rme": 0.34049052964930376,
+      "samples": 40632
+    },
+    "parse/markdown-it/block-hr.md": {
+      "hz": 364758.65938668145,
+      "rme": 0.5042862288219218,
+      "samples": 175666
+    },
+    "parse/marked/block-hr.md": {
+      "hz": 84596.69046464852,
+      "rme": 0.8467272282022181,
+      "samples": 41082
+    },
+    "parse/remark/block-hr.md": {
+      "hz": 15451.658041056708,
+      "rme": 3.715183619952981,
+      "samples": 6183
+    },
+    "parse/x-markdown-mini/block-html.md": {
+      "hz": 129920.80983540385,
+      "rme": 1.228563228841596,
+      "samples": 56642
+    },
+    "parse/markdown-it/block-html.md": {
+      "hz": 39771.46775575129,
+      "rme": 1.233677461749469,
+      "samples": 17862
+    },
+    "parse/marked/block-html.md": {
+      "hz": 157472.31918324326,
+      "rme": 2.086829705962392,
+      "samples": 70374
+    },
+    "parse/remark/block-html.md": {
+      "hz": 8696.996845485182,
+      "rme": 0.7862418798444893,
+      "samples": 4254
+    },
+    "parse/x-markdown-mini/block-lheading.md": {
+      "hz": 215542.95191836654,
+      "rme": 0.23004473978174042,
+      "samples": 106792
+    },
+    "parse/markdown-it/block-lheading.md": {
+      "hz": 181514.82570984014,
+      "rme": 0.44787956563554976,
+      "samples": 88519
+    },
+    "parse/marked/block-lheading.md": {
+      "hz": 244757.5927288028,
+      "rme": 0.5551991346384557,
+      "samples": 117097
+    },
+    "parse/remark/block-lheading.md": {
+      "hz": 13220.708287287425,
+      "rme": 4.098977903481848,
+      "samples": 5415
+    },
+    "parse/x-markdown-mini/block-list-flat.md": {
+      "hz": 10609.842846162815,
+      "rme": 3.3209360684984044,
+      "samples": 4870
+    },
+    "parse/markdown-it/block-list-flat.md": {
+      "hz": 47192.46718546154,
+      "rme": 1.4949517807685306,
+      "samples": 21768
+    },
+    "parse/marked/block-list-flat.md": {
+      "hz": 11115.062099795801,
+      "rme": 2.5484760020299153,
+      "samples": 5182
+    },
+    "parse/remark/block-list-flat.md": {
+      "hz": 1353.8752218878749,
+      "rme": 4.612564344369261,
+      "samples": 576
+    },
+    "parse/x-markdown-mini/block-list-nested.md": {
+      "hz": 8628.353256862392,
+      "rme": 2.5888748543036586,
+      "samples": 3933
+    },
+    "parse/markdown-it/block-list-nested.md": {
+      "hz": 48065.557863702954,
+      "rme": 2.2277745092145014,
+      "samples": 19232
+    },
+    "parse/marked/block-list-nested.md": {
+      "hz": 9361.931547664442,
+      "rme": 2.6578168210344795,
+      "samples": 4474
+    },
+    "parse/remark/block-list-nested.md": {
+      "hz": 1839.7749296787606,
+      "rme": 1.8009324041135577,
+      "samples": 884
+    },
+    "parse/x-markdown-mini/block-ref-flat.md": {
+      "hz": 27620.696161696113,
+      "rme": 0.5360156802024162,
+      "samples": 13532
+    },
+    "parse/markdown-it/block-ref-flat.md": {
+      "hz": 16304.34082372478,
+      "rme": 0.5981196512479601,
+      "samples": 7976
+    },
+    "parse/marked/block-ref-flat.md": {
+      "hz": 29335.78855664912,
+      "rme": 0.5102946079359945,
+      "samples": 14399
+    },
+    "parse/remark/block-ref-flat.md": {
+      "hz": 3339.430463687304,
+      "rme": 1.298606687084273,
+      "samples": 1616
+    },
+    "parse/x-markdown-mini/block-ref-list.md": {
+      "hz": 22283.33664153968,
+      "rme": 3.8281342359317634,
+      "samples": 8636
+    },
+    "parse/markdown-it/block-ref-list.md": {
+      "hz": 26724.717614685218,
+      "rme": 0.6705502625953685,
+      "samples": 12936
+    },
+    "parse/marked/block-ref-list.md": {
+      "hz": 27244.849456824224,
+      "rme": 0.5000760949532477,
+      "samples": 13397
+    },
+    "parse/remark/block-ref-list.md": {
+      "hz": 1353.48548151806,
+      "rme": 1.09531983084062,
+      "samples": 666
+    },
+    "parse/x-markdown-mini/block-ref-nested.md": {
+      "hz": 24190.2884533477,
+      "rme": 1.1380119647553815,
+      "samples": 11499
+    },
+    "parse/markdown-it/block-ref-nested.md": {
+      "hz": 23242.486487009126,
+      "rme": 7.0418943981713,
+      "samples": 9483
+    },
+    "parse/marked/block-ref-nested.md": {
+      "hz": 26407.483858909603,
+      "rme": 0.5583295786901648,
+      "samples": 12927
+    },
+    "parse/remark/block-ref-nested.md": {
+      "hz": 3526.5826923497884,
+      "rme": 3.0192405037043955,
+      "samples": 1525
+    },
+    "parse/x-markdown-mini/block-tables.md": {
+      "hz": 27246.478414228477,
+      "rme": 5.380548362518534,
+      "samples": 10491
+    },
+    "parse/markdown-it/block-tables.md": {
+      "hz": 60976.02327956582,
+      "rme": 3.403209658205888,
+      "samples": 26239
+    },
+    "parse/marked/block-tables.md": {
+      "hz": 33014.90935714228,
+      "rme": 1.7249398325233811,
+      "samples": 14775
+    },
+    "parse/remark/block-tables.md": {
+      "hz": 5377.417154519,
+      "rme": 3.1090380496397443,
+      "samples": 2335
+    },
+    "parse/x-markdown-mini/inline-autolink.md": {
+      "hz": 45117.864337970976,
+      "rme": 1.1096217474526422,
+      "samples": 21033
+    },
+    "parse/markdown-it/inline-autolink.md": {
+      "hz": 45613.365795755606,
+      "rme": 0.7110947154931758,
+      "samples": 22049
+    },
+    "parse/marked/inline-autolink.md": {
+      "hz": 58553.34850461638,
+      "rme": 0.5054061642180318,
+      "samples": 28772
+    },
+    "parse/remark/inline-autolink.md": {
+      "hz": 5107.9351275202025,
+      "rme": 1.7217732579045932,
+      "samples": 2416
+    },
+    "parse/x-markdown-mini/inline-backticks.md": {
+      "hz": 160214.4685381172,
+      "rme": 1.2195373309470874,
+      "samples": 74701
+    },
+    "parse/markdown-it/inline-backticks.md": {
+      "hz": 443093.72762237175,
+      "rme": 1.1677401314041063,
+      "samples": 204514
+    },
+    "parse/marked/inline-backticks.md": {
+      "hz": 176933.34316059016,
+      "rme": 0.8994508535236226,
+      "samples": 84600
+    },
+    "parse/remark/inline-backticks.md": {
+      "hz": 19217.480738659993,
+      "rme": 0.8828976246044774,
+      "samples": 9229
+    },
+    "parse/x-markdown-mini/inline-em-flat.md": {
+      "hz": 43449.00561104081,
+      "rme": 0.9071087394157105,
+      "samples": 20888
+    },
+    "parse/markdown-it/inline-em-flat.md": {
+      "hz": 83293.05961787389,
+      "rme": 0.9886183813685232,
+      "samples": 39344
+    },
+    "parse/marked/inline-em-flat.md": {
+      "hz": 46606.84955334057,
+      "rme": 0.8062603347458854,
+      "samples": 22611
+    },
+    "parse/remark/inline-em-flat.md": {
+      "hz": 8459.430977392798,
+      "rme": 1.0055392709322817,
+      "samples": 4081
+    },
+    "parse/x-markdown-mini/inline-em-nested.md": {
+      "hz": 37867.71568913141,
+      "rme": 0.9158262159406858,
+      "samples": 18116
+    },
+    "parse/markdown-it/inline-em-nested.md": {
+      "hz": 104425.60562053851,
+      "rme": 0.9161364818119496,
+      "samples": 49879
+    },
+    "parse/marked/inline-em-nested.md": {
+      "hz": 41241.69422402657,
+      "rme": 0.887043982342953,
+      "samples": 19865
+    },
+    "parse/remark/inline-em-nested.md": {
+      "hz": 8470.437968403798,
+      "rme": 1.1402645892173278,
+      "samples": 4052
+    },
+    "parse/x-markdown-mini/inline-em-worst.md": {
+      "hz": 18928.21706965359,
+      "rme": 1.3386054422325901,
+      "samples": 8777
+    },
+    "parse/markdown-it/inline-em-worst.md": {
+      "hz": 109484.51107793418,
+      "rme": 0.8363577801528225,
+      "samples": 52194
+    },
+    "parse/marked/inline-em-worst.md": {
+      "hz": 20481.264521409114,
+      "rme": 0.8891231792939843,
+      "samples": 9913
+    },
+    "parse/remark/inline-em-worst.md": {
+      "hz": 10828.567096599989,
+      "rme": 0.8049857826248678,
+      "samples": 5267
+    },
+    "parse/x-markdown-mini/inline-entity.md": {
+      "hz": 88282.74361380207,
+      "rme": 0.7796104816320144,
+      "samples": 42716
+    },
+    "parse/markdown-it/inline-entity.md": {
+      "hz": 118129.9382021526,
+      "rme": 0.6718909644280828,
+      "samples": 57360
+    },
+    "parse/marked/inline-entity.md": {
+      "hz": 112352.05729087305,
+      "rme": 0.6866715013364693,
+      "samples": 55040
+    },
+    "parse/remark/inline-entity.md": {
+      "hz": 7573.470267765146,
+      "rme": 0.8529992820773319,
+      "samples": 3697
+    },
+    "parse/x-markdown-mini/inline-escape.md": {
+      "hz": 34332.43648794592,
+      "rme": 0.7954891163818768,
+      "samples": 16637
+    },
+    "parse/markdown-it/inline-escape.md": {
+      "hz": 113699.60508096272,
+      "rme": 0.3878998043608923,
+      "samples": 55945
+    },
+    "parse/marked/inline-escape.md": {
+      "hz": 35666.85254836762,
+      "rme": 1.283702678132208,
+      "samples": 16853
+    },
+    "parse/remark/inline-escape.md": {
+      "hz": 5705.648757397049,
+      "rme": 1.1171243206478934,
+      "samples": 2752
+    },
+    "parse/x-markdown-mini/inline-html.md": {
+      "hz": 30177.882775828373,
+      "rme": 0.9034019104749571,
+      "samples": 14532
+    },
+    "parse/markdown-it/inline-html.md": {
+      "hz": 36086.8231149499,
+      "rme": 1.0463785719476968,
+      "samples": 17139
+    },
+    "parse/marked/inline-html.md": {
+      "hz": 35689.31387147171,
+      "rme": 0.799939206846274,
+      "samples": 17325
+    },
+    "parse/remark/inline-html.md": {
+      "hz": 3215.5347976097983,
+      "rme": 1.6789375263193476,
+      "samples": 1528
+    },
+    "parse/x-markdown-mini/inline-links-flat.md": {
+      "hz": 22365.41676564687,
+      "rme": 1.0620623792175683,
+      "samples": 10736
+    },
+    "parse/markdown-it/inline-links-flat.md": {
+      "hz": 33842.510616730164,
+      "rme": 0.8268165176666975,
+      "samples": 16364
+    },
+    "parse/marked/inline-links-flat.md": {
+      "hz": 24700.12857275531,
+      "rme": 0.8240649638142876,
+      "samples": 12010
+    },
+    "parse/remark/inline-links-flat.md": {
+      "hz": 2265.587430817226,
+      "rme": 1.0543930547209501,
+      "samples": 1110
+    },
+    "parse/x-markdown-mini/inline-links-nested.md": {
+      "hz": 15862.909798668907,
+      "rme": 0.746879368522317,
+      "samples": 7771
+    },
+    "parse/markdown-it/inline-links-nested.md": {
+      "hz": 7778.293495895316,
+      "rme": 0.45621796754296906,
+      "samples": 3866
+    },
+    "parse/marked/inline-links-nested.md": {
+      "hz": 16536.895471295844,
+      "rme": 0.8138243538062244,
+      "samples": 8089
+    },
+    "parse/remark/inline-links-nested.md": {
+      "hz": 3651.07029657958,
+      "rme": 1.369994694416688,
+      "samples": 1760
+    },
+    "parse/x-markdown-mini/inline-newlines.md": {
+      "hz": 90284.58960792581,
+      "rme": 0.7889100161979893,
+      "samples": 43790
+    },
+    "parse/markdown-it/inline-newlines.md": {
+      "hz": 156692.19110611145,
+      "rme": 0.9371068864602079,
+      "samples": 74862
+    },
+    "parse/marked/inline-newlines.md": {
+      "hz": 99926.23273732836,
+      "rme": 0.8150426777035183,
+      "samples": 48549
+    },
+    "parse/remark/inline-newlines.md": {
+      "hz": 7937.381539044493,
+      "rme": 1.2774454417053065,
+      "samples": 3782
+    },
+    "parse/x-markdown-mini/lorem1.txt": {
+      "hz": 11530.524053014828,
+      "rme": 0.9168719861267219,
+      "samples": 5609
+    },
+    "parse/markdown-it/lorem1.txt": {
+      "hz": 30227.033298422226,
+      "rme": 0.8050548719337667,
+      "samples": 14720
+    },
+    "parse/marked/lorem1.txt": {
+      "hz": 15017.243422991616,
+      "rme": 1.1219135454779554,
+      "samples": 7203
+    },
+    "parse/remark/lorem1.txt": {
+      "hz": 1791.7303556824832,
+      "rme": 0.912035959844309,
+      "samples": 886
+    },
+    "parse/x-markdown-mini/rawtabs.md": {
+      "hz": 107127.16627127113,
+      "rme": 1.0144051883328637,
+      "samples": 51233
+    },
+    "parse/markdown-it/rawtabs.md": {
+      "hz": 226894.81617060915,
+      "rme": 1.080947018295172,
+      "samples": 107796
+    },
+    "parse/marked/rawtabs.md": {
+      "hz": 141458.796282002,
+      "rme": 0.8563088073657594,
+      "samples": 68561
+    },
+    "parse/remark/rawtabs.md": {
+      "hz": 8468.547502069556,
+      "rme": 1.363341692019479,
+      "samples": 4026
+    },
+    "parse/x-markdown-mini/ai-chat-long.md": {
+      "hz": 3653.6174218783394,
+      "rme": 1.7379810472580137,
+      "samples": 1748
+    },
+    "parse/markdown-it/ai-chat-long.md": {
+      "hz": 10318.691247964936,
+      "rme": 1.1435481705508195,
+      "samples": 4946
+    },
+    "parse/marked/ai-chat-long.md": {
+      "hz": 4489.140047687368,
+      "rme": 1.1322165779821134,
+      "samples": 2184
+    },
+    "parse/remark/ai-chat-long.md": {
+      "hz": 540.1634629784329,
+      "rme": 1.4797858433178308,
+      "samples": 267
+    },
+    "pipeline/x-markdown-mini/block-bq-flat.md": {
+      "hz": 101559.62955390477,
+      "rme": 1.1445898442086635,
+      "samples": 48201
+    },
+    "pipeline/x-markdown-mini/block-bq-nested.md": {
+      "hz": 9592.401801311871,
+      "rme": 1.285064192216463,
+      "samples": 4592
+    },
+    "pipeline/x-markdown-mini/block-code.md": {
+      "hz": 662896.8525103674,
+      "rme": 1.0440425201371375,
+      "samples": 312687
+    },
+    "pipeline/x-markdown-mini/block-fences.md": {
+      "hz": 1137817.06201662,
+      "rme": 1.0659294893817375,
+      "samples": 529749
+    },
+    "pipeline/x-markdown-mini/block-heading.md": {
+      "hz": 123644.31783368815,
+      "rme": 0.5470861444989259,
+      "samples": 60141
+    },
+    "pipeline/x-markdown-mini/block-hr.md": {
+      "hz": 81493.65854662305,
+      "rme": 0.5640239090806732,
+      "samples": 39848
+    },
+    "pipeline/x-markdown-mini/block-html.md": {
+      "hz": 131818.5852778423,
+      "rme": 0.778502428384219,
+      "samples": 63050
+    },
+    "pipeline/x-markdown-mini/block-lheading.md": {
+      "hz": 208701.49753120216,
+      "rme": 0.515219446449461,
+      "samples": 101742
+    },
+    "pipeline/x-markdown-mini/block-list-flat.md": {
+      "hz": 10658.32339314126,
+      "rme": 0.7759098127916381,
+      "samples": 5210
+    },
+    "pipeline/x-markdown-mini/block-list-nested.md": {
+      "hz": 8501.929386749875,
+      "rme": 0.8529082514295744,
+      "samples": 4128
+    },
+    "pipeline/x-markdown-mini/block-ref-flat.md": {
+      "hz": 25875.335626619613,
+      "rme": 0.7653557282516398,
+      "samples": 12498
+    },
+    "pipeline/x-markdown-mini/block-ref-list.md": {
+      "hz": 24627.369544306315,
+      "rme": 0.7599957739106796,
+      "samples": 11888
+    },
+    "pipeline/x-markdown-mini/block-ref-nested.md": {
+      "hz": 23440.63973142257,
+      "rme": 1.2009957531481208,
+      "samples": 11233
+    },
+    "pipeline/x-markdown-mini/block-tables.md": {
+      "hz": 29318.536151662665,
+      "rme": 0.8237593297473826,
+      "samples": 14079
+    },
+    "pipeline/x-markdown-mini/inline-autolink.md": {
+      "hz": 44620.82162180261,
+      "rme": 0.6786491708697518,
+      "samples": 21543
+    },
+    "pipeline/x-markdown-mini/inline-backticks.md": {
+      "hz": 165167.35126749825,
+      "rme": 0.5563445157403021,
+      "samples": 80439
+    },
+    "pipeline/x-markdown-mini/inline-em-flat.md": {
+      "hz": 43725.99151861418,
+      "rme": 0.5857835245363149,
+      "samples": 21332
+    },
+    "pipeline/x-markdown-mini/inline-em-nested.md": {
+      "hz": 38650.43351038175,
+      "rme": 0.6544140983921148,
+      "samples": 18720
+    },
+    "pipeline/x-markdown-mini/inline-em-worst.md": {
+      "hz": 20083.584585129043,
+      "rme": 0.560482724437986,
+      "samples": 9848
+    },
+    "pipeline/x-markdown-mini/inline-entity.md": {
+      "hz": 88415.9979697861,
+      "rme": 0.49694728383114456,
+      "samples": 43271
+    },
+    "pipeline/x-markdown-mini/inline-escape.md": {
+      "hz": 34624.19019517545,
+      "rme": 0.482331115918764,
+      "samples": 17003
+    },
+    "pipeline/x-markdown-mini/inline-html.md": {
+      "hz": 31004.175910549773,
+      "rme": 0.5217531740927842,
+      "samples": 15203
+    },
+    "pipeline/x-markdown-mini/inline-links-flat.md": {
+      "hz": 22944.132152097198,
+      "rme": 0.6714621749040082,
+      "samples": 11223
+    },
+    "pipeline/x-markdown-mini/inline-links-nested.md": {
+      "hz": 15913.807837915467,
+      "rme": 0.494097026951353,
+      "samples": 7856
+    },
+    "pipeline/x-markdown-mini/inline-newlines.md": {
+      "hz": 90801.25150528956,
+      "rme": 0.4798336035087347,
+      "samples": 44563
+    },
+    "pipeline/x-markdown-mini/lorem1.txt": {
+      "hz": 11746.364105565872,
+      "rme": 0.5524436662642539,
+      "samples": 5792
+    },
+    "pipeline/x-markdown-mini/rawtabs.md": {
+      "hz": 108402.83194545403,
+      "rme": 0.6424494280940224,
+      "samples": 52688
+    },
+    "pipeline/x-markdown-mini/ai-chat-long.md": {
+      "hz": 3740.3257640767342,
+      "rme": 0.7224214167477498,
+      "samples": 1846
+    },
+    "streaming/x-markdown-mini/ai-chat-long.md": {
+      "hz": 540.6068174481759,
+      "rme": 0.6837511854576155,
+      "samples": 270
+    }
+  }
+}

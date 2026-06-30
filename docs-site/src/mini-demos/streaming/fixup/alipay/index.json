@@ -1,0 +1,6 @@
+{
+  "defaultTitle": "流式补全",
+  "usingComponents": {
+    "markdown": "@ant-design/x-markdown-mini/es/Markdown/index"
+  }
+}

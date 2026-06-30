@@ -1,0 +1,52 @@
+.page {
+  min-height: 100vh;
+  padding: 48rpx 32rpx;
+  box-sizing: border-box;
+}
+.hero {
+  margin: 24rpx 8rpx 48rpx;
+}
+.hero-title {
+  font-size: 52rpx;
+  font-weight: 700;
+  color: #1d2129;
+}
+.hero-sub {
+  margin-top: 12rpx;
+  font-size: 28rpx;
+  color: #86909c;
+}
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+.card {
+  position: relative;
+  padding: 36rpx 32rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.04);
+}
+.card-hover {
+  background: #f2f3f5;
+}
+.card-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1d2129;
+}
+.card-desc {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  line-height: 1.5;
+  color: #86909c;
+  padding-right: 40rpx;
+}
+.card-arrow {
+  position: absolute;
+  right: 32rpx;
+  top: 36rpx;
+  font-size: 36rpx;
+  color: #c9cdd4;
+}

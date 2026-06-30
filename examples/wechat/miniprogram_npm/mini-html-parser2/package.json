@@ -1,0 +1,34 @@
+{
+  "name": "mini-html-parser2",
+  "version": "0.3.0",
+  "description": "小程序富文本",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ant-mini-program/mini-html-parser.git"
+  },
+  "files": [
+    "lib"
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "jest",
+    "build": "rc-tools run compile",
+    "pub": "git push origin && npm run build && npm publish"
+  },
+  "keywords": [
+    "rich-text",
+    "mini-program",
+    "html-parser"
+  ],
+  "author": "issac.lj@alibaba-inc.com",
+  "devDependencies": {
+    "@types/node": "^11.9.6",
+    "jest": "^23.6.0",
+    "rc-tools": "^8.1.5"
+  },
+  "dependencies": {
+    "domhandler": "^2.4.2",
+    "entities": "^1.1.1",
+    "events": "^3.0.0"
+  }
+}

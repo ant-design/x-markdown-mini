@@ -1,0 +1,144 @@
+@import "../../plugins/Latex/style.acss";
+
+/* 仅含支付宝端专属样式（块入场/逐字动画、链接按压态）。通用元素样式由
+   src/components/shared/elements.css 单一来源提供，构建时 copy-component-assets.mjs 会把它
+   「内联拼接」到本文件输出的开头（不另外产出 elements.acss、不用 @import，与微信端保持一致）。
+   表格 / 代码块样式在此处；LaTeX 样式必须由 MiniNodeRenderer 自身引入，因为公式节点
+   实际渲染在递归的 MiniNodeRenderer 内部。 */
+
+.md-animate-block {
+  animation-fill-mode: forwards;
+  animation-name: md-block-appear;
+  animation-timing-function: ease-in;
+  animation-duration: 300ms;
+}
+
+/* 纯透明度淡入：不做 translateY 位移，避免流式逐字重渲染时块体上下抖动。 */
+@keyframes md-block-appear {
+  from { opacity: 0.3; }
+  to   { opacity: 1; }
+}
+
+/* 流式逐字淡入：每个新字符从透明渐显，已显示的字符（按下标复用）不会重播。
+   Alipay 不能嵌套 <text>，包裹层用 inline view 维持文本流。 */
+text {
+  line-height: inherit;
+  vertical-align: baseline;
+}
+
+.md-list-item {
+  display: flex;
+  align-items: flex-start;
+  margin: 4rpx 0;
+}
+
+.md-list-marker {
+  flex: 0 0 28rpx;
+  width: 28rpx;
+  padding-top: 6rpx;
+  margin-right: 8rpx;
+  line-height: 1;
+  text-align: center;
+}
+.md-list-content {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Alipay real devices do not consistently honor CSS table display, intrinsic
+   width keywords, or structural pseudo-classes inside custom components. The Alipay transformer
+   writes deterministic row widths and cell-position classes; the component only
+   consumes those concrete values. */
+.md-table-scroll {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+/* 边缘阴影（.markdownx-table-content / .markdownx-edge-shadow*）现为公用样式，见
+   src/components/shared/elements.css（构建时内联进本文件）。这里仅保留代码块滚动容器。 */
+.markdownx-code-scroll {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+}
+.markdownx-code-body {
+  display: inline-block;
+  min-width: 100%;
+}
+.md-table {
+  display: block;
+  width: 100%;
+  min-width: 100%;
+  overflow: visible;
+  font-size: 26rpx;
+  white-space: normal;
+}
+.md-tr {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  min-width: 100%;
+}
+.md-th, .md-td {
+  display: block;
+  flex: 0 0 240rpx;
+  width: 240rpx;
+  min-width: 240rpx;
+  padding: 12rpx 20rpx;
+  box-sizing: border-box;
+  border-right: 2rpx solid #e5e5e5;
+  border-bottom: 2rpx solid #e5e5e5;
+  text-align: left;
+  vertical-align: top;
+  word-break: break-word;
+  white-space: normal;
+}
+.md-table-multi .md-tc-f {
+  flex-basis: 180rpx;
+  width: 180rpx;
+  min-width: 180rpx;
+  max-width: 180rpx;
+}
+.md-table-multi .md-tc-r {
+  flex-basis: 240rpx;
+  width: 240rpx;
+  min-width: 240rpx;
+}
+.md-table-single .md-th,
+.md-table-single .md-td {
+  flex: 1 0 100%;
+  width: 100%;
+  max-width: none;
+}
+.md-th {
+  background: #fafafa;
+  font-weight: 600;
+}
+.md-tr .md-th:last-child,
+.md-tr .md-td:last-child {
+  border-right: none;
+}
+.md-table .md-tr:last-child .md-td {
+  border-bottom: none;
+}
+
+.md-anim-text {
+  display: inline;
+}
+.md-anim-char {
+  opacity: 0;
+  animation: md-char-in 360ms ease-out forwards;
+}
+@keyframes md-char-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* 链接按压态：Alipay 走 hover-class（微信端链接无此态） */
+.md-link--active {
+  color: #0958d9;
+  opacity: 0.72;
+}

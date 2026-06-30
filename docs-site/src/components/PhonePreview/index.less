@@ -1,0 +1,647 @@
+.xmd-phone {
+  --phone-w: 292px;
+  --phone-h: 633px;
+  --phone-radius: 40px;
+  --phone-bg: #ffffff;
+  --phone-frame-bg: #ffffff;
+  --phone-text: #171717;
+  --phone-shell: url(https://mdn.alipayobjects.com/huamei_2jrq4g/afts/img/A*vJX0SK7L5g0AAAAAAAAAAAAADtF8AQ/original);
+
+  position: relative;
+  width: var(--phone-w);
+  height: var(--phone-h);
+  align-self: center;
+  border-radius: var(--phone-radius);
+  background: #f9fafb;
+  // Match Ant Design Mini's simulator: the light system stack (renders thinner
+  // than the previous -apple-system/Helvetica Neue pairing).
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+  &::before {
+    position: absolute;
+    z-index: 3;
+    top: -5px;
+    left: -12px;
+    display: block;
+    width: calc(100% + 24px);
+    height: calc(100% + 10px);
+    background: var(--phone-shell) no-repeat;
+    background-size: 100% 100%;
+    content: '';
+    pointer-events: none;
+  }
+}
+
+.xmd-phone-bezel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--phone-bg);
+  border-radius: var(--phone-radius);
+  overflow: hidden;
+}
+
+.xmd-phone-notch {
+  display: none;
+}
+
+.xmd-phone-frame {
+  position: relative;
+  background: var(--phone-bg);
+  border-radius: var(--phone-radius);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 0;
+}
+
+// Streaming "jump to bottom" affordance: floats above the screen, clears the
+// home indicator, only shown while autoScroll is on and the user scrolled up.
+.xmd-phone-jump {
+  position: absolute;
+  left: 50%;
+  bottom: 52px;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: #171717;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #e5e5e5;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(23, 23, 23, 0.14);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: xmd-phone-jump-in 0.16s ease both;
+  transition: background 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+
+  &:hover {
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(23, 23, 23, 0.18);
+    transform: translateX(-50%) translateY(-1px);
+  }
+
+  &:active {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  svg {
+    display: block;
+  }
+}
+
+@keyframes xmd-phone-jump-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xmd-phone-jump {
+    animation: none;
+    transition: none;
+  }
+}
+
+// Status bar sits in the notch "ears": content vertically centered in the band
+// between the frame's inner top (~4px) and the notch bottom (~26px), with the
+// icon cluster hugging the right edge so it clears the notch's right edge (~219px
+// of the 292px bezel). Measured against the iPhone shell PNG.
+.xmd-phone-statusbar {
+  position: relative;
+  z-index: 2;
+  height: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  // Asymmetric: left inset clears the rounded corner; right inset keeps the icon
+  // cluster (~60px) clear of the notch's right edge while hugging the screen edge.
+  padding: 0 12px 0 20px;
+  font-size: 12px;
+  color: var(--phone-text);
+  background: var(--phone-frame-bg);
+}
+
+.xmd-sb-time {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+// Right cluster mirrors Ant Design Mini's simulator: only the battery percentage
+// + battery icon (no signal/wifi).
+.xmd-sb-icons {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  height: 12px;
+  color: #171717;
+}
+
+.xmd-sb-battery-pct {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.xmd-sb-battery {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 17px;
+  height: 11px;
+  padding: 1.5px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.xmd-sb-battery::after {
+  position: absolute;
+  top: 3px;
+  right: -2.5px;
+  width: 1.5px;
+  height: 5px;
+  background: currentColor;
+  border-radius: 0 1px 1px 0;
+  content: '';
+}
+
+.xmd-sb-battery-level {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: currentColor;
+  border-radius: 1.2px;
+}
+
+.xmd-phone-navbar {
+  display: flex;
+  align-items: center;
+  // Title sits left, next to the back affordance (mirrors Ant Design Mini's
+  // simulator); the ··· menu is pushed to the right edge by the title's auto margin.
+  justify-content: flex-start;
+  gap: 6px;
+  // border-box so `min-height` includes the padding: the dumi demo wrapper resets
+  // box-sizing to content-box, which otherwise inflated this bar to ~61px on the
+  // Playground while the homepage rendered it at 44px.
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 12px;
+  background: var(--phone-frame-bg);
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+  color: var(--phone-text);
+  position: relative;
+}
+
+.xmd-nav-back,
+.xmd-nav-more {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 18px;
+  line-height: 1;
+  color: rgba(23, 23, 23, 0.55);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+// When wired with backHref / moreHref they render as real links.
+a.xmd-nav-back,
+a.xmd-nav-more {
+  cursor: pointer;
+}
+
+a.xmd-nav-back:hover,
+a.xmd-nav-more:hover {
+  color: rgba(23, 23, 23, 0.9);
+}
+
+.xmd-nav-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  // push the trailing ··· to the right edge, keeping the title left-aligned
+  margin-right: auto;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+// Brand logo before the title (首页 hero) replaces the platform badge.
+.xmd-nav-logo {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.xmd-nav-title--logo::before {
+  content: none !important;
+}
+
+// Centered title variant (首页 hero): brand sits centered, ‹/··· flank it.
+.xmd-phone-navbar.is-center {
+  justify-content: space-between;
+}
+
+.xmd-phone-navbar.is-center .xmd-nav-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-right: 0;
+}
+
+.xmd-phone-screen {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 16px 28px;
+  background: var(--phone-bg);
+  color: var(--phone-text);
+  font-size: 14px;
+  line-height: 1.6;
+  // Hero/card ancestors set `text-align: center`; markdown content (and
+  // especially the <pre> code block) must read left-aligned, not inherit it.
+  text-align: left;
+
+  .md-h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 12px 0 8px;
+  }
+  .md-h2 {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 12px 0 8px;
+  }
+  .md-h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 10px 0 6px;
+  }
+  .md-paragraph {
+    margin: 6px 0;
+  }
+  .md-inline-code {
+    background: #f5f5f5;
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: ui-monospace, Menlo, monospace;
+  }
+  .md-codeblock {
+    margin: 10px 0;
+    overflow: hidden;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    background: #fafafa;
+  }
+  .md-codeblock-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 30px;
+    padding: 0 6px 0 10px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #f6f8fa;
+  }
+  .md-codeblock-lang {
+    color: #737373;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  // Table header card: light bar above the table, mirrors the code bar layout.
+  .md-tableblock {
+    margin: 10px 0;
+    overflow: hidden;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+  }
+  .md-tableblock-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 30px;
+    padding: 0 6px 0 10px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+  }
+  .md-tableblock-title {
+    color: #525252;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .md-tableblock .md-table {
+    margin: 0;
+    border: 0;
+  }
+  // Inside the card, cells draw only inner grid lines (right + bottom). The
+  // .md-tableblock border and the bar's border-bottom form the outer frame, so
+  // the cells' own outer edges are dropped to avoid a doubled border line.
+  .md-tableblock .md-table th,
+  .md-tableblock .md-table td {
+    border-width: 0 1px 1px 0;
+  }
+  .md-tableblock .md-table th:last-child,
+  .md-tableblock .md-table td:last-child {
+    border-right-width: 0;
+  }
+  .md-tableblock .md-table tr:last-child th,
+  .md-tableblock .md-table tr:last-child td {
+    border-bottom-width: 0;
+  }
+  // Header copy button (web preview): inherits color from its bar.
+  .md-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.15s ease, background 0.15s ease;
+  }
+  .md-copy-btn:hover {
+    opacity: 1;
+    background: rgba(127, 127, 127, 0.16);
+  }
+  .md-copy-btn[data-copied] {
+    opacity: 1;
+    color: #16a34a;
+  }
+  .md-codeblock-bar .md-copy-btn {
+    color: #737373;
+  }
+  .md-tableblock-bar .md-copy-btn {
+    color: #737373;
+  }
+  .md-code-block {
+    display: block;
+    margin: 0;
+    background: #fafafa;
+    color: #24292f;
+    padding: 10px 12px;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+    white-space: pre;
+    overflow-x: auto;
+    border-radius: 0;
+  }
+  // Neutralize two leak sources on the inner <code> so the .md-code-block
+  // frame (#fafafa bg + 10/12 padding) owns the look:
+  //   1. dumi's global `.markdown pre`/`.markdown *:not(pre) code` rules paint
+  //      a #f0f0f0 box + their own text color onto our injected code.
+  //   2. highlight.js themes set their own bg/padding on `code.hljs`.
+  // Covers both highlighted (code.hljs) and plain (code) blocks.
+  .md-code-block code,
+  .md-code-block code.hljs,
+  .hljs {
+    display: block;
+    background: transparent;
+    padding: 0;
+    color: #24292f;
+    font-size: inherit;
+    border-radius: 0;
+  }
+
+  // Self-contained light palette (GitHub-light flavored) tuned for the #fafafa
+  // frame. Covers the full set of token classes highlight.js emits so no class
+  // falls back to a second theme.
+  .hljs-keyword,
+  .hljs-type,
+  .hljs-tag,
+  .hljs-name,
+  .hljs-selector-tag {
+    color: #cf222e; // red — control flow / tags
+  }
+  .hljs-title,
+  .hljs-title.function_,
+  .hljs-title.class_,
+  .hljs-section {
+    color: #8250df; // purple — declarations
+  }
+  .hljs-built_in,
+  .hljs-class .hljs-title {
+    color: #0550ae; // blue — built-ins
+  }
+  .hljs-string,
+  .hljs-regexp,
+  .hljs-char.escape_,
+  .hljs-meta .hljs-string {
+    color: #116329; // green — strings
+  }
+  .hljs-number,
+  .hljs-literal,
+  .hljs-attr,
+  .hljs-symbol,
+  .hljs-bullet {
+    color: #0550ae; // blue — values
+  }
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-property,
+  .hljs-params,
+  .hljs-selector-attr,
+  .hljs-selector-class,
+  .hljs-selector-id {
+    color: #953800; // orange — identifiers
+  }
+  .hljs-operator,
+  .hljs-punctuation,
+  .hljs-subst {
+    color: #24292f; // ink — operators / punctuation
+  }
+  .hljs-meta,
+  .hljs-doctag {
+    color: #953800; // orange — annotations / decorators
+  }
+  .hljs-comment,
+  .hljs-quote {
+    color: #6e7781;
+    font-style: italic;
+  }
+  .hljs-deletion {
+    color: #82071e;
+  }
+  .hljs-addition {
+    color: #116329;
+  }
+  .hljs-emphasis {
+    font-style: italic;
+  }
+  .hljs-strong {
+    font-weight: 700;
+  }
+  .md-blockquote {
+    border-left: 3px solid #d4d4d4;
+    padding: 2px 10px;
+    color: #525252;
+    margin: 8px 0;
+    background: rgba(0, 0, 0, 0.02);
+  }
+  .md-link {
+    color: #2563eb;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .md-list {
+    padding-left: 20px;
+    margin: 6px 0;
+  }
+  .md-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13px;
+    margin: 8px 0;
+  }
+  .md-table th,
+  .md-table td {
+    border: 1px solid #e5e5e5;
+    padding: 4px 8px;
+    text-align: left;
+  }
+  .md-animate-block {
+    animation: xmd-fade-in 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  // 文档站预览：自定义节点在真实小程序中由宿主组件渲染（slot / 抽象节点），
+  // 这里用 CSS 模拟宿主的渲染结果，便于在手机预览里看到效果。
+  footnote.md-footnote::after {
+    content: attr(label);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 14px;
+    height: 14px;
+    padding: 0 3px;
+    margin: 0 1px;
+    border-radius: 4px;
+    background: #2563eb14;
+    color: #2563eb;
+    font-size: 10px;
+    font-weight: 600;
+    vertical-align: super;
+    line-height: 1;
+  }
+
+  countdown {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 8px;
+    border: 1px solid #e5e5e5;
+    border-radius: 999px;
+    background: #fafafa;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  countdown::before {
+    content: '⏱';
+    font-size: 11px;
+  }
+  countdown::after {
+    content: attr(value) ' s';
+    color: #525252;
+  }
+
+  // KaTeX 公式在窄屏内略缩一点
+  .katex {
+    font-size: 1.02em;
+  }
+  .katex-display {
+    margin: 10px 0;
+    overflow-x: auto;
+  }
+
+  // 打字机逐字渐显：每个新追加的文本片段独立淡入。
+  .animation-text-char {
+    display: inline;
+    opacity: 0;
+    animation: xmd-typewriter-fade-in 400ms cubic-bezier(0.4, 0, 0.6, 1) forwards;
+  }
+}
+
+@keyframes xmd-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes xmd-typewriter-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.xmd-phone-home-indicator {
+  display: none;
+}
+
+.xmd-phone-section + .xmd-phone-section {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(23, 23, 23, 0.1);
+}
+
+.xmd-phone-section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(23, 23, 23, 0.5);
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.xmd-phone--alipay .xmd-nav-title::before {
+  content: '';
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: url('/brand/alipay-icon.png') center / cover no-repeat;
+}
+
+.xmd-phone--wechat .xmd-nav-title::before {
+  content: '';
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: url('/brand/wechat-icon.png') center / cover no-repeat;
+}
+
+.xmd-preview-error {
+  color: #d4380d;
+  font-size: 13px;
+  white-space: pre-wrap;
+}

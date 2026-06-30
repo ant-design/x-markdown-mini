@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "JS 接入",
+  "usingComponents": {
+    "mini-node-renderer": "@ant-design/x-markdown-mini/es/MiniNodeRenderer/index"
+  }
+}

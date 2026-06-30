@@ -1,0 +1,11 @@
+<view class="md-root {{className}}">
+  <mini-node-renderer
+    generic:custom-slot="custom-slot"
+    nodes="{{nodes}}"
+    selectable="{{selectable}}"
+    animation="{{animation}}"
+    slotComponents="{{slotComponents}}"
+    bind:tap="_tap"
+    bind:appear="_appear"
+  />
+</view>

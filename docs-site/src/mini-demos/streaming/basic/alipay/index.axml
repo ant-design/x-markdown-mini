@@ -1,0 +1,8 @@
+<view class="page">
+  <button class="primary" onTap="startStream">开始流式输出</button>
+  <markdown
+    content="{{content}}"
+    streaming="{{streaming}}"
+    onRenderComplete="onComplete"
+  />
+</view>

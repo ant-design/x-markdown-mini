@@ -1,0 +1,6 @@
+{
+  "defaultTitle": "GFM",
+  "usingComponents": {
+    "mini-node-renderer": "@ant-design/x-markdown-mini/components/MiniNodeRenderer/index"
+  }
+}

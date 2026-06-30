@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "并发流式",
+  "usingComponents": {
+    "mini-node-renderer": "@ant-design/x-markdown-mini/components/MiniNodeRenderer/index"
+  }
+}
