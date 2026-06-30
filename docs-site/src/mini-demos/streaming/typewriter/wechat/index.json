@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "打字机模式",
+  "usingComponents": {
+    "markdown": "@ant-design/x-markdown-mini/components/Markdown/index"
+  }
+}

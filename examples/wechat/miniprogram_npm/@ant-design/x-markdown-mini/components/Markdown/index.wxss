@@ -1,0 +1,122 @@
+/* 高层 <Markdown> 组件自带插件样式：开启 latex/highlight 后无需页面再 @import。
+   KaTeX 字体不再以内联 base64 CSS 默认引入；运行时仅在启用 latex / 出现公式时，
+   通过 loadFontFace 从 npm 包内 katex-fonts/*.ttf 注册。 */
+@import "../../plugins/CodeHighlight/style.wxss";
+@import "../../plugins/Latex/style.wxss";
+
+/* 元素级样式（标题/段落/列表/引用/强调/链接/行内代码/图片/分隔线/上下标等）已统一到
+   MiniNodeRenderer 的共享 elements.wxss，本文件只保留 <Markdown> 根容器与代码/表格卡片样式。 */
+.md-root {
+  display: block;
+  font-size: 28rpx;
+  line-height: 1.65;
+  color: #1f1f1f;
+  word-break: break-word;
+}
+
+.md-code-block {
+  display: block;
+  padding: 16rpx;
+  background: #f6f8fa;
+  overflow-x: auto;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 26rpx;
+  line-height: 1.6;
+  white-space: pre;
+  word-break: normal;
+}
+
+/* code & table cards share a captioned header bar with an icon copy button */
+.md-codeblock,
+.md-tableblock {
+  margin: 16rpx 0;
+  border: 2rpx solid #eceef1;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+.md-codeblock-bar,
+.md-tableblock-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64rpx;
+  padding: 0 24rpx;
+  background: #eceef2;
+  font-size: 24rpx;
+  color: #4e5969;
+}
+.md-codeblock-lang {
+  text-transform: uppercase;
+  letter-spacing: 1rpx;
+  font-weight: 600;
+  color: #1d2129;
+}
+.md-tableblock-title {
+  font-weight: 600;
+  color: #1d2129;
+}
+.md-copy-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.md-code {
+  display: block;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 26rpx;
+  white-space: pre;
+  word-break: normal;
+}
+
+/* table body scrolls horizontally inside the .md-tableblock card */
+.md-table-scroll {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+/* 表格左右边缘阴影改为公用 overlay 样式（.markdownx-edge-shadow，见
+   src/components/shared/elements.css，构建时内联进 MiniNodeRenderer 能触达表格），
+   不再用此处的 ::before/::after 伪元素——伪元素在微信嵌套自定义组件里不渲染。 */
+.md-table {
+  display: table;
+  table-layout: auto;
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 26rpx;
+}
+.md-tr { display: table-row; }
+.md-th, .md-td {
+  display: table-cell;
+  padding: 12rpx 20rpx;
+  box-sizing: border-box;
+  border-right: 2rpx solid #e5e5e5;
+  border-bottom: 2rpx solid #e5e5e5;
+  text-align: left;
+  vertical-align: top;
+  word-break: break-word;
+  white-space: normal;
+}
+.md-table-multi .md-th:first-child,
+.md-table-multi .md-td:first-child {
+  width: 120rpx;
+  min-width: 120rpx;
+  max-width: 150rpx;
+}
+.md-table-multi .md-th:not(:first-child),
+.md-table-multi .md-td:not(:first-child) {
+  min-width: 160rpx;
+}
+.md-table-single .md-th,
+.md-table-single .md-td {
+  width: 100%;
+  max-width: none;
+}
+.md-th { background: #fafafa; font-weight: 600; }
+.md-tr .md-th:last-child,
+.md-tr .md-td:last-child { border-right: none; }
+.md-table .md-tr:last-child .md-td { border-bottom: none; }
+
+.md-html { display: block; }

@@ -1,0 +1,244 @@
+{
+  "meta": {
+    "node": "v20.19.5",
+    "timestamp": "2026-05-30T11:34:14.146Z",
+    "time": 400,
+    "warmupIterations": 50
+  },
+  "samples": [
+    {
+      "file": "block-heading.md",
+      "label": "标题 Headings",
+      "content": "# heading\n### heading\n##### heading\n\n# heading #\n### heading ###\n##### heading \\#\\#\\#\\#\\######\n\n############ not a heading\n",
+      "bytes": 123
+    },
+    {
+      "file": "block-list-nested.md",
+      "label": "嵌套列表 Nested list",
+      "content": "\n - this\n   - is\n     - a\n       - deeply\n         - nested\n           - bullet\n             - list\n   \n\n 1. this\n    2. is\n       3. a\n          4. deeply\n             5. nested\n                6. unordered\n                   7. list\n\n\n - 1\n  - 2\n   - 3\n    - 4\n     - 5\n      - 6\n       - 7\n      - 6\n     - 5\n    - 4\n   - 3\n  - 2\n - 1\n\n\n - - - - - - - - - deeply-nested one-element item\n\n",
+      "bytes": 391
+    },
+    {
+      "file": "block-tables.md",
+      "label": "表格 Tables",
+      "content": "| Heading 1 | Heading 2\n| --------- | ---------\n| Cell 1    | Cell 2\n| Cell 3    | Cell 4\n\n| Header 1 | Header 2 | Header 3 | Header 4 |\n| :------: | -------: | :------- | -------- |\n| Cell 1   | Cell 2   | Cell 3   | Cell 4   |\n| Cell 5   | Cell 6   | Cell 7   | Cell 8   |\n\n    Test code\n\nHeader 1 | Header 2\n-------- | --------\nCell 1   | Cell 2\nCell 3   | Cell 4\n\nHeader 1|Header 2|Header 3|Header 4\n:-------|:------:|-------:|--------\nCell 1  |Cell 2  |Cell 3  |Cell 4\n*Cell 5*|Cell 6  |Cell 7  |Cell 8\n",
+      "bytes": 508
+    },
+    {
+      "file": "block-fences.md",
+      "label": "代码块 Code fences",
+      "content": "\n``````````text\nan\nexample\n```\nof\n\n\na fenced\n```\ncode\nblock\n``````````\n\n",
+      "bytes": 72,
+      "caveat": "非完全同口径：towxml 默认对代码做语法高亮（highlight.js），x-markdown-mini 默认不高亮（高亮为可选插件）"
+    },
+    {
+      "file": "block-bq-nested.md",
+      "label": "嵌套引用 Blockquote",
+      "content": ">>>>>> deeply nested blockquote\n>>>>> deeply nested blockquote\n>>>> deeply nested blockquote\n>>> deeply nested blockquote\n>> deeply nested blockquote\n> deeply nested blockquote\n\n> deeply nested blockquote\n>> deeply nested blockquote\n>>> deeply nested blockquote\n>>>> deeply nested blockquote\n>>>>> deeply nested blockquote\n>>>>>> deeply nested blockquote\n",
+      "bytes": 355
+    },
+    {
+      "file": "inline-em-nested.md",
+      "label": "嵌套强调 Emphasis",
+      "content": "*this *is *a *bunch* of* nested* emphases* \n\n__this __is __a __bunch__ of__ nested__ emphases__ \n\n***this ***is ***a ***bunch*** of*** nested*** emphases*** \n",
+      "bytes": 158
+    },
+    {
+      "file": "inline-links-flat.md",
+      "label": "链接 Links",
+      "content": "Valid links:\n\n [this is a link]()\n [this is a link](<http://something.example.com/foo/bar>)\n [this is a link](http://something.example.com/foo/bar 'test')\n ![this is an image]()\n ![this is an image](<http://something.example.com/foo/bar>)\n ![this is an image](http://something.example.com/foo/bar 'test')\n \n [escape test](<\\>\\>\\>\\>\\>\\>\\>\\>\\>\\>\\>\\>\\>\\>> '\\'\\'\\'\\'\\'\\'\\'\\'\\'\\'\\'\\'\\'\\'')\n [escape test \\]\\]\\]\\]\\]\\]\\]\\]\\]\\]\\]\\]\\]\\]\\]\\]](\\)\\)\\)\\)\\)\\)\\)\\)\\)\\)\\)\\)\\)\\))\n\nInvalid links:\n\n [this is not a link\n\n [this is not a link](\n\n [this is not a link](http://something.example.com/foo/bar 'test'\n \n [this is not a link](((((((((((((((((((((((((((((((((((((((((((((((\n \n [this is not a link]((((((((((()))))))))) (((((((((()))))))))))\n",
+      "bytes": 730
+    },
+    {
+      "file": "ai-chat-long.md",
+      "label": "真实长文 AI chat",
+      "content": "# 如何为一个 React 应用接入 SSE 流式响应\n\n好的，下面我来一步步讲清楚如何把后端的 **SSE (Server-Sent Events)** 流接入到一个 React 前端应用里，让你的对话气泡可以像 ChatGPT 那样**逐字增量出现**。整体可以拆成四个阶段：\n\n1. 后端约定与 endpoint 形态\n2. 前端的 `fetch` + `ReadableStream` 解码\n3. React 侧的状态合并（增量 `setState`）\n4. Markdown 渲染层的接入（重点）\n\n---\n\n## 1. 后端约定\n\n最常见的 SSE 协议格式是这样的（HTTP `Content-Type: text/event-stream`）：\n\n```\ndata: {\"delta\": \"好\", \"id\": \"msg_123\"}\n\ndata: {\"delta\": \"的\", \"id\": \"msg_123\"}\n\ndata: {\"delta\": \"，\", \"id\": \"msg_123\"}\n\ndata: [DONE]\n```\n\n注意每条事件之间用**两个换行**分隔，且每条事件以 `data: ` 起头。`[DONE]` 是 OpenAI / Anthropic 约定的\"流结束\"信号。\n\n如果你用的是 Anthropic Messages API 的 `stream: true`，事件结构会更细：\n\n| event | data 示意 | 说明 |\n|---|---|---|\n| `message_start` | `{ \"type\": \"message_start\", \"message\": {...} }` | 流开始 |\n| `content_block_delta` | `{ \"type\": \"content_block_delta\", \"delta\": { \"type\": \"text_delta\", \"text\": \"好\" } }` | 文本增量（核心） |\n| `message_delta` | `{ \"type\": \"message_delta\", \"usage\": {...} }` | 用量更新 |\n| `message_stop` | `{ \"type\": \"message_stop\" }` | 流结束 |\n\n---\n\n## 2. 前端：`fetch` + `ReadableStream` 解码\n\n`EventSource` API 看起来很合适但有几个坑：**不能自定义 header**（没法传 Authorization）、**只支持 GET**、断线重连机制和我们想要的不一致。所以更稳的做法是 `fetch` + 手工解码：\n\n```ts\nasync function streamChat(prompt: string, onDelta: (text: string) => void): Promise<void> {\n  const res = await fetch('/api/chat', {\n    method: 'POST',\n    headers: {\n      'Content-Type': 'application/json',\n      Authorization: `Bearer ${getToken()}`,\n    },\n    body: JSON.stringify({ prompt }),\n  });\n\n  if (!res.ok || !res.body) {\n    throw new Error(`Stream failed: HTTP ${res.status}`);\n  }\n\n  const reader = res.body.getReader();\n  const decoder = new TextDecoder('utf-8');\n  let buffer = '';\n\n  while (true) {\n    const { value, done } = await reader.read();\n    if (done) break;\n    buffer += decoder.decode(value, { stream: true });\n\n    // SSE 协议：事件之间用 \\n\\n 分隔\n    let idx;\n    while ((idx = buffer.indexOf('\\n\\n')) >= 0) {\n      const raw = buffer.slice(0, idx);\n      buffer = buffer.slice(idx + 2);\n\n      if (!raw.startsWith('data: ')) continue;\n      const payload = raw.slice('data: '.length);\n      if (payload === '[DONE]') return;\n\n      try {\n        const evt = JSON.parse(payload);\n        if (evt.type === 'content_block_delta' && evt.delta?.text) {\n          onDelta(evt.delta.text);\n        }\n      } catch (err) {\n        console.warn('parse SSE event failed:', err, raw);\n      }\n    }\n  }\n}\n```\n\n> 几个细节：\n>\n> - `TextDecoder` 必须传 `{ stream: true }`，否则末尾不完整的 UTF-8 多字节字符会被解坏（中文很容易踩到）。\n> - 一定要循环 `indexOf('\\n\\n')`，因为一次 `read()` 可能返回**多条**事件，也可能返回**半条**事件。\n> - 出错的事件要 `continue` 而不是 `throw`——网络层偶尔会发心跳之类的非业务事件。\n\n---\n\n## 3. React 状态合并\n\n最容易踩的坑是**每个 delta 都触发一次 `setState`**，导致整个对话历史重新渲染。\n\n❌ 不要这样写：\n\n```tsx\nconst [messages, setMessages] = useState<Message[]>([]);\n\nstreamChat(prompt, (delta) => {\n  setMessages((prev) => [\n    ...prev.slice(0, -1),\n    { ...prev.at(-1)!, content: prev.at(-1)!.content + delta },\n  ]);\n});\n```\n\n每条 delta 都会复制整个 `messages` 数组——一条消息 500 token，重复 500 次。\n\n✅ 推荐的做法是把\"正在流的那一条\"单独存：\n\n```tsx\nconst [messages, setMessages] = useState<Message[]>([]);\nconst [streaming, setStreaming] = useState('');\n\nstreamChat(prompt, (delta) => {\n  setStreaming((prev) => prev + delta);\n});\n\n// 流结束时再 commit 进 messages\nfunction onStreamEnd(): void {\n  setMessages((prev) => [...prev, { role: 'assistant', content: streaming }]);\n  setStreaming('');\n}\n```\n\n更高级的方案是把\"完成的消息\"和\"正在流的消息\"用两个独立组件渲染，让 React 的 diff 范围只限制在当前流的那一条上。\n\n---\n\n## 4. Markdown 渲染层\n\n如果你的回复里有 markdown（代码块、表格、列表），最大的挑战是：**delta 进来的时候 markdown 经常是\"半截\"的**。\n\n比如 LLM 输出到一半时你可能拿到：\n\n```\n现在我们来看一段代码：\n\n```js\nfunction hello(\n```\n\n这里 ``` 还没闭合、函数定义也没写完。如果你每次 delta 都直接 `marked.parse(content)`，会出现：\n\n- 代码块在闭合前被识别成普通行内文本，**`<` 之类的字符可能被 HTML 转义**\n- 表格在最后一行没出全时**整张表都不渲染**\n- 列表项的延续行在闭合前**会被当成新段落**\n\n正确的做法是：\n\n1. **稳定块缓存**：扫描已渲染文本，找最后一个\"双空行 + 不在 fence 内\"的位置，把它之前的内容一次解析、缓存、不再重做；\n2. **tail 重解析**：只对\"最后一个未闭合块\"在每次 delta 时重新解析；\n3. **节点级 diff**：把缓存节点和新 tail 节点拼起来 emit 给渲染层。\n\n伪代码：\n\n```ts\nclass StreamingProcessor {\n  private stable: Node[] = [];\n  private committedLen = 0;\n\n  onDelta(delta: string): void {\n    this.text += delta;\n    this.advanceCommit();          // 推进 stable 缓存\n    const tail = this.text.slice(this.committedLen);\n    const tailNodes = parse(tail); // 只对未闭合的 tail 重新解析\n    this.emit([...this.stable, ...tailNodes]);\n  }\n\n  private advanceCommit(): void {\n    // 扫描已渲染文本，找位于 fence 之外的最后一个双空行\n    // ...省略 fence 状态机...\n    if (lastSafeOffset > this.committedLen) {\n      const segment = this.text.slice(this.committedLen, lastSafeOffset);\n      this.stable.push(...parse(segment));\n      this.committedLen = lastSafeOffset;\n    }\n  }\n}\n```\n\n这个套路在 OpenAI Playground、Claude、Cursor 里都能看到类似的实现。\n\n---\n\n## 5. 关于小程序的额外坑\n\n如果你的目标是**小程序**而不是 Web，几个额外约束：\n\n- 没有 `fetch` 的 `ReadableStream`——`wx.request` 只能等完整响应，但 `wx.connectSocket` 可以走 WebSocket\n- 没有 DOM——markdown 输出要喂给 `rich-text` 组件的 `nodes` 属性，结构是约定好的 `{ name, attrs, children, text }` 树\n- 微信的 `rich-text` 不允许某些属性（比如 `href`，要改写成 `data-href`），HTTP 图片要换成 HTTPS\n- 支付宝小程序的 `rich-text` 不支持 `<ol start=\"x\">`，要降级成普通列表\n\n所以小程序场景下一般会用专门的库（比如 `@ant-design/x-markdown-mini`）来吸收这些差异，**它的输入是 markdown 字符串，输出是平台特定的 `nodes` 数组**。\n\n---\n\n## 总结\n\n| 关注点 | 推荐方案 |\n|---|---|\n| 协议解码 | `fetch` + `ReadableStream` + `TextDecoder({ stream: true })` |\n| 多事件分包 | 循环找 `\\n\\n`，半条事件留在 buffer |\n| React 状态 | 把流中消息单独 state，commit 时再合并 |\n| Markdown 渲染 | 稳定块缓存 + tail 重解析 + 节点 diff |\n| 平台差异 | 小程序用专门库，Web 直接 `marked` / `markdown-it` |\n\n整体下来代码量不大，**坑都在边界条件上**。建议至少加这几个 e2e 测试：\n\n- ✅ 中文 UTF-8 多字节字符跨 chunk 分割\n- ✅ 单条 SSE 事件横跨多个 `read()` 返回\n- ✅ 代码块未闭合时的 HTML 转义\n- ✅ 网络中断时的 reconnect / partial-state 保留\n- ✅ 用户在流进行中切走/切回页面\n\n希望有帮助 ~ 还有问题欢迎继续问 🙂\n",
+      "bytes": 7889
+    }
+  ],
+  "geomean": {
+    "x-markdown-mini": 28609.788429948945,
+    "towxml": 13141.47792253116,
+    "mp-html": 14839.55889259866,
+    "marked": 38392.7365716581,
+    "markdown-it": 77356.20195247946
+  },
+  "results": {
+    "block-heading.md": {
+      "x-markdown-mini": {
+        "hz": 114312.44657567513,
+        "rme": 0.6157625891611332
+      },
+      "towxml": {
+        "hz": 78726.47685935747,
+        "rme": 0.5053555597338953
+      },
+      "mp-html": {
+        "hz": 59268.72963714122,
+        "rme": 0.49154184970870446
+      },
+      "marked": {
+        "hz": 148583.21945533378,
+        "rme": 0.4407190420156813
+      },
+      "markdown-it": {
+        "hz": 194388.34392261735,
+        "rme": 0.4156647498352237
+      }
+    },
+    "block-list-nested.md": {
+      "x-markdown-mini": {
+        "hz": 9206.941096976327,
+        "rme": 0.9835092669149457
+      },
+      "towxml": {
+        "hz": 14426.499899536704,
+        "rme": 0.5798607420056261
+      },
+      "mp-html": {
+        "hz": 5883.701163003296,
+        "rme": 0.49058481200676973
+      },
+      "marked": {
+        "hz": 9815.745965005552,
+        "rme": 0.5068907303236501
+      },
+      "markdown-it": {
+        "hz": 48444.29016953297,
+        "rme": 0.5482995548619903
+      }
+    },
+    "block-tables.md": {
+      "x-markdown-mini": {
+        "hz": 29166.3108136418,
+        "rme": 0.5662600429045415
+      },
+      "towxml": {
+        "hz": 12864.67957292174,
+        "rme": 0.5173216275808042
+      },
+      "mp-html": {
+        "hz": 8720.263002820764,
+        "rme": 0.5349315801908385
+      },
+      "marked": {
+        "hz": 35761.515079811354,
+        "rme": 0.5316415508081396
+      },
+      "markdown-it": {
+        "hz": 61208.70683166988,
+        "rme": 0.7027290136749781
+      }
+    },
+    "block-fences.md": {
+      "x-markdown-mini": {
+        "hz": 691159.1190415916,
+        "rme": 0.5668199666321875
+      },
+      "towxml": {
+        "hz": 9962.988280427664,
+        "rme": 2.86518816764639
+      },
+      "mp-html": {
+        "hz": 252480.66953618266,
+        "rme": 0.7372483588806484
+      },
+      "marked": {
+        "hz": 1866117.3888877651,
+        "rme": 0.8179861904693784
+      },
+      "markdown-it": {
+        "hz": 829248.8313995582,
+        "rme": 3.731221017337412
+      }
+    },
+    "block-bq-nested.md": {
+      "x-markdown-mini": {
+        "hz": 9438.86094127986,
+        "rme": 0.936753995343809
+      },
+      "towxml": {
+        "hz": 33002.96292655275,
+        "rme": 0.6422874157922862
+      },
+      "mp-html": {
+        "hz": 7318.63514529773,
+        "rme": 0.6113660181791123
+      },
+      "marked": {
+        "hz": 10106.21470293278,
+        "rme": 0.5972287531833186
+      },
+      "markdown-it": {
+        "hz": 99717.9974753027,
+        "rme": 0.623606343486782
+      }
+    },
+    "inline-em-nested.md": {
+      "x-markdown-mini": {
+        "hz": 35917.96584159413,
+        "rme": 0.806245957506504
+      },
+      "towxml": {
+        "hz": 40527.30167504715,
+        "rme": 0.6109403883272791
+      },
+      "mp-html": {
+        "hz": 20273.04574139687,
+        "rme": 0.5983861611267933
+      },
+      "marked": {
+        "hz": 41513.21593195084,
+        "rme": 0.5360098091687663
+      },
+      "markdown-it": {
+        "hz": 96319.1241504096,
+        "rme": 0.6429207741961482
+      }
+    },
+    "inline-links-flat.md": {
+      "x-markdown-mini": {
+        "hz": 20941.984924702407,
+        "rme": 0.7550994439330487
+      },
+      "towxml": {
+        "hz": 15611.430417082272,
+        "rme": 0.5586691620742411
+      },
+      "mp-html": {
+        "hz": 12573.860518382855,
+        "rme": 0.5506518985084583
+      },
+      "marked": {
+        "hz": 25065.966505134063,
+        "rme": 0.6402812607294671
+      },
+      "markdown-it": {
+        "hz": 30117.905249120748,
+        "rme": 0.855487031637219
+      }
+    },
+    "ai-chat-long.md": {
+      "x-markdown-mini": {
+        "hz": 2979.8855174948267,
+        "rme": 0.8244922628116846
+      },
+      "towxml": {
+        "hz": 292.6442352107136,
+        "rme": 1.4479355623048515
+      },
+      "mp-html": {
+        "hz": 1641.7848964663335,
+        "rme": 0.7956993211759853
+      },
+      "marked": {
+        "hz": 4611.957050169522,
+        "rme": 0.6880985570710071
+      },
+      "markdown-it": {
+        "hz": 9273.408333632826,
+        "rme": 1.0688193914821085
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+@import "../../plugins/Latex/style.wxss";
+
+/* 仅含微信端专属样式（块入场/逐字动画）。通用元素样式由 src/components/shared/elements.css
+   单一来源提供，构建时 copy-component-assets.mjs 会把它「内联拼接」到本文件输出的开头
+   （不另外产出 elements.wxss、不用 @import：在含 index.json 的组件目录里放裸 .wxss 分片会
+   让微信「构建 npm」的编译器崩溃 getDevCodeByFileList）。
+   LaTeX 样式必须由 MiniNodeRenderer 自身引入，因为公式节点实际渲染在这里。 */
+
+.md-list-content {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+.md-animate-block {
+  animation-fill-mode: forwards;
+  animation-name: md-block-appear;
+  animation-timing-function: var(--md-animation-timing, ease-in);
+  animation-duration: var(--md-animation-duration, 300ms);
+}
+
+/* 纯透明度淡入：不做 translateY 位移，避免流式逐字重渲染时块体上下抖动。 */
+@keyframes md-block-appear {
+  from { opacity: 0.3; }
+  to   { opacity: 1; }
+}
+
+.md-anim-char {
+  opacity: 0;
+  animation: md-char-in 360ms ease-out forwards;
+}
+
+@keyframes md-char-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

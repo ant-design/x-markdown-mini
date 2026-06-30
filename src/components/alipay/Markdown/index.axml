@@ -1,0 +1,13 @@
+<view class="md-root {{className}}">
+  <mini-node-renderer
+    a:if="{{katexReflow}}"
+    nodes="{{nodes}}"
+    selectable="{{selectable}}"
+    animation="{{animation}}"
+    slotComponents="{{slotComponents}}"
+    onTap="onTap"
+    onAppear="onAppear"
+  >
+    <slot slot-scope="prop" data="{{prop.data}}" />
+  </mini-node-renderer>
+</view>

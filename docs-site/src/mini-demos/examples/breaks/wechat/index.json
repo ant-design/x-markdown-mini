@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "软换行",
+  "usingComponents": {
+    "mini-node-renderer": "@ant-design/x-markdown-mini/components/MiniNodeRenderer/index"
+  }
+}

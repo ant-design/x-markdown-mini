@@ -1,0 +1,141 @@
+<view class="page">
+  <view class="header">
+    <text class="title">性能对比</text>
+    <text class="subtitle">JS 吞吐率 + 开发者工具真实流式渲染</text>
+  </view>
+
+  <view class="panel">
+    <view class="section-title">实验类型</view>
+    <view class="segmented">
+      <button class="segment {{mode === 'js' ? 'segment-active' : ''}}" data-mode="js" bindtap="onModeTap">JS 吞吐率</button>
+      <button class="segment {{mode === 'stream' ? 'segment-active' : ''}}" data-mode="stream" bindtap="onModeTap">真实流式渲染</button>
+    </view>
+    <text class="hint">{{mode === 'js' ? '一次跑所有可用 parser / transformer。' : '一次只挂一个 renderer，便于在开发者工具里看真实性能。'}}</text>
+  </view>
+
+  <view class="panel" wx:if="{{mode === 'stream'}}">
+    <view class="section-title">流式渲染器</view>
+    <view class="renderer-list">
+      <button
+        wx:for="{{streamRenderers}}"
+        wx:key="id"
+        class="renderer-option {{streamRenderer === item.id ? 'renderer-active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="onRendererTap"
+      >
+        <text class="renderer-name">{{item.name}}</text>
+        <text class="renderer-desc">{{item.desc}}</text>
+      </button>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="section-title">内容规模</view>
+    <view class="segmented">
+      <button
+        wx:for="{{cases}}"
+        wx:key="id"
+        class="segment {{selectedCase.id === item.id ? 'segment-active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="onCaseTap"
+      >
+        {{item.name}}
+      </button>
+    </view>
+    <text class="hint">{{selectedCase.desc}}</text>
+  </view>
+
+  <view class="panel" wx:if="{{mode === 'js'}}">
+    <view class="section-title">循环次数</view>
+    <view class="segmented">
+      <button class="segment {{iterations === 10 ? 'segment-active' : ''}}" data-value="10" bindtap="onIterationTap">10</button>
+      <button class="segment {{iterations === 20 ? 'segment-active' : ''}}" data-value="20" bindtap="onIterationTap">20</button>
+      <button class="segment {{iterations === 50 ? 'segment-active' : ''}}" data-value="50" bindtap="onIterationTap">50</button>
+    </view>
+  </view>
+
+  <button class="run-button" loading="{{running}}" disabled="{{running}}" bindtap="onRun">
+    {{running ? '运行中' : (mode === 'js' ? '运行 JS 吞吐率' : '运行真实流式渲染')}}
+  </button>
+
+  <view class="summary">{{summary}}</view>
+  <view class="summary" wx:if="{{mode === 'stream' && streamProgressText}}">{{streamProgressText}}</view>
+
+  <view class="result-list" wx:if="{{results.length}}">
+    <view wx:for="{{results}}" wx:key="id" class="result-card">
+      <view class="result-head">
+        <text class="rank">#{{item.rank}}</text>
+        <view class="result-name">
+          <text class="name">{{item.name}}</text>
+          <text class="stage">{{item.stage}}</text>
+        </view>
+      </view>
+      <view class="metrics">
+        <view class="metric">
+          <text class="metric-value">{{item.throughputText}}</text>
+          <text class="metric-label">吞吐率</text>
+        </view>
+        <view class="metric">
+          <text class="metric-value">{{item.avgText}}</text>
+          <text class="metric-label">{{mode === 'js' ? '平均耗时' : '每帧耗时'}}</text>
+        </view>
+        <view class="metric">
+          <text class="metric-value">{{item.totalText}}</text>
+          <text class="metric-label">总耗时</text>
+        </view>
+      </view>
+      <view class="metrics stream-metrics" wx:if="{{mode === 'stream'}}">
+        <view class="metric">
+          <text class="metric-value">{{item.framesText}}</text>
+          <text class="metric-label">帧数</text>
+        </view>
+        <view class="metric">
+          <text class="metric-value">{{item.renderText}}</text>
+          <text class="metric-label">渲染更新</text>
+        </view>
+        <view class="metric">
+          <text class="metric-value">{{item.setDataText}}</text>
+          <text class="metric-label">setData</text>
+        </view>
+      </view>
+      <text class="error" wx:if="{{item.status === 'error'}}">{{item.reason}}</text>
+    </view>
+  </view>
+
+  <view class="render-panel" wx:if="{{mode === 'stream' && streamRenderer === 'x-markdown-mini'}}">
+    <view class="section-title">x-markdown-mini</view>
+    <markdown content="{{xMarkdownContent}}" streaming="{{xMarkdownStreaming}}" />
+  </view>
+  <view class="render-panel" wx:if="{{mode === 'stream' && streamRenderer === 'marked-rich-text'}}">
+    <view class="section-title">marked + rich-text</view>
+    <rich-text nodes="{{richTextHtml}}" />
+  </view>
+  <view class="render-panel" wx:if="{{mode === 'stream' && streamRenderer === 'mp-html-markdown'}}">
+    <view class="section-title">mp-html</view>
+    <mp-html content="{{mpHtmlContent}}" />
+  </view>
+  <view class="render-panel" wx:if="{{mode === 'stream' && streamRenderer === 'towxml'}}">
+    <view class="section-title">towxml</view>
+    <towxml nodes="{{towxmlNodes}}" />
+  </view>
+
+  <view class="panel" wx:if="{{skipped.length}}">
+    <view class="section-title">未自动执行</view>
+    <view wx:for="{{skipped}}" wx:key="id" class="skip-row">
+      <text class="skip-name">{{item.name}}</text>
+      <text class="skip-reason">{{item.reason}}</text>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="section-title">候选方案</view>
+    <view wx:for="{{research}}" wx:key="name" class="research-row">
+      <view class="research-head">
+        <text class="research-name">{{item.name}}</text>
+        <text class="badge">{{item.status}}</text>
+      </view>
+      <text class="scope">{{item.scope}}</text>
+      <text class="note">{{item.note}}</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,71 @@
+/* 高层 <Markdown> 组件自带插件样式：开启 latex/highlight 后无需页面再 @import。
+   KaTeX 字体不再以内联 base64 CSS 默认引入；运行时仅在启用 latex / 出现公式时，
+   通过 loadFontFace 从 npm 包内 katex-fonts/*.ttf 注册。 */
+@import "../../plugins/CodeHighlight/style.acss";
+@import "../../plugins/Latex/style.acss";
+
+/* 元素级样式（标题/段落/列表/引用/强调/链接/行内代码/图片/分隔线/上下标等）已统一到
+   MiniNodeRenderer 的共享 elements.acss，本文件只保留 <Markdown> 根容器与代码/表格卡片样式。 */
+.md-root {
+  display: block;
+  font-size: 28rpx;
+  line-height: 1.65;
+  color: #1f1f1f;
+  word-break: break-word;
+}
+
+.md-code-block {
+  display: block;
+  padding: 16rpx;
+  background: #f6f8fa;
+  overflow-x: auto;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 26rpx;
+  line-height: 1.6;
+  white-space: pre;
+  word-break: normal;
+}
+
+/* code & table cards share a captioned header bar with an icon copy button */
+.md-codeblock,
+.md-tableblock {
+  margin: 16rpx 0;
+  border: 2rpx solid #eceef1;
+  border-radius: 0;
+  overflow: visible;
+}
+.md-codeblock-bar,
+.md-tableblock-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64rpx;
+  padding: 0 24rpx;
+  background: #eceef2;
+  font-size: 24rpx;
+  color: #4e5969;
+}
+.md-codeblock-lang {
+  text-transform: uppercase;
+  letter-spacing: 1rpx;
+  font-weight: 600;
+  color: #1d2129;
+}
+.md-tableblock-title {
+  font-weight: 600;
+  color: #1d2129;
+}
+.md-copy-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.md-code {
+  display: block;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 26rpx;
+  white-space: pre;
+  word-break: normal;
+}
+
+.md-html { display: block; }

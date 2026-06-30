@@ -1,0 +1,24 @@
+{
+  "miniprogramRoot": "./",
+  "projectname": "x-markdown-mini-wechat",
+  "description": "x-markdown-mini WeChat example",
+  "appid": "wxdda71a8bb33f5bc6",
+  "compileType": "miniprogram",
+  "libVersion": "3.0.0",
+  "setting": {
+    "packNpmManually": true,
+    "packNpmRelationList": [
+      {
+        "packageJsonPath": "./package.json",
+        "miniprogramNpmDistDir": "./"
+      }
+    ],
+    "es6": true,
+    "enhance": true,
+    "postcss": false,
+    "minified": false,
+    "urlCheck": false,
+    "ignoreUploadUnusedFiles": true,
+    "minifyWXML": true
+  }
+}

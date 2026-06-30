@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Tests + pass-rate gate (≥95%) across the Node versions we support.
+  # Build is required first so component dist files exist for any tests that
+  # touch them later; today only source tests run but the cost is ~1s.
+  test:
+    name: Test (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # Run vitest and continue on test failure — the gate decides pass/fail
+      # based on the JSON report. Required pass rate is 95%.
+      - name: Test
+        run: npm run test:ci || true
+
+      - name: Pass-rate gate (≥95%)
+        run: npm run check:test-rate -- --min 95
+
+  # Bundle health: size budgets + miniprogram compatibility (no named-group
+  # regex literals leak, ES2018 syntax cap). Single job because both checks
+  # consume the same build artifact.
+  bundle:
+    name: Bundle (size + compat)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Bundle check (size + ES2018 syntax + named-group regex)
+        run: npm run check:bundle
+
+  # Perf regression gate. Compares `benchmark/results.json` against the
+  # committed `benchmark/baseline.json`; any x-markdown-mini scenario that's
+  # >10% slower than baseline fails the build. Single Node version (20) — the
+  # baseline was captured on 20 and noise floor differences across versions
+  # would muddy the signal. Update baseline with `npm run bench:update`.
+  bench:
+    name: Bench (perf regression ≤10%)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bench + regression check
+        run: npm run bench:check

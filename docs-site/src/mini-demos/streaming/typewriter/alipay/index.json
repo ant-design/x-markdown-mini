@@ -1,0 +1,6 @@
+{
+  "defaultTitle": "打字机模式",
+  "usingComponents": {
+    "markdown": "@ant-design/x-markdown-mini/es/Markdown/index"
+  }
+}

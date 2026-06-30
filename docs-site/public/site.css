@@ -1,0 +1,4468 @@
+:root {
+  --xmd-font-sans: "Albert Sans", "PingFang SC", "Microsoft YaHei", "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
+  --xmd-bg: #ffffff;
+  --xmd-bg-subtle: #fafafa;
+  --xmd-bg-muted: #f5f5f5;
+  --xmd-text: #171717;
+  --xmd-text-secondary: #525252;
+  --xmd-text-tertiary: #737373;
+  --xmd-text-quaternary: #a3a3a3;
+  --xmd-border: #e5e5e5;
+  --xmd-border-subtle: #f0f0f0;
+  --xmd-border-strong: #d4d4d4;
+  --xmd-accent: #2563eb;
+  --xmd-accent-subtle: rgba(37, 99, 235, 0.08);
+  --xmd-accent-focus: rgba(37, 99, 235, 0.24);
+  --xmd-code-dark: #0a0a0a;
+  --xmd-code-frame: #171717;
+}
+
+html {
+  background: var(--xmd-bg) !important;
+  background-color: var(--xmd-bg) !important;
+  color-scheme: light;
+}
+
+body {
+  position: relative;
+  color: var(--xmd-text);
+  /* dumi's umi.css ships AFTER site.css, so !important is required to defeat
+     its default `body { background-color: #f7f9fb }`. The real visual bg
+     comes from body::before below (the lifted xmd-hero-bg). */
+  background: var(--xmd-bg) !important;
+  background-color: var(--xmd-bg) !important;
+  font-family:
+    var(--xmd-font-sans);
+  letter-spacing: 0;
+}
+
+/* Page-wide background — lifts the original .xmd-hero-bg gradient + grid to a
+   fixed pseudo-element so the header, main, hero, and footer all sit on the
+   exact same paint. Two stacked fixed layers (::before is the gradient,
+   ::after is the grid with the same radial mask as the hero). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 50% at 50% 0%, rgba(0, 0, 0, 0.04), transparent 70%),
+    linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, #000 30%, transparent 70%);
+          mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, #000 30%, transparent 70%);
+}
+
+/* Belt-and-suspenders: force every dumi layout container to be transparent
+   so the body::before paint is what the user actually sees. */
+.dumi-default-doc-layout,
+.dumi-default-doc-layout > main,
+.dumi-default-content {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* ----- header (Vercel-like elegant) ----- */
+
+.dumi-default-header,
+.dumi-default-header:not([data-static]),
+.dumi-default-header:not([data-static])[data-mobile-active] {
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.dumi-default-header-content {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 80px !important;
+  padding: 0 24px !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+}
+
+.dumi-default-header-left {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  margin-inline-end: 12px !important;
+  min-width: 0 !important;
+}
+
+.dumi-default-logo {
+  gap: 8px;
+  width: auto !important;
+  min-width: max-content !important;
+  color: #0a0a0a;
+  font-family:
+    var(--xmd-font-sans);
+  font-size: 20px !important;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: visible !important;
+  text-rendering: geometricPrecision;
+  transition: opacity 0.15s;
+}
+
+.dumi-default-logo:hover {
+  color: #0a0a0a;
+  opacity: 0.7;
+}
+
+.dumi-default-logo img {
+  width: auto;
+  height: 32px;
+  margin-inline-end: 2px !important;
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* right side: relative container so cluster and support can anchor to it */
+.dumi-default-header-right {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  position: relative !important;
+  overflow: visible !important;
+}
+
+/* the original dumi search bar is replaced by an icon button inside the cluster */
+.dumi-default-search-bar {
+  display: none !important;
+}
+
+/* hide the default dumi navbar; site.js rebuilds nav inside the capsule */
+.dumi-default-header-right > .dumi-default-navbar {
+  display: none !important;
+}
+
+/* nav links inside the capsule */
+.dumi-default-navbar > li > a {
+  /* contract reference — actual styling is on the cluster below */
+}
+
+/* dumi action buttons — base look (used inside .xmd-header-support) */
+.dumi-default-lang-switch,
+.dumi-default-rtl-switch,
+.dumi-default-color-switch,
+a.dumi-default-icon,
+.dumi-default-icon {
+  flex: 0 0 auto !important;
+}
+
+/* hide the RTL and color switches — only lang + github stay */
+.dumi-default-header .dumi-default-rtl-switch,
+.dumi-default-header .dumi-default-color-switch {
+  display: none !important;
+}
+
+.dumi-default-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 36px !important;
+  height: 36px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  color: #525252 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+a.dumi-default-icon:hover,
+.dumi-default-icon:hover {
+  border-color: transparent !important;
+  color: #0a0a0a !important;
+  background: #f4f4f5 !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.dumi-default-icon::after,
+.dumi-default-icon::before {
+  display: none !important;
+  content: none !important;
+}
+
+.dumi-default-icon > svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor !important;
+}
+
+.dumi-default-header-menu-btn {
+  flex: 0 0 auto;
+}
+
+.xmd-search-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  padding: 92px 20px 20px;
+  box-sizing: border-box;
+}
+
+.xmd-search-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(244, 244, 245, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.xmd-search-panel {
+  position: relative;
+  width: min(620px, 100%);
+  max-height: min(540px, calc(100vh - 128px));
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.15);
+}
+
+.xmd-search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 14px;
+  color: #737373;
+  border-bottom: 1px solid #e5e5e5;
+  box-sizing: border-box;
+}
+
+.xmd-search-input-wrap input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  color: #171717;
+  font: inherit;
+  font-size: 15px;
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.xmd-search-input-wrap kbd {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  color: #737373;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
+  border-radius: 5px;
+}
+
+.xmd-search-results {
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Modal owns its own scroll viewport; the popover owns the scroll on its
+   container, so the inner .xmd-search-results must not scroll there. */
+.xmd-search-modal .xmd-search-results {
+  max-height: calc(min(540px, 100vh - 128px) - 56px);
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.xmd-search-group + .xmd-search-group {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.xmd-search-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 4px;
+}
+
+.xmd-search-group-title {
+  color: #525252;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.xmd-search-group-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  color: #737373;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  background: #f4f4f5;
+  border-radius: 999px;
+}
+
+.xmd-search-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.xmd-search-result {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  color: #171717;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background 0.12s ease, box-shadow 0.18s ease;
+}
+
+.xmd-search-result:hover {
+  background: #f6f6f7;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.xmd-search-result-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #171717;
+}
+
+.xmd-search-result-desc {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #737373;
+  /* Truncate at 1 line so long descriptions don't break the card height */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xmd-search-empty {
+  padding: 28px 14px;
+  color: #737373;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ----- doc layout ----- */
+
+.dumi-default-doc-layout {
+  background: transparent !important;
+  background-color: transparent !important;
+  font-family: inherit;
+}
+
+.dumi-default-doc-layout-mobile-bar {
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+}
+
+.dumi-default-doc-layout > main {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 88px 32px 0;
+  gap: 44px;
+}
+
+/* Match ant-design-mini's docs shell: the sidebar rail starts almost flush with
+   the viewport, while the content column keeps its own internal reading gutter. */
+.dumi-default-doc-layout > main {
+  padding-left: 6px !important;
+}
+
+.dumi-default-content:not([data-no-sidebar]) {
+  padding: 42px 48px 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.dumi-default-content[data-no-sidebar] {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 40px 24px 56px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dumi-default-content[data-no-sidebar]:has(.xmd-pg) {
+  width: min(100%, calc(100vw - 16px));
+  max-width: 1440px;
+  /* top gap matches sidebar'd doc pages (.dumi-default-content:not([data-no-sidebar]),
+     padding-top 12px); both sit under > main's 64px header offset */
+  padding: 12px 8px 48px;
+}
+
+/* ----- sidebar ----- */
+
+.dumi-default-sidebar {
+  flex: 0 0 260px !important;
+  width: 260px !important;
+  min-width: 260px !important;
+  max-width: 260px !important;
+  padding: 6px 8px 32px 0 !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+.xmd-platform-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  margin: 0 8px 22px 0;
+  padding: 3px;
+  background: #f4f4f5;
+  border: 1px solid #ececec;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.xmd-platform-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 30px;
+  padding: 0 10px;
+  color: #525252;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.xmd-platform-tab:hover {
+  color: #171717;
+}
+
+.xmd-platform-tab:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+html[data-xmd-doc-platform='alipay'] .xmd-platform-tab[data-platform='alipay'],
+html[data-xmd-doc-platform='wechat'] .xmd-platform-tab[data-platform='wechat'] {
+  color: #171717;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(23, 23, 23, 0.08);
+}
+
+.dumi-default-sidebar dl {
+  margin: 0 0 22px !important;
+  padding: 0 !important;
+}
+
+.dumi-default-sidebar dl + dl {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top: 0 !important;
+}
+
+.dumi-default-sidebar dt {
+  display: flex !important;
+  align-items: center !important;
+  height: 22px !important;
+  margin: 0 0 6px !important;
+  padding: 0 36px !important;
+  color: #8a8a8a !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+  box-sizing: border-box !important;
+}
+
+.dumi-default-sidebar dt:empty {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.dumi-default-sidebar dd {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.dumi-default-sidebar dd > a {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  margin: 0 !important;
+  padding: 0 36px !important;
+  color: #4b4b4b !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.dumi-default-sidebar dd + dd {
+  margin-top: 4px !important;
+}
+
+.dumi-default-sidebar dd > a:hover {
+  color: #171717 !important;
+  background: #f6f6f7 !important;
+}
+
+.dumi-default-sidebar dd > a.active {
+  color: #2563eb !important;
+  font-weight: 650 !important;
+  background: rgba(37, 99, 235, 0.09) !important;
+}
+
+.dumi-default-sidebar dd > ul {
+  display: none !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  margin: 8px 0 12px !important;
+  padding: 0 0 0 28px !important;
+  list-style: none !important;
+  border-inline-start: 1px solid #ececec !important;
+  box-sizing: border-box !important;
+}
+
+.dumi-default-sidebar dd > ul > li {
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+.dumi-default-sidebar dd > ul > li > a {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  margin: 0 !important;
+  padding: 0 28px !important;
+  color: #737373 !important;
+  font-size: 13px !important;
+  font-weight: 450 !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.dumi-default-sidebar dd > ul > li > a:hover {
+  color: #171717 !important;
+  background: #f6f6f7 !important;
+}
+
+.dumi-default-sidebar dd > ul > li > a.active {
+  color: #2563eb !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+}
+
+/* ----- TOC (right side) ----- */
+
+.dumi-default-doc-layout > main > .dumi-default-doc-layout-toc-wrapper {
+  width: 200px;
+  margin-inline-start: 0;
+}
+
+/* Demo pages host a code + sticky-phone two-column block; reclaim the right TOC
+   rail so the code column keeps a comfortable width (like ant-design-mini's
+   component pages, which drop the TOC in favour of the device preview). */
+.dumi-default-doc-layout > main:has(.xmd-doc-demo) > .dumi-default-doc-layout-toc-wrapper {
+  display: none;
+}
+
+/* Plugin docs embed each demo via <code src>, which dumi wraps in its default
+   bordered previewer. Our demos carry their own card chrome, so drop dumi's
+   border/shadow to avoid a double-boxed, boxy look. */
+.dumi-default-previewer,
+.dumi-default-previewer-demo {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.dumi-default-toc {
+  font-size: 13px;
+  border-inline-start: 1px solid #e5e5e5;
+}
+
+.dumi-default-toc > li > a {
+  margin: 4px 0;
+  padding: 4px 14px;
+  color: #737373;
+  border-inline-start: 1px solid transparent;
+  margin-inline-start: -1px;
+  line-height: 1.5;
+}
+
+.dumi-default-toc > li > a:hover {
+  color: #171717;
+}
+
+.dumi-default-toc > li > a.active {
+  color: #2563eb;
+  border-inline-start-color: #2563eb;
+}
+
+/* ----- content typography ----- */
+
+.markdown {
+  color: #171717;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.markdown h1 {
+  margin-top: 0;
+  color: #171717;
+  font-size: 28px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.markdown h2 {
+  margin-top: 36px;
+  color: #171717;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.markdown h3 {
+  margin-top: 24px;
+  color: #171717;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.markdown p,
+.markdown li {
+  color: #525252;
+}
+
+.markdown a {
+  color: #2563eb;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.markdown pre {
+  margin: 16px 0 24px;
+  padding: 16px 18px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.markdown *:not(pre) code {
+  color: #171717;
+  background: #f0f0f0;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* The rounded .dumi-default-table-content wrapper (dumi already sets overflow:auto,
+   which clips to the radius) is the only outer frame. dumi's own `.markdown table`
+   adds `margin-block-end: 24px` (an empty band below the last row) and a `1px #ccc`
+   border (doubled corners); override both with a higher-specificity selector. */
+.dumi-default-table-content {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  position: relative;
+}
+
+/* Hover-reveal copy button injected by site.js (copies the table as TSV). */
+.xmd-table-copy {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #525252;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.dumi-default-table-content:hover .xmd-table-copy,
+.xmd-table-copy:focus-visible {
+  opacity: 1;
+}
+
+.xmd-table-copy:hover {
+  color: #2563eb;
+  border-color: #bfdbfe;
+}
+
+.xmd-table-copy[data-copied] {
+  opacity: 1;
+  color: #16a34a;
+  border-color: #bbf7d0;
+}
+
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.markdown .dumi-default-table-content > table {
+  margin: 0;
+  border: 0;
+}
+
+.markdown th {
+  background: #fafafa;
+}
+
+.markdown th,
+.markdown td {
+  border-color: #f0f0f0;
+}
+
+.markdown .dumi-default-table-content > table tr:last-child td {
+  border-bottom: 0;
+}
+
+.markdown .xmd-doc-brief,
+.markdown .xmd-doc-feature-grid {
+  display: grid;
+  gap: 12px;
+  margin: 22px 0 34px;
+}
+
+.markdown .xmd-doc-brief {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.markdown .xmd-doc-feature-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.markdown .xmd-doc-brief a,
+.markdown .xmd-doc-feature-grid div {
+  min-width: 0;
+  padding: 18px;
+  color: #171717;
+  text-decoration: none;
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.markdown .xmd-doc-brief a {
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.markdown .xmd-doc-brief a:hover {
+  border-color: rgba(37, 99, 235, 0.24);
+  box-shadow: 0 10px 24px rgba(23, 23, 23, 0.06);
+  transform: translateY(-1px);
+}
+
+.markdown .xmd-doc-brief span,
+.markdown .xmd-doc-feature-grid span {
+  display: block;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.markdown .xmd-doc-brief strong,
+.markdown .xmd-doc-feature-grid strong {
+  display: block;
+  margin-top: 8px;
+  color: #171717;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.markdown .xmd-doc-brief p,
+.markdown .xmd-doc-feature-grid p {
+  margin: 9px 0 0;
+  color: #737373;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.markdown .xmd-doc-brief code,
+.markdown .xmd-doc-feature-grid code {
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font-size: 0.95em;
+}
+
+/* ----- local dev debug ----- */
+
+.xmd-dev-badge {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1000;
+  display: none;
+  padding: 9px 10px;
+  color: #171717;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px #e5e5e5;
+  font-size: 12px;
+  line-height: 1.3;
+  backdrop-filter: blur(12px);
+}
+
+body[data-xmd-dev="true"] .xmd-dev-badge {
+  display: block;
+}
+
+body[data-xmd-debug="true"] .xmd-home > * {
+  outline: 1px dashed rgba(37, 99, 235, 0.55);
+  outline-offset: 4px;
+}
+
+/* ----- responsive ----- */
+
+@media (max-width: 1024px) {
+  .dumi-default-header-content {
+    padding: 0 20px !important;
+  }
+
+  .dumi-default-header-left {
+    margin-inline-end: 14px !important;
+  }
+
+  .dumi-default-search-bar {
+    flex-basis: 190px !important;
+    width: 190px !important;
+  }
+
+  .dumi-default-navbar > li:not(:last-child) {
+    margin-inline-end: 4px !important;
+  }
+
+  .dumi-default-doc-layout > main {
+    gap: 24px;
+  }
+
+  .dumi-default-content:not([data-no-sidebar]) {
+    padding: 28px 24px 0;
+  }
+
+  .markdown .xmd-proof-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .dumi-default-search-bar {
+    display: none !important;
+  }
+
+  .dumi-default-navbar {
+    margin-inline-start: auto !important;
+  }
+}
+
+@media (max-width: 767px) {
+  html,
+  body,
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .dumi-default-header-content {
+    height: 56px !important;
+    padding: 0 16px !important;
+  }
+
+  .dumi-default-header-left {
+    margin-inline-end: 12px !important;
+  }
+
+  .dumi-default-logo {
+    min-width: 0 !important;
+    font-size: 0;
+  }
+
+  .dumi-default-logo img {
+    height: 32px;
+  }
+
+  /* restore mobile menu overlay layout */
+  .dumi-default-header-right {
+    gap: 0 !important;
+  }
+
+  .dumi-default-header-right-aside {
+    display: flex !important;
+  }
+
+  .dumi-default-search-bar,
+  .dumi-default-navbar,
+  .dumi-default-lang-switch,
+  .dumi-default-rtl-switch,
+  .dumi-default-color-switch,
+  .dumi-default-icon {
+    order: 0 !important;
+  }
+
+  .dumi-default-search-bar {
+    display: flex !important;
+    flex: 0 1 auto !important;
+    width: auto !important;
+    margin-inline-end: 0 !important;
+  }
+
+  .dumi-default-content[data-no-sidebar] {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 72px 20px 36px;
+    overflow: hidden;
+  }
+
+  .dumi-default-doc-layout > main {
+    max-width: 100% !important;
+    padding-top: 72px !important;
+    padding-right: 16px !important;
+    padding-left: 16px !important;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .markdown {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .dumi-default-content:not([data-no-sidebar]) {
+    margin: 0;
+    padding: 20px 4px 0;
+  }
+
+  .markdown h1 {
+    font-size: 26px;
+  }
+
+  .markdown .xmd-home-hero {
+    padding: 48px 0 34px;
+  }
+
+  .markdown .xmd-home-title {
+    font-size: 40px;
+    line-height: 1.12;
+  }
+
+  .markdown .xmd-home-subtitle {
+    font-size: 16px;
+  }
+
+  .markdown .xmd-home-command {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .markdown .xmd-home-command-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .markdown .xmd-home-section {
+    margin-top: 42px;
+  }
+
+  .markdown .xmd-home-cards,
+  .markdown .xmd-flow-steps,
+  .markdown .xmd-proof-grid,
+  .markdown .xmd-doc-list,
+  .markdown .xmd-proof-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .markdown .xmd-home-flow {
+    padding: 20px;
+  }
+
+  .markdown .xmd-proof-grid strong {
+    font-size: 26px;
+  }
+
+  .xmd-dev-badge {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .markdown .xmd-home-slogan,
+  .markdown .xmd-capabilities,
+  .markdown .xmd-feature-demo,
+  .markdown .xmd-performance {
+    max-width: 100%;
+  }
+
+  .markdown .xmd-capability-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .markdown .xmd-feature-demo {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .markdown .xmd-demo-stage {
+    max-width: 640px;
+  }
+}
+
+@media (max-width: 767px) {
+  .markdown .xmd-home,
+  .markdown .xmd-home-slogan,
+  .markdown .xmd-capabilities,
+  .markdown .xmd-feature-demo,
+  .markdown .xmd-performance {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .markdown .xmd-home-slogan {
+    padding: 42px 0 28px;
+  }
+
+  .markdown .xmd-home-slogan h1 {
+    max-width: 100%;
+    font-size: 28px;
+    line-height: 1.18;
+  }
+
+  .markdown .xmd-home-slogan .xmd-home-subtitle {
+    font-size: 15px;
+  }
+
+  .markdown .xmd-home-actions {
+    align-items: stretch;
+  }
+
+  .markdown .xmd-home-actions a,
+  .markdown .xmd-home-actions .xmd-home-command {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .markdown .xmd-home-actions .xmd-home-command {
+    justify-content: flex-start;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .markdown .xmd-home-actions a {
+    justify-content: center;
+  }
+
+  .markdown .xmd-home-command-text {
+    max-width: calc(100vw - 116px);
+  }
+
+  .markdown .xmd-home-meta {
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .markdown .xmd-home-meta span {
+    max-width: 100%;
+  }
+
+  .markdown .xmd-section-copy h2 {
+    font-size: 24px;
+  }
+
+  .markdown .xmd-capabilities {
+    padding-top: 34px;
+    padding-bottom: 34px;
+  }
+
+  .markdown .xmd-capability-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .markdown .xmd-feature-demo,
+  .markdown .xmd-performance {
+    padding-top: 34px;
+  }
+
+  .markdown .xmd-feature-list li {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .markdown .xmd-demo-body {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding: 16px;
+  }
+
+  .markdown .xmd-demo-phone {
+    width: 100%;
+    max-width: 260px;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  .markdown .xmd-metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .markdown .xmd-package-table {
+    margin-right: -2px;
+    margin-left: -2px;
+  }
+}
+
+/* ----- fixed header with scroll-lift glass state ----- */
+/* At rest the header is pinned to the top and visually disappears into the
+   whiteboard canvas. Once content scrolls beneath it, the full header content
+   lifts into a glass navigation bar. */
+
+.dumi-default-header {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  left: 0 !important;
+  z-index: 120 !important;
+  height: 80px !important;
+  background: transparent !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+  pointer-events: none;
+  transition: height 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.xmd-homepage .dumi-default-header,
+body.xmd-over-hero .dumi-default-header {
+  /* same look on all pages */
+}
+
+body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
+  height: 84px !important;
+}
+
+.dumi-default-header > * {
+  pointer-events: auto;
+}
+
+/* ----- x-style information footer (RcFooter light, mirrors x.ant.design) ----- */
+
+.xmd-site-footer.rc-footer {
+  position: relative;
+  width: 100%;
+  color: rgba(0, 0, 0, 0.65);
+  /* Approximates x's tokenized footer bg (FastColor of #f0f3fa on white). */
+  background: #f0f3fa;
+  font-size: 14px;
+  line-height: 1.5715;
+  box-shadow: inset 0 106px 36px -116px rgba(0, 0, 0, 0.14);
+}
+
+.xmd-site-footer.rc-footer *,
+.xmd-site-footer.rc-footer *::before,
+.xmd-site-footer.rc-footer *::after {
+  box-sizing: border-box;
+}
+
+.xmd-site-footer .rc-footer-container {
+  max-width: 1208px;
+  margin: 0 auto;
+  padding: 64px 48px 80px;
+}
+
+.xmd-site-footer .rc-footer-columns {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.xmd-site-footer .rc-footer-column {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.xmd-site-footer .rc-footer-column h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 24px;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.xmd-site-footer .rc-footer-column-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+}
+
+.xmd-site-footer .rc-footer-column-icon img {
+  width: 22px;
+  height: 22px;
+}
+
+.xmd-site-footer .rc-footer-item {
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.xmd-site-footer .rc-footer-item a {
+  display: inline;
+  color: rgba(0, 0, 0, 0.65);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.xmd-site-footer .rc-footer-item a:hover {
+  color: #0a0a0a;
+}
+
+.xmd-site-footer .rc-footer-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-end: 8px;
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+  font-size: 16px;
+}
+
+.xmd-site-footer .rc-footer-item-icon .anticon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.xmd-site-footer .rc-footer-item-icon .anticon > svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.xmd-site-footer .rc-footer-item-icon img {
+  width: 16px;
+  height: 16px;
+}
+
+.xmd-site-footer .rc-footer-item-separator {
+  display: inline-block;
+  margin: 0 6px;
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.xmd-site-footer .rc-footer-item-description {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+}
+
+.xmd-site-footer .rc-footer-bottom {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 106px 36px -116px rgba(0, 0, 0, 0.14);
+}
+
+.xmd-site-footer .rc-footer-bottom-container {
+  max-width: 1208px;
+  margin: 0 auto;
+  padding: 16px 48px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.xmd-site-footer .rc-footer-bottom-container > div:first-child {
+  margin-bottom: 4px;
+}
+
+.xmd-site-footer-heart {
+  color: #ef4444;
+}
+
+@media (max-width: 1024px) {
+  .xmd-site-footer .rc-footer-container {
+    padding: 48px 32px 60px;
+  }
+  .xmd-site-footer .rc-footer-columns {
+    flex-wrap: wrap;
+    gap: 32px 24px;
+  }
+  .xmd-site-footer .rc-footer-column {
+    flex: 0 0 calc(50% - 12px);
+  }
+  .xmd-site-footer .rc-footer-bottom-container {
+    padding: 16px 32px;
+  }
+}
+
+@media (max-width: 767px) {
+  .xmd-site-footer .rc-footer-container {
+    padding: 36px 24px 48px;
+  }
+  .xmd-site-footer .rc-footer-column {
+    flex: 0 0 100%;
+  }
+  .xmd-site-footer .rc-footer-bottom-container {
+    padding: 16px 24px;
+  }
+}
+
+/* ===== glass header nav ===== */
+
+/* Header content starts as quiet page chrome, then becomes the floating glass
+   object on scroll. The nav capsule remains centered inside it. */
+.dumi-default-header-content {
+  position: relative !important;
+  height: 80px !important;
+  width: calc(100% - 48px) !important;
+  max-width: 1208px !important;
+  margin: 0 auto !important;
+  padding: 0 0 !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 20px !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+  isolation: isolate;
+  transform: translateY(0);
+  transition:
+    height 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    margin-top 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    padding 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    backdrop-filter 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    -webkit-backdrop-filter 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dumi-default-header-content::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.62), transparent 42%),
+    radial-gradient(120% 160% at 50% -90%, rgba(255, 255, 255, 0.72), transparent 58%);
+  opacity: 0;
+  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dumi-default-header.xmd-mini .dumi-default-header-content::before {
+  opacity: 1;
+}
+
+.dumi-default-header.xmd-mini .dumi-default-header-content {
+  height: 64px !important;
+  width: min(1208px, calc(100% - 32px)) !important;
+  margin-top: 10px !important;
+  padding: 0 16px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.38)) !important;
+  border-color: rgba(23, 23, 23, 0.08) !important;
+  box-shadow:
+    inset 0 0 2px 1px rgba(255, 255, 255, 0.58),
+    inset 0 0 18px 6px rgba(255, 255, 255, 0.24),
+    0 8px 28px rgba(23, 23, 23, 0.08),
+    0 18px 54px rgba(23, 23, 23, 0.07) !important;
+  backdrop-filter: blur(14px) saturate(1.55) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.55) !important;
+}
+
+.dumi-default-header-left {
+  position: relative;
+  z-index: 3;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.dumi-default-header.xmd-mini .dumi-default-header-left {
+  transform: translateX(2px);
+}
+
+.dumi-default-logo {
+  height: 32px !important;
+  gap: 7px !important;
+  font-size: 21px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1 !important;
+}
+
+.dumi-default-logo img {
+  height: 32px !important;
+}
+
+.dumi-default-header-right {
+  position: static !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  height: 100%;
+  z-index: 2;
+  background: transparent !important;
+}
+
+.dumi-default-header-right-aside {
+  display: none !important;
+}
+
+/* centered nav group: no nested capsule, just quiet controls sitting on the glass */
+.xmd-nav-cluster {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  transition:
+    color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+
+.dumi-default-header.xmd-mini .xmd-nav-cluster {
+  height: 40px;
+}
+
+/* search field trigger: starts as a light input affordance, then morphs into input */
+.xmd-search-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 152px;
+  height: 34px;
+  padding: 0 8px 0 13px;
+  margin: 0;
+  border: 1px solid rgba(23, 23, 23, 0.14);
+  border-radius: 10px;
+  background: #ffffff;
+  color: rgba(23, 23, 23, 0.58);
+  cursor: pointer;
+  flex-shrink: 0;
+  font: inherit;
+  font-family: var(--xmd-font-sans);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  transform-origin: left center;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 1px 2px rgba(23, 23, 23, 0.04);
+  transition:
+    width 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+    padding 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 0.18s ease,
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    color 0.16s ease,
+    transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.xmd-search-trigger-label {
+  display: inline-block;
+  transform: translateY(-0.5px);
+}
+
+.xmd-search-trigger kbd {
+  flex: 0 0 auto;
+  min-width: 0;
+  height: 24px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(23, 23, 23, 0.62);
+  font-family: var(--xmd-font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(23, 23, 23, 0.12);
+  border-radius: 7px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 1px rgba(23, 23, 23, 0.05);
+}
+
+/* Inline expanded search. The trigger collapses while the input expands, so
+   the control reads as one shape changing state instead of a button swap. */
+.xmd-search-shell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  flex-shrink: 0;
+  /* nudge the search a touch right of the nav links within the centred cluster */
+  margin-left: 14px;
+}
+
+.xmd-search-inline {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background: #ffffff;
+  border: 1px solid rgba(23, 23, 23, 0.14);
+  border-radius: 10px;
+  box-sizing: border-box;
+  transform: scaleX(0.86);
+  transform-origin: left center;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 1px 2px rgba(23, 23, 23, 0.04);
+  transition:
+    width 0.32s cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 0.22s ease,
+    padding 0.32s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1),
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.xmd-search-inline input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  font: inherit;
+  font-family: var(--xmd-font-sans);
+  font-size: 15px;
+  font-weight: 400;
+  color: #171717;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.xmd-search-inline input::placeholder {
+  color: #737373;
+}
+
+.xmd-search-inline input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.xmd-search-inline kbd {
+  flex: 0 0 auto;
+  min-width: 38px;
+  height: 24px;
+  margin-inline-start: 8px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(23, 23, 23, 0.62);
+  font-family: var(--xmd-font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(23, 23, 23, 0.12);
+  border-radius: 7px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 1px rgba(23, 23, 23, 0.05);
+  cursor: pointer;
+  user-select: none;
+}
+
+.xmd-search-inline kbd:hover {
+  color: #0a0a0a;
+  background: #fafafa;
+}
+
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-trigger {
+  width: 0;
+  padding-right: 0;
+  padding-left: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: scaleX(0.86);
+}
+
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-inline {
+  width: 224px;
+  padding: 0 8px 0 13px;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: scaleX(1);
+}
+
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-inline:focus-within {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(23, 23, 23, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 2px rgba(23, 23, 23, 0.05),
+    0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Popover anchored under the expanded input. Hidden until the input is
+   open; drops in once the width animation has had a moment to settle. */
+.xmd-search-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  width: min(420px, calc(100vw - 32px));
+  max-height: 440px;
+  overflow-y: auto;
+  padding: 6px;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-popover {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition-delay: 0.18s;
+}
+
+.xmd-search-popover .xmd-search-empty {
+  padding: 22px 14px;
+  font-size: 13px;
+  color: #737373;
+  text-align: center;
+}
+
+.xmd-search-trigger:hover {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(23, 23, 23, 0.2);
+  color: #0a0a0a;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 2px 6px rgba(23, 23, 23, 0.07);
+}
+
+.xmd-search-trigger:focus-visible {
+  outline: 2px solid rgba(10, 10, 10, 0.4);
+  outline-offset: 2px;
+}
+
+/* nav links inside the capsule */
+.xmd-nav-cluster .xmd-nav-link {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: rgba(23, 23, 23, 0.64);
+  font-family: var(--xmd-font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: 0;
+  transition: background-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.xmd-nav-cluster .xmd-nav-link:hover {
+  background: rgba(23, 23, 23, 0.055);
+  color: #0a0a0a;
+  font-weight: 500;
+}
+
+.xmd-nav-cluster .xmd-nav-link.active {
+  color: #0a0a0a;
+  font-weight: 500;
+  background: transparent;
+}
+
+/* right-side actions: version select + lang switch + GitHub icon. No pill bg;
+   items sit directly on the page. */
+.xmd-header-support {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+}
+
+.xmd-header-support .dumi-default-lang-switch,
+.xmd-header-support .dumi-default-icon {
+  display: none !important;
+}
+
+.xmd-header-support .dumi-default-rtl-switch,
+.xmd-header-support .dumi-default-color-switch {
+  display: none !important;
+}
+
+/* generic pill button shared by lang/version/github inside the right pill */
+.xmd-header-support .xmd-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  min-width: 30px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #525252;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.xmd-header-support .xmd-pill-btn:hover {
+  background: #f4f4f5;
+  color: #0a0a0a;
+}
+
+.xmd-header-support .xmd-pill-btn > svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+/* version dropdown — compact Ant Design style without pulling the full runtime */
+.xmd-version-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.xmd-version-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 9px 0 11px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.78);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s;
+}
+
+.xmd-version-trigger:hover,
+.xmd-version-dropdown[data-open='true'] .xmd-version-trigger {
+  background: #f4f4f5;
+  color: rgba(0, 0, 0, 0.88);
+}
+
+.xmd-version-trigger:focus-visible {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.16);
+}
+
+.xmd-version-label {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.xmd-version-arrow {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  color: rgba(0, 0, 0, 0.45);
+  transition: transform 0.16s ease;
+}
+
+.xmd-version-arrow::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 1px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.xmd-version-dropdown[data-open='true'] .xmd-version-arrow {
+  transform: translateY(2px) rotate(180deg);
+}
+
+.xmd-version-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  min-width: 132px;
+  padding: 4px;
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.08),
+    0 3px 6px -4px rgba(0, 0, 0, 0.12),
+    0 9px 28px 8px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px) scale(0.98);
+  transform-origin: 100% 0;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.xmd-version-dropdown[data-open='true'] .xmd-version-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.xmd-version-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  height: 32px;
+  padding: 0 9px;
+  color: rgba(0, 0, 0, 0.88);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  text-align: left;
+  white-space: nowrap;
+  transition: background-color 0.12s ease;
+}
+
+.xmd-version-option:hover,
+.xmd-version-option:focus-visible {
+  background: rgba(0, 0, 0, 0.04);
+  outline: none;
+}
+
+.xmd-version-option[aria-selected='true'] {
+  font-weight: 600;
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.xmd-version-check {
+  color: #2563eb;
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* x-style language switch: two overlapping mini squares "中" / "En" */
+.xmd-lang-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  /* square (rounded-rect), matching the 在线演示 switch + the pill buttons */
+  border-radius: 8px;
+  background: transparent;
+  color: #525252;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+/* match the GitHub / version pill buttons: muted at rest, darken + grey bg on hover */
+.xmd-lang-switch:hover {
+  background: #f4f4f5;
+  color: #0a0a0a;
+}
+
+.xmd-lang-switch:hover .xmd-lang-label {
+  border-color: #0a0a0a;
+  color: #0a0a0a;
+}
+
+.xmd-lang-switch:hover .xmd-lang-primary {
+  background: #0a0a0a;
+  color: #ffffff;
+}
+
+.xmd-lang-switch .xmd-lang-inner {
+  position: relative;
+  width: 18px;
+  height: 18px;
+}
+
+.xmd-lang-switch .xmd-lang-label {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 12px;
+  line-height: 1;
+  border: 1px solid #525252;
+  color: #525252;
+  border-radius: 2px;
+  box-sizing: border-box;
+  letter-spacing: 0;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.xmd-lang-switch .xmd-lang-primary {
+  inset-inline-start: 0;
+  top: 0;
+  z-index: 1;
+  background: #525252;
+  color: #ffffff;
+  transform: scale(0.85);
+  transform-origin: 0 0;
+}
+
+.xmd-lang-switch .xmd-lang-secondary {
+  inset-inline-end: 0;
+  bottom: 0;
+  z-index: 0;
+  background: transparent;
+  color: #525252;
+  transform: scale(0.65);
+  transform-origin: 100% 100%;
+}
+
+/* divider inside the right pill */
+.xmd-header-support .xmd-support-sep {
+  width: 1px;
+  height: 18px;
+  background: #eaeaea;
+  margin: 0 4px;
+}
+
+/* responsive */
+@media (max-width: 1024px) {
+  .dumi-default-header-content {
+    width: calc(100% - 40px) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .dumi-default-header {
+    height: 64px !important;
+  }
+
+  .dumi-default-header-content {
+    height: 56px !important;
+    width: calc(100% - 24px) !important;
+    padding: 0 12px !important;
+    border-radius: 16px !important;
+  }
+
+  .dumi-default-header.xmd-mini .dumi-default-header-content {
+    height: 52px !important;
+    width: calc(100% - 16px) !important;
+    margin-top: 6px !important;
+    padding: 0 10px !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.60), rgba(255, 255, 255, 0.42)) !important;
+    border-color: rgba(23, 23, 23, 0.08) !important;
+    box-shadow:
+      inset 0 0 2px 1px rgba(255, 255, 255, 0.58),
+      inset 0 0 16px 5px rgba(255, 255, 255, 0.24),
+      0 8px 24px rgba(23, 23, 23, 0.09),
+      0 16px 42px rgba(23, 23, 23, 0.07) !important;
+    backdrop-filter: blur(14px) saturate(1.55) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(1.55) !important;
+    transition: none !important;
+  }
+
+  .dumi-default-logo {
+    min-width: 0 !important;
+    font-size: 0 !important;
+  }
+
+  .dumi-default-logo img {
+    height: 32px !important;
+  }
+
+  .xmd-nav-cluster {
+    display: none !important;
+  }
+
+  .xmd-header-support {
+    display: none !important;
+  }
+
+  .xmd-version-dropdown {
+    display: none;
+  }
+}
+
+
+/* ===== homepage (rebuilt) — "The Engineering Whiteboard" =====
+   One coherent landing stylesheet. Reuses the global :root tokens at the top
+   of this file (--xmd-text / --xmd-accent / --xmd-border / ...). The hero keeps
+   the .xmd-hero class because site.js keys homepage detection + SPA link
+   enhancement off it. */
+
+.markdown .xmd-landing {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: 8px 0 72px;
+  color: var(--xmd-text);
+  box-sizing: border-box;
+}
+
+.markdown .xmd-landing * {
+  box-sizing: border-box;
+}
+
+.markdown .xmd-landing a {
+  text-decoration: none;
+}
+
+.markdown .xmd-landing p {
+  /* dumi's heti typography sets `.markdown p { text-align: justify }`, which
+     opens ugly inter-character gaps in narrow CJK columns. Left-align the
+     whole landing. */
+  text-align: left;
+}
+
+.markdown .xmd-landing code {
+  padding: 2px 6px;
+  color: var(--xmd-text);
+  background: var(--xmd-bg-muted);
+  border-radius: 5px;
+  font-size: 0.88em;
+}
+
+/* ----- hero ----- */
+
+.markdown .xmd-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.04fr) minmax(330px, 0.78fr);
+  gap: 64px;
+  align-items: center;
+  /* Fill the first screen: viewport minus the 80px header (+ a little breathing). */
+  min-height: calc(100vh - 92px);
+  padding: 40px 0 64px;
+}
+
+.markdown .xmd-hero-copy {
+  min-width: 0;
+}
+
+.markdown .xmd-hero h1 {
+  max-width: 17ch;
+  margin: 0;
+  color: var(--xmd-text);
+  font-family: var(--xmd-font-sans);
+  font-size: clamp(44px, 5.6vw, 68px);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.markdown .xmd-hero-subtitle {
+  max-width: 54ch;
+  margin: 22px 0 0;
+  color: var(--xmd-text-secondary);
+  font-size: clamp(16px, 1.5vw, 19px);
+  font-family: var(--xmd-font-sans);
+  font-weight: 500;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ----- hero actions: install pill + buttons ----- */
+
+.markdown .xmd-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 30px;
+}
+
+.markdown .xmd-install-command,
+.markdown .xmd-primary-link,
+.markdown .xmd-secondary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.markdown .xmd-install-command {
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  width: fit-content;
+  max-width: 100%;
+  gap: 8px;
+  padding: 0 8px 0 15px;
+  border-radius: 6px;
+  color: var(--xmd-text);
+  background: var(--xmd-bg);
+  border: 1px solid var(--xmd-border);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.markdown .xmd-install-command:hover {
+  border-color: var(--xmd-border-strong);
+  box-shadow: 0 2px 8px rgba(23, 23, 23, 0.06);
+}
+
+.markdown .xmd-install-command:focus-visible {
+  outline: 2px solid var(--xmd-accent);
+  outline-offset: 2px;
+}
+
+.markdown .xmd-install-prompt {
+  flex: 0 0 auto;
+  color: #737373;
+  user-select: none;
+}
+
+.markdown .xmd-install-command code {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.markdown .xmd-copy-control {
+  flex: 0 0 28px;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 28px;
+  padding: 0;
+  color: var(--xmd-text-tertiary);
+  background: var(--xmd-bg);
+  border-radius: 6px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 0;
+  font-weight: 650;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.markdown .xmd-copy-control [data-xmd-copy-status] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.markdown .xmd-install-command:hover .xmd-copy-control {
+  color: var(--xmd-text);
+}
+
+.markdown .xmd-copy-icon,
+.markdown .xmd-check-icon {
+  flex: 0 0 auto;
+}
+
+.markdown .xmd-check-icon {
+  display: none;
+}
+
+.markdown .xmd-install-command[data-copied='true'] {
+  border-color: var(--xmd-accent);
+}
+
+.markdown .xmd-install-command[data-copied='true'] .xmd-copy-control {
+  color: #ffffff;
+  background: var(--xmd-accent);
+}
+
+.markdown .xmd-install-command[data-copied='true'] .xmd-copy-icon {
+  display: none;
+}
+
+.markdown .xmd-install-command[data-copied='true'] .xmd-check-icon {
+  display: block;
+}
+
+.markdown .xmd-primary-link {
+  padding: 0 18px;
+  color: #ffffff;
+  background: var(--xmd-text);
+  border: 1px solid var(--xmd-text);
+}
+
+.markdown .xmd-primary-link:hover {
+  background: #262626;
+  border-color: #262626;
+}
+
+.markdown .xmd-secondary-link {
+  padding: 0 17px;
+  color: var(--xmd-text);
+  background: var(--xmd-bg);
+  border: 1px solid var(--xmd-border-strong);
+}
+
+.markdown .xmd-playground-link {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  .markdown .xmd-primary-link,
+  .markdown .xmd-secondary-link,
+  .markdown .xmd-install-command {
+    width: 100%;
+  }
+
+  .markdown .xmd-primary-link,
+  .markdown .xmd-secondary-link {
+    flex: 1 1 0;
+  }
+
+  .markdown .xmd-install-command code {
+    font-size: 14px;
+  }
+}
+
+.markdown .xmd-secondary-link:hover {
+  background: var(--xmd-bg-subtle);
+  border-color: var(--xmd-text-quaternary);
+}
+
+.markdown .xmd-primary-link:focus-visible,
+.markdown .xmd-secondary-link:focus-visible {
+  outline: 2px solid var(--xmd-accent);
+  outline-offset: 2px;
+}
+
+/* ----- hero facts (restrained stat row, not a metric template) ----- */
+
+.markdown .xmd-hero-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 36px 0 0;
+  padding: 0;
+}
+
+.markdown .xmd-hero-facts > div {
+  padding: 0 22px;
+  border-left: 1px solid var(--xmd-border);
+}
+
+.markdown .xmd-hero-facts > div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.markdown .xmd-hero-facts dt {
+  margin: 0;
+  color: var(--xmd-text);
+  font-size: 22px;
+  font-weight: 720;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.markdown .xmd-hero-facts dd {
+  margin: 6px 0 0;
+  color: var(--xmd-text-secondary);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+/* ----- hero media: shared phone preview ----- */
+
+.markdown .xmd-hero-media {
+  align-self: center;
+  justify-self: end;
+  width: 100%;
+  max-width: 342px;
+  margin: 0;
+  min-width: 0;
+}
+
+.markdown .xmd-hero-media figcaption {
+  margin: 12px 0 0;
+  color: var(--xmd-text-tertiary);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* ----- shared section frame ----- */
+
+.markdown .xmd-landing-section {
+  padding: 56px 0;
+}
+
+.markdown .xmd-section-copy {
+  max-width: 60ch;
+}
+
+.markdown .xmd-landing h2 {
+  /* defeat the doc-typography h2 hairline + padding on landing headings;
+     sections are already separated by .xmd-landing-section border-top */
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.markdown .xmd-section-copy h2 {
+  margin: 0;
+  color: var(--xmd-text);
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 720;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.markdown .xmd-section-copy p {
+  margin: 14px 0 0;
+  color: var(--xmd-text-secondary);
+  font-size: 15px;
+  line-height: 1.72;
+  text-wrap: pretty;
+}
+
+/* ----- architecture: pipeline + capabilities ----- */
+
+.markdown .xmd-path-diagram {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+
+.markdown .xmd-path-diagram li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 120px;
+  min-height: 56px;
+  margin: 0;
+  padding: 12px 14px;
+  color: var(--xmd-text);
+  background: var(--xmd-bg);
+  border: 1px solid var(--xmd-border);
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.markdown .xmd-path-diagram li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  border-top: 1px solid var(--xmd-border-strong);
+  border-right: 1px solid var(--xmd-border-strong);
+  background: var(--xmd-bg);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.markdown .xmd-capability-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.markdown .xmd-capability-grid a {
+  display: block;
+  min-width: 0;
+  padding: 20px;
+  color: var(--xmd-text);
+  text-decoration: none;
+  background: var(--xmd-bg);
+  border: 1px solid var(--xmd-border);
+  border-radius: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.markdown .xmd-capability-grid a:hover {
+  border-color: var(--xmd-accent-focus);
+  box-shadow: 0 16px 40px var(--xmd-border);
+  transform: translateY(-1px);
+}
+
+.markdown .xmd-capability-grid a:focus-visible {
+  outline: 2px solid var(--xmd-accent);
+  outline-offset: 2px;
+}
+
+.markdown .xmd-capability-grid h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--xmd-text);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.markdown .xmd-capability-grid h3::after {
+  content: "\2192";
+  margin-left: auto;
+  color: var(--xmd-text-quaternary);
+  font-weight: 500;
+  opacity: 0;
+  transform: translateX(-3px);
+  transition: opacity 0.15s, transform 0.15s, color 0.15s;
+}
+
+.markdown .xmd-capability-grid a:hover h3::after {
+  opacity: 1;
+  transform: none;
+  color: var(--xmd-accent);
+}
+
+.markdown .xmd-capability-grid p {
+  margin: 10px 0 0;
+  color: var(--xmd-text-tertiary);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.markdown .xmd-capability-grid code,
+.markdown .xmd-compare-grid code {
+  padding: 1px 5px;
+  font-size: 0.86em;
+}
+
+/* ----- platform compare ----- */
+
+.markdown .xmd-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.markdown .xmd-compare-grid article {
+  min-width: 0;
+  padding: 20px;
+  background: var(--xmd-bg);
+  border: 1px solid var(--xmd-border);
+  border-radius: 8px;
+}
+
+.markdown .xmd-compare-grid strong {
+  display: block;
+  color: var(--xmd-text);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.markdown .xmd-compare-grid strong code {
+  background: transparent;
+  padding: 0;
+  font-size: 1em;
+}
+
+.markdown .xmd-compare-grid p {
+  margin: 10px 0 0;
+  color: var(--xmd-text-tertiary);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+/* ----- plugin strip ----- */
+
+.markdown .xmd-plugin-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(320px, 0.78fr);
+  gap: 36px;
+  align-items: center;
+}
+
+.markdown .xmd-code-panel {
+  margin: 0;
+  padding: 20px;
+  overflow-x: auto;
+  background: var(--xmd-code-dark);
+  border: 1px solid var(--xmd-border-strong);
+  border-radius: 8px;
+  box-shadow: 0 18px 48px -20px rgba(23, 23, 23, 0.3);
+}
+
+.markdown .xmd-code-panel code {
+  display: block;
+  padding: 0;
+  color: #e5e7eb;
+  background: transparent;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre;
+}
+
+/* ----- final cta ----- */
+
+.markdown .xmd-final-cta {
+  text-align: center;
+}
+
+.markdown .xmd-final-cta h2 {
+  max-width: 22ch;
+  margin: 0 auto;
+  color: var(--xmd-text);
+  font-size: clamp(24px, 2.8vw, 32px);
+  font-weight: 720;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.markdown .xmd-final-cta > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+/* ----- doc-page brief grids (re-added; their responsive rule lived in a
+   removed homepage block) ----- */
+
+@media (max-width: 767px) {
+  .markdown .xmd-doc-brief,
+  .markdown .xmd-doc-feature-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ----- responsive ----- */
+
+@media (max-width: 920px) {
+  .markdown .xmd-hero {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    min-height: 0;
+    padding: 24px 0 48px;
+  }
+  /* single-column grid items must be allowed to shrink below their
+     non-wrapping min-content (e.g. the white-space:pre code chip) or the
+     track widens past the viewport and the page overflows horizontally */
+  .markdown .xmd-hero-copy,
+  .markdown .xmd-hero-media {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .markdown .xmd-hero-media {
+    justify-self: start;
+    max-width: min(340px, 100%);
+  }
+  .markdown .xmd-capability-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .markdown .xmd-plugin-strip {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 767px) {
+  .markdown .xmd-landing {
+    width: 100%;
+    max-width: 100%;
+    padding: 4px 0 48px;
+    overflow-x: clip;
+  }
+  .markdown .xmd-hero {
+    padding: 16px 0 36px;
+  }
+  .markdown .xmd-hero-facts {
+    gap: 4px 0;
+  }
+  .markdown .xmd-hero-actions {
+    align-items: stretch;
+  }
+  .markdown .xmd-install-command,
+  .markdown .xmd-primary-link,
+  .markdown .xmd-secondary-link {
+    width: 100%;
+  }
+  .markdown .xmd-install-command {
+    justify-content: flex-start;
+  }
+  .markdown .xmd-hero-media {
+    justify-self: center;
+    margin: 0 auto;
+  }
+  .markdown .xmd-hero-facts > div {
+    padding: 0 16px;
+  }
+  .markdown .xmd-landing-section {
+    padding: 40px 0;
+  }
+  .markdown .xmd-capability-grid,
+  .markdown .xmd-compare-grid,
+  .markdown .xmd-path-diagram {
+    grid-template-columns: 1fr;
+  }
+  .markdown .xmd-path-diagram {
+    display: grid;
+  }
+  .markdown .xmd-path-diagram li:not(:last-child)::after {
+    right: 50%;
+    top: auto;
+    bottom: -6px;
+    transform: translateX(50%) rotate(135deg);
+  }
+}
+
+/* ===== homepage two-screen refresh ===== */
+
+.markdown .xmd-landing {
+  width: min(1160px, 100%);
+  padding-bottom: 52px;
+}
+
+.markdown .xmd-hero {
+  grid-template-columns: minmax(0, 1.02fr) minmax(310px, 0.72fr);
+  gap: clamp(36px, 6vw, 76px);
+  min-height: min(660px, calc(100vh - 116px));
+  padding: 22px 0 50px;
+}
+
+.markdown .xmd-hero h1 {
+  max-width: 18ch;
+  font-size: clamp(34px, 4.6vw, 56px);
+  line-height: 1.07;
+  letter-spacing: 0;
+}
+
+.markdown .xmd-hero-subtitle {
+  max-width: 58ch;
+  margin-top: 18px;
+  font-size: clamp(14px, 1.3vw, 17px);
+  line-height: 1.68;
+}
+
+.markdown .xmd-hero-actions {
+  margin-top: 26px;
+}
+
+.markdown .xmd-install-command,
+.markdown .xmd-primary-link,
+.markdown .xmd-secondary-link {
+  height: 42px;
+  font-size: 15px;
+}
+
+.markdown .xmd-install-command {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.markdown .xmd-copy-control {
+  flex-basis: 28px;
+  height: 28px;
+  min-width: 0;
+  font-size: 0;
+}
+
+.markdown .xmd-hero-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: min(620px, 100%);
+  margin-top: 28px;
+}
+
+.markdown .xmd-hero-facts > div,
+.markdown .xmd-hero-facts > div:first-child {
+  min-width: 0;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--xmd-border);
+  border-radius: 8px;
+}
+
+.markdown .xmd-hero-facts dt {
+  font-size: 19px;
+  letter-spacing: 0;
+}
+
+.markdown .xmd-hero-facts dd {
+  min-height: 34px;
+  font-size: 12px;
+}
+
+.markdown .xmd-landing-section {
+  min-height: min(650px, calc(100vh - 96px));
+  padding: 54px 0 64px;
+}
+
+.markdown .xmd-architecture {
+  display: block;
+}
+
+.markdown .xmd-section-copy {
+  max-width: 48ch;
+}
+
+.markdown .xmd-section-copy h2 {
+  font-size: clamp(24px, 2.8vw, 32px);
+  letter-spacing: 0;
+}
+
+.markdown .xmd-section-copy p {
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.markdown .xmd-architecture .xmd-hero-facts {
+  grid-template-columns: 1fr;
+  width: 100%;
+}
+
+.markdown .xmd-architecture .xmd-hero-facts > div,
+.markdown .xmd-architecture .xmd-hero-facts > div:first-child {
+  padding: 13px 15px;
+}
+
+.markdown .xmd-architecture .xmd-hero-facts dd {
+  min-height: 0;
+}
+
+.markdown .xmd-hero-media {
+  max-width: 322px;
+}
+
+.markdown .xmd-arch-board {
+  min-width: 0;
+}
+
+.markdown .xmd-arch-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--xmd-text);
+  background:
+    linear-gradient(90deg, rgba(37, 99, 235, 0.045) 1px, transparent 1px),
+    linear-gradient(rgba(37, 99, 235, 0.045) 1px, transparent 1px),
+    #ffffff;
+  background-size: 28px 28px;
+  border: 1px solid var(--xmd-border);
+  border-radius: 12px;
+}
+
+.markdown .xmd-arch-box,
+.markdown .xmd-arch-platform,
+.markdown .xmd-arch-chip {
+  fill: #ffffff;
+  stroke: var(--xmd-border-strong);
+  stroke-width: 1.3;
+}
+
+.markdown .xmd-arch-box-accent {
+  fill: rgba(37, 99, 235, 0.06);
+  stroke: rgba(37, 99, 235, 0.38);
+}
+
+.markdown .xmd-arch-platform {
+  fill: #fafafa;
+}
+
+.markdown .xmd-arch-chip {
+  fill: #171717;
+  stroke: #171717;
+}
+
+.markdown .xmd-arch-line {
+  fill: none;
+  stroke: var(--xmd-accent);
+  stroke-width: 1.8;
+}
+
+/* Main pipeline connectors: neutral gray so the one blue accent stays rare
+   (it marks only the PlatformRenderer node and the streaming reuse curve). */
+.markdown .xmd-arch-flow {
+  fill: none;
+  stroke: var(--xmd-text-quaternary, #a3a3a3);
+  stroke-width: 1.6;
+}
+
+.markdown .xmd-arch-line-soft {
+  stroke: var(--xmd-border-strong);
+  stroke-dasharray: 4 6;
+}
+
+.markdown .xmd-arch-lane-title {
+  fill: var(--xmd-accent);
+  font-family: Inter, "SF Pro Text", "PingFang SC", ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 720;
+}
+
+.markdown .xmd-arch-label {
+  fill: var(--xmd-text);
+  font-family: Inter, "SF Pro Text", "PingFang SC", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 720;
+}
+
+.markdown .xmd-arch-note {
+  fill: var(--xmd-text-tertiary);
+  font-family: Inter, "SF Pro Text", "PingFang SC", ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 520;
+}
+
+.markdown .xmd-arch-chip-text {
+  fill: #ffffff;
+}
+
+.markdown .xmd-arch-proof {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.markdown .xmd-arch-proof div {
+  min-width: 0;
+  padding: 14px 13px;
+  background: #ffffff;
+  border: 1px solid var(--xmd-border);
+  border-radius: 8px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+/* Flat at rest; hover firms the border toward the accent and lays a faint
+   blue wash. No shadow (keeps the whiteboard flat-by-default). */
+.markdown .xmd-arch-proof div:hover {
+  border-color: #2563eb3d;
+  background: #2563eb08;
+}
+
+.markdown .xmd-arch-proof-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.markdown .xmd-arch-proof-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--xmd-accent);
+}
+
+.markdown .xmd-arch-proof strong {
+  color: var(--xmd-text);
+  font-size: 13px;
+  font-weight: 720;
+  line-height: 1.3;
+}
+
+.markdown .xmd-arch-proof span {
+  display: block;
+  margin-top: 6px;
+  color: var(--xmd-text-tertiary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.markdown .xmd-arch-proof code {
+  padding: 0;
+  background: transparent;
+  font-size: 0.92em;
+}
+
+@media (max-width: 1080px) {
+  .markdown .xmd-architecture {
+    grid-template-columns: 1fr;
+  }
+
+  .markdown .xmd-arch-proof {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .markdown .xmd-hero {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .markdown .xmd-hero h1 {
+    font-size: 32px;
+  }
+
+  .markdown .xmd-hero-facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .markdown .xmd-hero-facts > div,
+  .markdown .xmd-hero-facts > div:first-child {
+    padding: 10px 8px;
+  }
+
+  .markdown .xmd-hero-facts dt {
+    font-size: 16px;
+  }
+
+  .markdown .xmd-hero-facts dd {
+    font-size: 10.5px;
+    line-height: 1.35;
+  }
+
+  .markdown .xmd-hero-facts dd {
+    min-height: 0;
+  }
+
+  .markdown .xmd-architecture .xmd-hero-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .markdown .xmd-hero-media {
+    max-width: min(318px, 100%);
+  }
+
+  .markdown .xmd-landing-section {
+    min-height: 0;
+  }
+
+  .markdown .xmd-arch-board {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .markdown .xmd-arch-svg {
+    min-width: 760px;
+  }
+
+  .markdown .xmd-arch-proof {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== homepage Stitch reference refresh ===== */
+
+.markdown .xmd-landing {
+  width: min(1180px, 100%);
+  padding: 8px 0 64px;
+}
+
+.markdown .xmd-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.74fr);
+  gap: clamp(40px, 6vw, 88px);
+  min-height: min(720px, calc(100vh - 98px));
+  padding: clamp(26px, 5vw, 72px) 0 80px;
+  align-items: center;
+}
+
+.markdown .xmd-hero-copy {
+  position: relative;
+}
+
+.markdown .xmd-hero-copy::before {
+  content: "v0.1 beta now live";
+  display: inline-flex;
+  margin: 0 0 18px;
+  padding: 7px 10px;
+  color: var(--xmd-accent);
+  background: color-mix(in oklch, var(--xmd-accent) 9%, white);
+  border: 1px solid color-mix(in oklch, var(--xmd-accent) 20%, white);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.markdown .xmd-hero h1 {
+  max-width: 18ch;
+  font-size: clamp(36px, 5vw, 62px);
+  font-weight: 780;
+  line-height: 1.04;
+  letter-spacing: 0;
+}
+
+.markdown .xmd-hero-subtitle {
+  max-width: 58ch;
+  margin-top: 20px;
+  color: var(--xmd-text-secondary);
+  font-size: clamp(15px, 1.35vw, 18px);
+  line-height: 1.68;
+}
+
+.markdown .xmd-hero-actions {
+  margin-top: 28px;
+}
+
+.markdown .xmd-hero-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: min(680px, 100%);
+  margin: 30px 0 0;
+}
+
+.markdown .xmd-hero-facts > div,
+.markdown .xmd-hero-facts > div:first-child {
+  min-width: 0;
+  padding: 15px 16px;
+  background: oklch(99% 0 0 / 0.86);
+  border: 1px solid var(--xmd-border);
+  border-radius: 8px;
+}
+
+.markdown .xmd-hero-facts dt {
+  color: var(--xmd-text);
+  font-size: 17px;
+  font-weight: 760;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.markdown .xmd-hero-facts dd {
+  min-height: 38px;
+  margin-top: 7px;
+  color: var(--xmd-text-tertiary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.markdown .xmd-hero-media {
+  position: relative;
+  justify-self: center;
+  max-width: 326px;
+}
+
+.markdown .xmd-hero-media::before {
+  content: "";
+  position: absolute;
+  inset: 8% -18% 4%;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 35% 22%, color-mix(in oklch, var(--xmd-accent) 17%, transparent), transparent 32%),
+    linear-gradient(145deg, oklch(97% 0.006 255), transparent 62%);
+  border-radius: 999px;
+  filter: blur(26px);
+}
+
+.markdown .xmd-landing-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
+  gap: clamp(28px, 5vw, 64px);
+  align-items: center;
+  min-height: min(670px, calc(100vh - 112px));
+  padding: 68px 0;
+  border-top: 1px solid var(--xmd-border-subtle);
+}
+
+.markdown .xmd-section-copy {
+  max-width: 52ch;
+}
+
+.markdown .xmd-section-copy h2,
+.markdown .xmd-final-cta h2 {
+  margin: 0;
+  color: var(--xmd-text);
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 760;
+  line-height: 1.16;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.markdown .xmd-section-copy p {
+  margin-top: 16px;
+  color: var(--xmd-text-secondary);
+  font-size: 15px;
+  line-height: 1.76;
+}
+
+.markdown .xmd-capability-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.markdown .xmd-capability-grid a {
+  min-height: 158px;
+  padding: 22px;
+  background: oklch(99.3% 0 0);
+  border: 1px solid var(--xmd-border);
+  border-radius: 8px;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.markdown .xmd-capability-grid a:hover {
+  border-color: var(--xmd-accent-focus);
+  box-shadow: 0 16px 40px var(--xmd-border);
+  transform: translateY(-1px);
+}
+
+.markdown .xmd-capability-grid h3 {
+  margin: 0;
+  color: var(--xmd-text);
+  font-size: 16px;
+  font-weight: 730;
+}
+
+.markdown .xmd-capability-grid p {
+  margin-top: 12px;
+  color: var(--xmd-text-tertiary);
+  font-size: 13px;
+  line-height: 1.62;
+}
+
+.markdown .xmd-architecture {
+  grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.08fr);
+}
+
+.markdown .xmd-arch-board {
+  min-width: 0;
+}
+
+.markdown .xmd-arch-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--xmd-text);
+  background:
+    linear-gradient(90deg, color-mix(in oklch, var(--xmd-accent) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in oklch, var(--xmd-accent) 5%, transparent) 1px, transparent 1px),
+    oklch(99.6% 0 0);
+  background-size: 28px 28px;
+  border: 1px solid var(--xmd-border);
+  border-radius: 12px;
+}
+
+.markdown .xmd-arch-box,
+.markdown .xmd-arch-platform,
+.markdown .xmd-arch-chip {
+  fill: oklch(99.8% 0 0);
+  stroke: var(--xmd-border-strong);
+  stroke-width: 1.3;
+}
+
+.markdown .xmd-arch-box-accent {
+  fill: color-mix(in oklch, var(--xmd-accent) 7%, white);
+  stroke: color-mix(in oklch, var(--xmd-accent) 42%, white);
+}
+
+.markdown .xmd-arch-platform {
+  fill: var(--xmd-bg-subtle);
+}
+
+.markdown .xmd-arch-line {
+  fill: none;
+  stroke: var(--xmd-accent);
+  stroke-width: 1.8;
+}
+
+.markdown .xmd-arch-flow {
+  fill: none;
+  stroke: var(--xmd-text-quaternary);
+  stroke-width: 1.6;
+}
+
+.markdown .xmd-arch-lane-title,
+.markdown .xmd-arch-label,
+.markdown .xmd-arch-note {
+  font-family: var(--xmd-font-sans);
+}
+
+.markdown .xmd-arch-lane-title {
+  fill: var(--xmd-accent);
+  font-size: 13px;
+  font-weight: 720;
+}
+
+.markdown .xmd-arch-label {
+  fill: var(--xmd-text);
+  font-size: 16px;
+  font-weight: 720;
+}
+
+.markdown .xmd-arch-note {
+  fill: var(--xmd-text-tertiary);
+  font-size: 13px;
+  font-weight: 520;
+}
+
+.markdown .xmd-arch-proof {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.markdown .xmd-arch-proof div {
+  min-width: 0;
+  padding: 15px 14px;
+  background: oklch(99.6% 0 0);
+  border: 1px solid var(--xmd-border);
+  border-radius: 8px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.markdown .xmd-arch-proof div:hover {
+  border-color: var(--xmd-accent-focus);
+  background: color-mix(in oklch, var(--xmd-accent) 4%, white);
+}
+
+.markdown .xmd-arch-proof strong {
+  display: block;
+  color: var(--xmd-text);
+  font-size: 13px;
+  font-weight: 730;
+}
+
+.markdown .xmd-arch-proof span {
+  display: block;
+  margin-top: 7px;
+  color: var(--xmd-text-tertiary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.markdown .xmd-code-section {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.74fr);
+}
+
+.markdown .xmd-code-panel {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--xmd-code-dark);
+  border: 1px solid var(--xmd-border-strong);
+  border-radius: 8px;
+  box-shadow: 0 22px 70px var(--xmd-border-strong);
+}
+
+.markdown .xmd-code-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 15px;
+  background: oklch(20% 0 0);
+  border-bottom: 1px solid oklch(100% 0 0 / 0.08);
+}
+
+.markdown .xmd-code-toolbar span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.markdown .xmd-code-toolbar span:nth-child(1) {
+  background: #f87171;
+}
+
+.markdown .xmd-code-toolbar span:nth-child(2) {
+  background: #fbbf24;
+}
+
+.markdown .xmd-code-toolbar span:nth-child(3) {
+  background: #34d399;
+}
+
+.markdown .xmd-code-toolbar b {
+  margin-left: 8px;
+  color: oklch(85% 0 0 / 0.62);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.markdown .xmd-code-panel pre {
+  margin: 0;
+  padding: 22px;
+  overflow-x: auto;
+}
+
+.markdown .xmd-code-panel code {
+  display: block;
+  padding: 0;
+  color: #e5e7eb;
+  background: transparent;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.68;
+  white-space: pre;
+}
+
+.markdown .xmd-path-diagram {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.markdown .xmd-path-diagram li {
+  position: relative;
+  flex: 1 1 120px;
+  min-height: 52px;
+  margin: 0;
+  padding: 12px 14px;
+  color: var(--xmd-text);
+  background: var(--xmd-bg);
+  border: 1px solid var(--xmd-border);
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.32;
+}
+
+.markdown .xmd-path-diagram li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  background: var(--xmd-bg);
+  border-top: 1px solid var(--xmd-border-strong);
+  border-right: 1px solid var(--xmd-border-strong);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.markdown .xmd-final-cta {
+  display: block;
+  min-height: 0;
+  padding-bottom: 36px;
+  text-align: center;
+}
+
+.markdown .xmd-final-cta h2 {
+  max-width: 23ch;
+  margin: 0 auto;
+}
+
+.markdown .xmd-final-cta > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+@media (max-width: 980px) {
+  .markdown .xmd-hero,
+  .markdown .xmd-landing-section,
+  .markdown .xmd-architecture,
+  .markdown .xmd-code-section {
+    grid-template-columns: 1fr;
+  }
+
+  .markdown .xmd-landing-section {
+    min-height: 0;
+    padding: 52px 0;
+  }
+
+  .markdown .xmd-hero-media {
+    justify-self: start;
+  }
+
+  .markdown .xmd-capability-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .markdown .xmd-landing {
+    padding-bottom: 44px;
+  }
+
+  .markdown .xmd-hero {
+    gap: 30px;
+    padding-top: 18px;
+    padding-bottom: 42px;
+  }
+
+  .markdown .xmd-hero h1 {
+    font-size: 34px;
+  }
+
+  .markdown .xmd-hero-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .markdown .xmd-hero-facts dd {
+    min-height: 0;
+  }
+
+  .markdown .xmd-hero-media {
+    justify-self: center;
+    max-width: min(318px, 100%);
+  }
+
+  .markdown .xmd-capability-grid,
+  .markdown .xmd-arch-proof {
+    grid-template-columns: 1fr;
+  }
+
+  .markdown .xmd-arch-board {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .markdown .xmd-arch-svg {
+    min-width: 760px;
+  }
+
+  .markdown .xmd-code-panel pre {
+    padding: 18px;
+  }
+
+  .markdown .xmd-path-diagram {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .markdown .xmd-path-diagram li:not(:last-child)::after {
+    right: 50%;
+    top: auto;
+    bottom: -6px;
+    transform: translateX(50%) rotate(135deg);
+  }
+}
+
+/* ===== Stitch-style top navigation override ===== */
+
+.dumi-default-header,
+.dumi-default-header:not([data-static]),
+body.xmd-homepage .dumi-default-header,
+body.xmd-over-hero .dumi-default-header,
+body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  left: 0 !important;
+  height: 64px !important;
+  background: oklch(100% 0 0 / 0.72) !important;
+  border-bottom: 1px solid var(--xmd-border-subtle) !important;
+  box-shadow: 0 1px 8px rgba(23, 23, 23, 0.04) !important;
+  backdrop-filter: blur(18px) saturate(1.35) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.35) !important;
+}
+
+.dumi-default-header-content,
+.dumi-default-header.xmd-mini .dumi-default-header-content {
+  width: min(1280px, 100%) !important;
+  max-width: 1280px !important;
+  height: 64px !important;
+  margin: 0 auto !important;
+  padding: 0 40px !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: none !important;
+}
+
+.dumi-default-header-content::before {
+  display: none !important;
+}
+
+.dumi-default-header-left,
+.dumi-default-header.xmd-mini .dumi-default-header-left {
+  flex: 0 0 auto !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+.dumi-default-logo {
+  height: 40px !important;
+  color: var(--xmd-text) !important;
+  font-size: 21px !important;
+  font-weight: 780 !important;
+  letter-spacing: 0 !important;
+}
+
+.dumi-default-logo img {
+  height: 32px !important;
+}
+
+.dumi-default-header-right {
+  position: static !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 20px !important;
+  height: 64px !important;
+}
+
+.xmd-nav-cluster,
+.dumi-default-header.xmd-mini .xmd-nav-cluster {
+  position: static !important;
+  inset: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 64px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.xmd-nav-cluster .xmd-nav-link {
+  height: 40px;
+  padding: 0 8px;
+  color: var(--xmd-text-secondary);
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.xmd-nav-cluster .xmd-nav-link:hover {
+  color: var(--xmd-accent);
+  background: transparent;
+}
+
+.xmd-nav-cluster .xmd-nav-link.active {
+  color: var(--xmd-accent);
+  background: transparent;
+  box-shadow: inset 0 -2px 0 var(--xmd-accent);
+}
+
+.xmd-search-shell {
+  margin-right: 8px;
+}
+
+.xmd-search-trigger {
+  width: 176px;
+  height: 40px;
+  border-color: var(--xmd-border);
+  border-radius: 8px;
+  background: oklch(100% 0 0 / 0.9);
+  color: var(--xmd-text-tertiary);
+  font-size: 14px;
+  box-shadow: none;
+}
+
+.xmd-search-trigger:hover {
+  border-color: var(--xmd-accent-focus);
+  color: var(--xmd-text);
+  box-shadow: none;
+}
+
+.xmd-search-trigger kbd,
+.xmd-search-inline kbd {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-inline {
+  width: 248px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.xmd-header-support {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 64px !important;
+  margin-left: auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+}
+
+.xmd-header-support .xmd-pill-btn {
+  height: 36px;
+  min-width: 34px;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: var(--xmd-text);
+}
+
+.xmd-header-support .xmd-pill-btn:hover {
+  color: var(--xmd-accent);
+  background: var(--xmd-accent-subtle);
+}
+
+.xmd-header-support .xmd-support-sep {
+  display: none;
+}
+
+.markdown .xmd-hero-copy::before {
+  display: none !important;
+}
+
+.markdown .xmd-hero {
+  padding-top: clamp(34px, 6vw, 88px);
+}
+
+@media (max-width: 980px) {
+  .dumi-default-header-content,
+  .dumi-default-header.xmd-mini .dumi-default-header-content {
+    padding: 0 24px !important;
+  }
+
+  .xmd-search-trigger {
+    width: 144px;
+  }
+}
+
+@media (max-width: 767px) {
+  .dumi-default-header,
+  .dumi-default-header:not([data-static]),
+  body.xmd-homepage .dumi-default-header,
+  body.xmd-over-hero .dumi-default-header,
+  body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
+    height: 64px !important;
+  }
+
+  .dumi-default-header-content,
+  .dumi-default-header.xmd-mini .dumi-default-header-content {
+    width: 100% !important;
+    height: 64px !important;
+    padding: 0 20px !important;
+  }
+
+  .xmd-nav-cluster,
+  .xmd-header-support {
+    display: none !important;
+  }
+
+  .dumi-default-logo {
+    font-size: 0 !important;
+  }
+}
+
+/* Search sits on the right, before version / language / GitHub. */
+.xmd-nav-cluster,
+.dumi-default-header.xmd-mini .xmd-nav-cluster {
+  flex: 1 1 auto !important;
+  min-width: 0;
+}
+
+.xmd-nav-cluster .xmd-nav-link {
+  order: 1;
+}
+
+.xmd-search-shell {
+  order: 2;
+  margin-right: 12px;
+  margin-left: auto;
+}
+
+.xmd-header-support {
+  flex: 0 0 auto;
+  margin-left: 0 !important;
+}
+
+.xmd-search-trigger {
+  width: clamp(260px, 24vw, 360px);
+  justify-content: flex-start;
+  gap: 9px;
+  padding-left: 13px;
+  padding-right: 9px;
+}
+
+.xmd-search-trigger::before,
+.xmd-search-inline::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  border: 1.7px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.68;
+  box-sizing: border-box;
+}
+
+.xmd-search-trigger::after,
+.xmd-search-inline::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 1.7px;
+  background: currentColor;
+  border-radius: 999px;
+  opacity: 0.68;
+  transform: translate(9px, 8px) rotate(45deg);
+}
+
+.xmd-search-trigger,
+.xmd-search-inline {
+  position: relative;
+}
+
+.xmd-search-trigger-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.xmd-search-trigger kbd {
+  margin-left: auto;
+}
+
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-inline {
+  width: clamp(300px, 28vw, 420px);
+  gap: 9px;
+}
+
+.xmd-search-inline input {
+  padding-left: 0;
+}
+
+@media (max-width: 1120px) {
+  .xmd-search-trigger {
+    width: clamp(220px, 22vw, 280px);
+  }
+
+  .xmd-nav-cluster[data-search-state='open'] .xmd-search-inline {
+    width: clamp(260px, 28vw, 340px);
+  }
+}
+
+@media (max-width: 900px) {
+  .xmd-search-shell {
+    display: none;
+  }
+}
+
+/* Header refinement: slimmer search, quieter typography, sharper polish. */
+.dumi-default-header,
+.dumi-default-header:not([data-static]),
+body.xmd-homepage .dumi-default-header,
+body.xmd-over-hero .dumi-default-header,
+body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
+  background:
+    linear-gradient(180deg, oklch(100% 0 0 / 0.82), oklch(100% 0 0 / 0.68)) !important;
+  border-bottom-color: oklch(92.5% 0 0 / 0.72) !important;
+  box-shadow:
+    0 1px 0 oklch(100% 0 0 / 0.82) inset,
+    0 10px 28px rgba(23, 23, 23, 0.035) !important;
+  backdrop-filter: blur(16px) saturate(1.22) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.22) !important;
+}
+
+.dumi-default-header-content,
+.dumi-default-header.xmd-mini .dumi-default-header-content {
+  padding: 0 36px !important;
+}
+
+.dumi-default-logo {
+  gap: 4px !important;
+  font-size: 20px !important;
+  font-weight: 760 !important;
+  letter-spacing: -0.012em !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+.dumi-default-logo img {
+  height: 32px !important;
+}
+
+.dumi-default-header-right {
+  gap: 18px !important;
+}
+
+.xmd-nav-cluster,
+.dumi-default-header.xmd-mini .xmd-nav-cluster {
+  gap: 6px !important;
+}
+
+.xmd-nav-cluster .xmd-nav-link {
+  height: 36px;
+  padding: 0 9px;
+  color: oklch(34% 0 0 / 0.78);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 620;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.xmd-nav-cluster .xmd-nav-link:hover {
+  color: var(--xmd-text);
+  background: oklch(96% 0 0 / 0.72);
+}
+
+.xmd-nav-cluster .xmd-nav-link.active {
+  color: var(--xmd-accent);
+  background: oklch(100% 0 0 / 0.56);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklch, var(--xmd-accent) 18%, transparent),
+    0 1px 2px rgba(23, 23, 23, 0.025);
+}
+
+.xmd-search-shell {
+  margin-right: 10px;
+}
+
+.xmd-search-trigger {
+  width: clamp(188px, 18vw, 236px);
+  height: 38px;
+  gap: 8px;
+  padding-right: 8px;
+  padding-left: 12px;
+  color: oklch(43% 0 0 / 0.72);
+  background: oklch(99% 0 0 / 0.74);
+  border-color: oklch(88% 0 0 / 0.82);
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 460;
+}
+
+.xmd-search-trigger:hover {
+  color: var(--xmd-text);
+  background: oklch(100% 0 0 / 0.92);
+  border-color: oklch(78% 0 0 / 0.88);
+}
+
+.xmd-search-trigger::before,
+.xmd-search-inline::before {
+  width: 14px;
+  height: 14px;
+  border-width: 1.55px;
+  opacity: 0.58;
+}
+
+.xmd-search-trigger::after,
+.xmd-search-inline::after {
+  width: 5px;
+  height: 1.55px;
+  opacity: 0.58;
+  transform: translate(8px, 7px) rotate(45deg);
+}
+
+.xmd-search-trigger kbd,
+.xmd-search-inline kbd {
+  min-width: 34px;
+  height: 22px;
+  color: oklch(36% 0 0 / 0.62);
+  background: oklch(100% 0 0 / 0.72);
+  border-color: oklch(88% 0 0 / 0.9);
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-inline {
+  width: clamp(240px, 22vw, 320px);
+  height: 38px;
+  gap: 8px;
+  border-radius: 7px;
+}
+
+.xmd-search-inline input {
+  font-size: 13px;
+  font-weight: 460;
+}
+
+.xmd-header-support {
+  gap: 4px !important;
+}
+
+.xmd-header-support .xmd-pill-btn {
+  height: 30px;
+  min-width: 30px;
+  padding: 0 7px;
+  color: oklch(30% 0 0 / 0.84);
+  /* square (rounded-rect), matching the 在线演示 platform switch */
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 560;
+}
+
+/* GitHub is icon-only: drop the wider min-width/padding so its hover box is a
+   snug 30x30 square like the lang switch (no extra 边距 around the icon). */
+.xmd-header-support a.xmd-github-link {
+  width: 30px;
+  min-width: 30px;
+  padding: 0;
+}
+
+/* grey hover, matching the lang switch (was the blue accent) */
+.xmd-header-support .xmd-pill-btn:hover {
+  color: #0a0a0a;
+  background: #f4f4f5;
+}
+
+@media (max-width: 1120px) {
+  .xmd-search-trigger {
+    width: clamp(166px, 17vw, 204px);
+  }
+
+  .xmd-nav-cluster[data-search-state='open'] .xmd-search-inline {
+    width: clamp(216px, 25vw, 280px);
+  }
+}
+
+@media (max-width: 960px) {
+  .xmd-search-shell {
+    display: none;
+  }
+}
+
+/* Active top tabs: text highlight only. */
+.xmd-nav-cluster .xmd-nav-link.active,
+.dumi-default-header.xmd-mini .xmd-nav-cluster .xmd-nav-link.active {
+  color: var(--xmd-accent);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Fixed-header offset for docs and playground pages. */
+.dumi-default-doc-layout > main {
+  padding-top: 64px !important;
+}
+
+.dumi-default-content:not([data-no-sidebar]) {
+  padding-top: 12px !important;
+}
+
+
+.markdown:has(.xmd-landing) {
+  margin-top: 0;
+}
+
+@media (max-width: 767px) {
+  .dumi-default-doc-layout > main {
+    padding-top: 64px !important;
+  }
+
+}
+
+/* Typography direction from homepage polish review. */
+:root {
+  --xmd-font-sans: "Albert Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --xmd-font-serif: Georgia, "Times New Roman", "Songti SC", SimSun, serif;
+  --xmd-text: #262626;
+  --xmd-text-secondary: #434343;
+}
+
+body,
+.markdown,
+.markdown p,
+.markdown li,
+.markdown td,
+.markdown th,
+.markdown input,
+.markdown button,
+.markdown textarea {
+  color: #434343;
+  font-family: var(--xmd-font-sans);
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.markdown p,
+.markdown li {
+  line-height: 1.72;
+}
+
+.markdown strong,
+.markdown b {
+  color: #262626;
+}
+
+.markdown .xmd-hero h1,
+.markdown .xmd-section-copy h2,
+.markdown .xmd-landing > h2,
+.markdown .xmd-landing-section > h2 {
+  color: #262626;
+  font-family: var(--xmd-font-serif);
+  font-size: 54px;
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: 0;
+}
+
+.markdown .xmd-hero-subtitle,
+.markdown .xmd-section-copy p,
+.markdown .xmd-hero-facts dd,
+.markdown .xmd-arch-proof span {
+  color: #434343;
+  font-family: var(--xmd-font-sans);
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.markdown .xmd-hero-facts dt,
+.markdown .xmd-arch-proof strong {
+  color: #262626;
+  font-family: var(--xmd-font-sans);
+  font-weight: 400;
+}
+
+.dumi-default-header,
+.dumi-default-header *,
+.xmd-nav-cluster .xmd-nav-link,
+.xmd-search-trigger,
+.xmd-search-inline input,
+.xmd-header-support .xmd-pill-btn {
+  color: #262626;
+  font-family: var(--xmd-font-sans);
+  font-size: 14px;
+}
+
+.xmd-nav-cluster .xmd-nav-link {
+  font-weight: 400;
+}
+
+.xmd-nav-cluster .xmd-nav-link:hover,
+.xmd-nav-cluster .xmd-nav-link.active,
+.dumi-default-header.xmd-mini .xmd-nav-cluster .xmd-nav-link.active {
+  color: #262626;
+  font-weight: 400;
+}
+
+.xmd-search-trigger,
+.xmd-search-inline input {
+  font-weight: 400;
+}
+
+.xmd-header-support .xmd-pill-btn {
+  font-weight: 400;
+}
+
+@media (max-width: 767px) {
+  .markdown .xmd-hero h1,
+  .markdown .xmd-section-copy h2,
+  .markdown .xmd-landing > h2,
+  .markdown .xmd-landing-section > h2 {
+    font-size: 42px;
+  }
+}
+
+/* Search polish: real icon, compact field, no CSS-drawn magnifier. */
+.xmd-search-trigger {
+  width: clamp(172px, 16vw, 216px);
+  height: 36px;
+  gap: 8px;
+  padding: 0 7px 0 11px;
+  color: #626262;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.xmd-search-trigger:hover,
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-inline:focus-within {
+  color: #262626;
+  background: #fafafa;
+  border-color: #d9d9d9;
+  box-shadow: none;
+}
+
+.xmd-search-icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: #8c8c8c;
+}
+
+.xmd-search-trigger:hover .xmd-search-icon,
+.xmd-search-inline:focus-within .xmd-search-icon {
+  color: #595959;
+}
+
+.xmd-search-trigger::before,
+.xmd-search-trigger::after,
+.xmd-search-inline::before,
+.xmd-search-inline::after {
+  display: none;
+}
+
+.xmd-search-trigger-label {
+  color: #737373;
+  font-size: 14px;
+}
+
+.xmd-search-trigger:hover .xmd-search-trigger-label {
+  color: #434343;
+}
+
+.xmd-search-trigger kbd,
+.xmd-search-inline kbd {
+  min-width: 31px;
+  height: 21px;
+  padding: 0 6px;
+  color: #8c8c8c;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 5px;
+  font-family: var(--xmd-font-sans);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.xmd-nav-cluster[data-search-state='open'] .xmd-search-inline {
+  width: clamp(220px, 20vw, 300px);
+  height: 36px;
+  gap: 8px;
+  padding: 0 7px 0 11px;
+  color: #626262;
+  background: #ffffff;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+}
+
+.xmd-search-inline input {
+  color: #262626;
+  font-size: 14px;
+}
+
+.xmd-search-inline input::placeholder {
+  color: #8c8c8c;
+}
+
+.xmd-phone-screen,
+.xmd-phone-screen * {
+  font-family: inherit;
+}
+
+.xmd-phone-screen .md-h1 {
+  color: var(--phone-text);
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* Unified page rail: header defines the same left/right edges as content. */
+:root {
+  --xmd-page-max: 1220px;
+  --xmd-page-gutter: clamp(20px, 4vw, 40px);
+  --xmd-page-rail: min(var(--xmd-page-max), calc(100% - (var(--xmd-page-gutter) * 2)));
+}
+
+.dumi-default-header,
+.dumi-default-header:not([data-static]),
+body.xmd-homepage .dumi-default-header,
+body.xmd-over-hero .dumi-default-header,
+body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
+  background: transparent !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.dumi-default-header-content,
+.dumi-default-header.xmd-mini .dumi-default-header-content {
+  width: var(--xmd-page-rail) !important;
+  max-width: var(--xmd-page-max) !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+.dumi-default-doc-layout > main {
+  width: var(--xmd-page-rail) !important;
+  max-width: var(--xmd-page-max) !important;
+  margin-right: auto !important;
+  margin-left: auto !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+  box-sizing: border-box;
+}
+
+.dumi-default-content:not([data-no-sidebar]) {
+  min-width: 0;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+.dumi-default-content[data-no-sidebar],
+.dumi-default-content[data-no-sidebar]:has(.xmd-pg) {
+  width: var(--xmd-page-rail) !important;
+  max-width: var(--xmd-page-max) !important;
+  margin-right: auto !important;
+  margin-left: auto !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+  box-sizing: border-box;
+}
+
+.markdown .xmd-landing {
+  width: var(--xmd-page-rail);
+  max-width: var(--xmd-page-max);
+}
+
+@media (max-width: 767px) {
+  :root {
+    --xmd-page-gutter: 20px;
+  }
+
+  .dumi-default-header-content,
+  .dumi-default-header.xmd-mini .dumi-default-header-content,
+  .dumi-default-doc-layout > main,
+  .dumi-default-content[data-no-sidebar],
+  .dumi-default-content[data-no-sidebar]:has(.xmd-pg),
+  .markdown .xmd-landing {
+    width: calc(100% - (var(--xmd-page-gutter) * 2)) !important;
+  }
+}
+
+/* Scroll chrome: transparent at top, floating liquid-glass pill after scroll. */
+.dumi-default-header,
+.dumi-default-header:not([data-static]),
+body.xmd-homepage .dumi-default-header,
+body.xmd-over-hero .dumi-default-header,
+body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
+  height: 82px !important;
+  background: transparent !important;
+  border-bottom: 1px solid transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.dumi-default-header-content,
+.dumi-default-header.xmd-mini .dumi-default-header-content {
+  transition:
+    width 0.42s cubic-bezier(0.22, 0.61, 0.36, 1),
+    height 0.42s cubic-bezier(0.22, 0.61, 0.36, 1),
+    margin 0.42s cubic-bezier(0.22, 0.61, 0.36, 1),
+    padding 0.42s cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-radius 0.42s cubic-bezier(0.22, 0.61, 0.36, 1),
+    background 0.26s ease,
+    border-color 0.26s ease,
+    box-shadow 0.26s ease,
+    backdrop-filter 0.26s ease,
+    -webkit-backdrop-filter 0.26s ease !important;
+}
+
+.dumi-default-header-content {
+  height: 64px !important;
+  margin: 0 auto !important;
+  border: 1px solid transparent !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.dumi-default-header.xmd-mini .dumi-default-header-content {
+  width: min(1280px, calc(100% - 32px)) !important;
+  max-width: 1280px !important;
+  height: 50px !important;
+  margin: 14px auto 0 !important;
+  padding: 0 18px !important;
+  border-radius: 999px !important;
+  border-color: rgba(21, 20, 15, 0.08) !important;
+  background: rgba(255, 255, 255, 0.42) !important;
+  box-shadow:
+    inset 0 0 2px 1px rgba(255, 255, 255, 0.55),
+    inset 0 0 10px 4px rgba(255, 255, 255, 0.22),
+    0 6px 24px rgba(17, 17, 26, 0.06),
+    0 12px 40px rgba(17, 17, 26, 0.05) !important;
+  backdrop-filter: blur(12px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.4) !important;
+}
+
+.dumi-default-header.xmd-mini .dumi-default-header-right,
+.dumi-default-header.xmd-mini .xmd-nav-cluster,
+.dumi-default-header.xmd-mini .xmd-header-support {
+  height: 50px !important;
+}
+
+.dumi-default-header.xmd-mini .dumi-default-logo {
+  height: 38px !important;
+}
+
+.dumi-default-header.xmd-mini .xmd-search-trigger {
+  height: 34px;
+  background: #ffffff;
+}
+
+/* hover: no glow/highlight — just settle onto a faint grey */
+.dumi-default-header.xmd-mini .xmd-search-trigger:hover {
+  background: #fafafa;
+  box-shadow: none;
+}
+
+@media (max-width: 767px) {
+  .dumi-default-header,
+  .dumi-default-header:not([data-static]),
+  body.xmd-homepage .dumi-default-header,
+  body.xmd-over-hero .dumi-default-header,
+  body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
+    height: 76px !important;
+  }
+
+  .dumi-default-header.xmd-mini .dumi-default-header-content {
+    width: calc(100% - 24px) !important;
+    height: 50px !important;
+    margin-top: 10px !important;
+    padding: 0 14px !important;
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/component/component",
+    "pages/js/js",
+    "pages/benchmark/benchmark"
+  ],
+  "window": {
+    "defaultTitle": "x-markdown-mini",
+    "titleBarColor": "#ffffff",
+    "backgroundColor": "#f7f8fa"
+  }
+}

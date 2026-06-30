@@ -1,0 +1,10 @@
+.page {
+  padding: 16px;
+}
+
+.primary {
+  margin-bottom: 12px;
+  color: #fff;
+  background: #1677ff;
+  border-radius: 8px;
+}

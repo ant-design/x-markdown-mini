@@ -1,0 +1,8 @@
+{
+  "defaultTitle": "性能对比",
+  "renderer": "native",
+  "usingComponents": {
+    "markdown": "@ant-design/x-markdown-mini/es/Markdown/index",
+    "mp-html": "mp-html/dist/mp-alipay/index"
+  }
+}

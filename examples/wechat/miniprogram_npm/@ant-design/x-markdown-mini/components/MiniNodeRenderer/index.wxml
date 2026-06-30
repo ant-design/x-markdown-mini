@@ -1,0 +1,270 @@
+<wxs src="./index.wxs" module="u" />
+
+<block wx:for="{{nodes}}" wx:for-item="node" wx:for-index="i" wx:key="k">
+  <!-- 链接在 flatten 阶段已展开成叶子 run，与前后文本共享同一兄弟流。 -->
+  <text
+    wx:if="{{node.name === 'a' && animation && node.animationSegments}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  ><text
+      wx:for="{{node.animationSegments}}"
+      wx:for-item="segment"
+      wx:key="k"
+      class="{{u.classOf(node)}} {{segment.animate ? 'md-anim-char' : ''}}"
+      style="{{segment.style || ''}}"
+    >{{segment.value}}</text></text>
+  <text
+    wx:elif="{{node.name === 'a'}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  >{{u.valueOf(node)}}</text>
+
+  <!-- 微信重建节点时，以负 delay 从字符原有时间点续播，避免整段重新闪。 -->
+  <text
+    wx:elif="{{u.isText(node.name) && animation && node.animationSegments}}"
+    class="{{u.classOf(node)}}"
+    selectable="{{selectable}}"
+  ><text
+      wx:for="{{node.animationSegments}}"
+      wx:for-item="segment"
+      wx:key="k"
+      class="{{u.classOf(node)}} {{segment.animate ? 'md-anim-char' : ''}}"
+      style="{{segment.style || ''}}"
+    >{{segment.value}}</text></text>
+  <text
+    wx:elif="{{u.isText(node.name)}}"
+    class="{{u.classOf(node)}}"
+    selectable="{{selectable}}"
+  >{{u.valueOf(node)}}</text>
+
+  <!-- br -->
+  <text wx:elif="{{u.isBr(node.name)}}">{{'\n'}}</text>
+
+  <!-- hr -->
+  <view wx:elif="{{u.isHr(node.name)}}" class="{{u.classOf(node)}}" />
+
+  <!-- img -->
+  <image
+    wx:elif="{{u.isImg(node.name)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    src="{{u.srcOf(node)}}"
+    mode="widthFix"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  />
+
+  <!-- KaTeX trees are 14–15 levels deep. Rendering each level through this
+       recursive custom component exceeds WeChat's practical component depth;
+       rich-text keeps the whole static span tree inside one native boundary and
+       resolves the real KaTeX font internally. Inline ($…$) and block ($$…$$)
+       share this branch — inline carries the .katex-inline class (display:
+       inline-block) so its rich-text box stays in the surrounding text flow,
+       while block carries .katex-display (display:block). -->
+  <rich-text
+    wx:elif="{{u.isKatex(node)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    nodes="{{u.toRichTextNodes(node.children)}}"
+    user-select="{{selectable}}"
+  />
+
+  <!-- pre: code block with language label + copy toolbar, scrollable body -->
+  <view
+    wx:elif="{{u.isPre(node.name)}}"
+    class="md-codeblock {{node.animate ? 'md-animate-block' : ''}}"
+  >
+    <view wx:if="{{node.header}}" class="md-codeblock-bar">
+      <block wx:for="{{node.header}}" wx:for-item="h" wx:for-index="hi" wx:key="k">
+        <text wx:if="{{u.isText(h.name)}}" class="{{u.classOf(h)}}">{{u.valueOf(h)}}</text>
+        <image
+          wx:elif="{{u.isCopy(h.name)}}"
+          class="{{u.classOf(h) || 'md-copy-icon'}}"
+          src="https://mdn.alipayobjects.com/huamei_y8xg5f/afts/img/JXzqSoHDzm4AAAAAHpAAAAgADuJhAQFr/original"
+          data-copy="{{u.copyOf(h)}}"
+          catch:tap="_copy"
+        />
+        <view wx:else class="{{u.classOf(h)}}" style="{{u.styleOf(h)}}">
+          <mini-node-renderer
+            wx:if="{{h.children}}"
+            generic:custom-slot="custom-slot"
+            nodes="{{h.children}}"
+            selectable="{{selectable}}"
+            animation="{{false}}"
+            slotComponents="{{slotComponents}}"
+            bind:tap="_tap"
+          />
+        </view>
+      </block>
+    </view>
+    <scroll-view scroll-x class="md-code-block">
+      <mini-node-renderer
+        wx:if="{{node.children}}"
+        generic:custom-slot="custom-slot"
+        nodes="{{node.children}}"
+        selectable="{{selectable}}"
+        animation="{{false}}"
+        slotComponents="{{slotComponents}}"
+        bind:tap="_tap"
+        bind:appear="_appear"
+      />
+    </scroll-view>
+  </view>
+
+  <!-- table: caption + copy toolbar card, horizontal-scroll CSS table (columns kept aligned) -->
+  <view
+    wx:elif="{{u.isTable(node.name)}}"
+    class="md-tableblock {{node.animate ? 'md-animate-block' : ''}}"
+  >
+    <view wx:if="{{node.header}}" class="md-tableblock-bar">
+      <block wx:for="{{node.header}}" wx:for-item="h" wx:for-index="hi" wx:key="k">
+        <text wx:if="{{u.isText(h.name)}}" class="{{u.classOf(h)}}">{{u.valueOf(h)}}</text>
+        <image
+          wx:elif="{{u.isCopy(h.name)}}"
+          class="{{u.classOf(h) || 'md-copy-icon'}}"
+          src="https://mdn.alipayobjects.com/huamei_y8xg5f/afts/img/JXzqSoHDzm4AAAAAHpAAAAgADuJhAQFr/original"
+          data-copy="{{u.copyOf(h)}}"
+          catch:tap="_copy"
+        />
+        <view wx:else class="{{u.classOf(h)}}" style="{{u.styleOf(h)}}">
+          <mini-node-renderer
+            wx:if="{{h.children}}"
+            generic:custom-slot="custom-slot"
+            nodes="{{h.children}}"
+            selectable="{{selectable}}"
+            animation="{{false}}"
+            slotComponents="{{slotComponents}}"
+            bind:tap="_tap"
+          />
+        </view>
+      </block>
+    </view>
+    <view class="markdownx-table-content">
+      <!-- 左右边缘阴影用 overlay <view>（公用样式 markdownx-edge-shadow），不用 ::before/
+           ::after 伪元素——微信嵌套自定义组件里伪元素不可靠，曾导致表格阴影不显示。 -->
+      <view class="markdownx-edge-shadow markdownx-edge-shadow-left {{u.leftShadowClass(tableShadows, i)}}" />
+      <view class="markdownx-edge-shadow markdownx-edge-shadow-right {{u.rightShadowClass(tableShadows, i)}}" />
+      <scroll-view
+        scroll-x
+        class="md-table-scroll"
+        data-table-key="{{i}}"
+        bindscroll="_tableScroll"
+      >
+        <view class="{{u.classOf(node)}}" data-table-key="{{i}}">
+          <view
+            wx:for="{{node.children}}"
+            wx:for-item="row"
+            wx:for-index="ri"
+            wx:key="k"
+            class="{{u.classOf(row)}}"
+            style="{{u.styleOf(row)}}"
+          >
+            <view
+              wx:for="{{row.children}}"
+              wx:for-item="cell"
+              wx:for-index="ci"
+              wx:key="k"
+              class="{{u.classOf(cell)}}"
+              style="{{u.styleOf(cell)}}"
+            >
+              <mini-node-renderer
+                wx:if="{{cell.children}}"
+                generic:custom-slot="custom-slot"
+                nodes="{{cell.children}}"
+                selectable="{{selectable}}"
+                animation="{{false}}"
+                slotComponents="{{slotComponents}}"
+                bind:tap="_tap"
+                bind:appear="_appear"
+              />
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- inline tag rendered as <text>: children are flat text runs -->
+  <text
+    wx:elif="{{u.isInline(node.name) && !u.isRich(node)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    selectable="{{selectable}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  >
+    <text
+      wx:for="{{node.children}}"
+      wx:for-item="c"
+      wx:for-index="ci"
+      wx:key="k"
+      class="{{u.classOf(c)}}"
+    >{{u.valueOf(c)}}</text>
+  </text>
+
+  <!-- custom component: hand off to host-provided abstract node, keyed by node.tag -->
+  <custom-slot
+    wx:elif="{{u.isSlot(node.name, slotComponents)}}"
+    node="{{node}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  />
+
+  <!-- list item: marker (<text>) and content (<view>) must be DIRECT children of the
+       flex container .md-list-item, else WeChat's non-flex-transparent component host
+       collapses them and "1."/"•" drops to its own line. The marker is a flat text leaf;
+       the content's own children still recurse through a nested renderer. -->
+  <view
+    wx:elif="{{u.isListItem(node)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  >
+    <block wx:for="{{node.children}}" wx:for-item="li" wx:for-index="lii" wx:key="k">
+      <text
+        wx:if="{{u.isText(li.name)}}"
+        class="{{u.classOf(li)}}"
+        selectable="{{selectable}}"
+      >{{u.valueOf(li)}}</text>
+      <view wx:else class="{{u.classOf(li)}}" style="{{u.styleOf(li)}}">
+        <mini-node-renderer
+          wx:if="{{li.children}}"
+          generic:custom-slot="custom-slot"
+          nodes="{{li.children}}"
+          selectable="{{selectable}}"
+          animation="{{animation}}"
+          slotComponents="{{slotComponents}}"
+          bind:tap="_tap"
+          bind:appear="_appear"
+        />
+      </view>
+    </block>
+  </view>
+
+  <!-- block tag rendered as <view> -->
+  <view
+    wx:else
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  >
+    <mini-node-renderer
+      wx:if="{{node.children}}"
+      generic:custom-slot="custom-slot"
+      nodes="{{node.children}}"
+      selectable="{{selectable}}"
+      animation="{{animation}}"
+      slotComponents="{{slotComponents}}"
+      bind:tap="_tap"
+      bind:appear="_appear"
+    />
+  </view>
+</block>
