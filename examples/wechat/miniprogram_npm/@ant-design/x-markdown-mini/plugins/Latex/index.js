@@ -41,7 +41,7 @@ __export(Latex_exports, {
 });
 module.exports = __toCommonJS(Latex_exports);
 
-// node_modules/katex/dist/katex.mjs
+// node_modules/.pnpm/katex@0.16.47/node_modules/katex/dist/katex.mjs
 var ParseError = class _ParseError extends Error {
   // The underlying error message without any context added.
   constructor(message, token) {
@@ -14674,6 +14674,45 @@ function htmlToMiniNodes(html, escapeText) {
 function replaceAlign(text2) {
   return text2.replace(/\{align\*\}/g, "{aligned}");
 }
+function fontClassFor(cls) {
+  const c = " " + cls + " ";
+  if (c.indexOf(" mathnormal ") > -1) return "kxf-mathitalic";
+  if (c.indexOf(" boldsymbol ") > -1) return "kxf-mathbolditalic";
+  if (c.indexOf(" mathbf ") > -1 || c.indexOf(" textbf ") > -1) return "kxf-mainbold";
+  if (c.indexOf(" mathit ") > -1 || c.indexOf(" textit ") > -1) return "kxf-mainitalic";
+  if (c.indexOf(" mathboldfrak ") > -1 || c.indexOf(" textboldfrak ") > -1) return "kxf-frakbold";
+  if (c.indexOf(" mathfrak ") > -1 || c.indexOf(" textfrak ") > -1) return "kxf-frak";
+  if (c.indexOf(" amsrm ") > -1 || c.indexOf(" mathbb ") > -1 || c.indexOf(" textbb ") > -1) return "kxf-ams";
+  if (c.indexOf(" mathcal ") > -1) return "kxf-cal";
+  if (c.indexOf(" mathscr ") > -1 || c.indexOf(" textscr ") > -1) return "kxf-script";
+  if (c.indexOf(" mathboldsf ") > -1 || c.indexOf(" textboldsf ") > -1) return "kxf-sfbold";
+  if (c.indexOf(" mathsfit ") > -1 || c.indexOf(" mathitsf ") > -1 || c.indexOf(" textitsf ") > -1) return "kxf-sfitalic";
+  if (c.indexOf(" mathsf ") > -1 || c.indexOf(" textsf ") > -1) return "kxf-sf";
+  if (c.indexOf(" mathtt ") > -1 || c.indexOf(" texttt ") > -1) return "kxf-tt";
+  if (c.indexOf(" mathrm ") > -1 || c.indexOf(" textrm ") > -1 || c.indexOf(" mainrm ") > -1) return "kxf-main";
+  if (c.indexOf(" delimsizing ") > -1 || c.indexOf(" delim-size1 ") > -1 || c.indexOf(" delim-size4 ") > -1) {
+    if (c.indexOf(" size4 ") > -1 || c.indexOf(" delim-size4 ") > -1) return "kxf-size4";
+    if (c.indexOf(" size3 ") > -1) return "kxf-size3";
+    if (c.indexOf(" size2 ") > -1) return "kxf-size2";
+    if (c.indexOf(" size1 ") > -1 || c.indexOf(" delim-size1 ") > -1) return "kxf-size1";
+  }
+  if (c.indexOf(" small-op ") > -1) return "kxf-size1";
+  if (c.indexOf(" large-op ") > -1) return "kxf-size2";
+  return null;
+}
+function stampFontClasses(list, inherited) {
+  for (const node of list) {
+    if (node.name === "text") {
+      const prev = node.attrs && node.attrs.class ? String(node.attrs.class) + " " : "";
+      node.attrs = __spreadProps(__spreadValues({}, node.attrs), { class: prev + inherited });
+      continue;
+    }
+    if (node.name === "br") continue;
+    const cls = node.attrs && node.attrs.class ? String(node.attrs.class) : "";
+    const next = fontClassFor(cls) || inherited;
+    if (node.children) stampFontClasses(node.children, next);
+  }
+}
 var inlineRule = /^(?:\${1,2}([^\$\n]+?)\${1,2}|\\\((.+?)\\\))/;
 var blockRule = /^(\${1,2})\n([\s\S]+?)\n\1(?:\n|$)|^\\\[((?:\\.|[^\\])+?)\\\]/;
 function inlineKatexTokenizer(src) {
@@ -14743,6 +14782,7 @@ function renderKatex(tex, displayMode, options) {
     }
   };
   markNodes(nodes);
+  stampFontClasses(nodes, "kxf-main");
   const wrapper = displayMode ? "div" : "span";
   const className = displayMode ? "katex-display" : "katex-inline";
   return [{ name: wrapper, attrs: { class: className }, children: nodes }];

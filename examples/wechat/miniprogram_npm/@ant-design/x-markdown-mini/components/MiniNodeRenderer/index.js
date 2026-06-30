@@ -80,13 +80,19 @@ Component({
   _tableViewportWidths: {},
   _tableContentWidths: {},
   _tableMeasureTimer: null,
+  _mounted: false,
   observers: {
     nodes() {
       this._scheduleTableMeasure();
     }
   },
   lifetimes: {
+    attached() {
+      this._mounted = true;
+      this._scheduleTableMeasure();
+    },
     detached() {
+      this._mounted = false;
       if (this._tableMeasureTimer !== null) clearTimeout(this._tableMeasureTimer);
       this._tableMeasureTimer = null;
     }
@@ -114,15 +120,18 @@ Component({
       if (this._tableMeasureTimer !== null) clearTimeout(this._tableMeasureTimer);
       this._tableMeasureTimer = setTimeout(() => {
         this._tableMeasureTimer = null;
+        if (!this._mounted) return;
         this._measureTables();
       }, 160);
     },
     _measureTables() {
+      if (!this._mounted) return;
       const query = wx.createSelectorQuery().in(this);
       query.selectAll(".md-table-scroll").boundingClientRect();
       query.selectAll(".md-table").boundingClientRect();
       query.exec((result) => {
         var _a, _b, _c, _d, _e, _f;
+        if (!this._mounted) return;
         const viewports = result && result[0] || [];
         const tables = result && result[1] || [];
         const tableByKey = {};

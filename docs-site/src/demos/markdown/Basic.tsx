@@ -46,7 +46,7 @@ export default () => (
       style: COMMON_STYLE,
       json: `{
   "usingComponents": {
-    "markdown": "@ant-design/x-markdown-mini/dist/components/Markdown/index"
+    "markdown": "@ant-design/x-markdown-mini/components/Markdown/index"
   }
 }`,
     }}

@@ -6,46 +6,110 @@ var import_flattenInline = require("../../shared/flattenInline.js");
 
 // src/components/shared/loadKatexFonts.ts
 var CDN = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts";
+var PACKAGE_NAME = "@ant-design/x-markdown-mini";
+var ALIPAY_LOCAL_BASES = [
+  "/node_modules/" + PACKAGE_NAME + "/katex-fonts",
+  "/katex-fonts"
+];
+var WECHAT_LOCAL_BASES = [
+  "/miniprogram_npm/" + PACKAGE_NAME + "/katex-fonts",
+  "/katex-fonts"
+];
 var FACES = [
-  { family: "KaTeX_AMS", file: "KaTeX_AMS-Regular.woff", weight: "normal", style: "normal" },
-  { family: "KaTeX_Caligraphic", file: "KaTeX_Caligraphic-Bold.woff", weight: "bold", style: "normal" },
-  { family: "KaTeX_Caligraphic", file: "KaTeX_Caligraphic-Regular.woff", weight: "normal", style: "normal" },
-  { family: "KaTeX_Fraktur", file: "KaTeX_Fraktur-Bold.woff", weight: "bold", style: "normal" },
-  { family: "KaTeX_Fraktur", file: "KaTeX_Fraktur-Regular.woff", weight: "normal", style: "normal" },
-  { family: "KaTeX_Main", file: "KaTeX_Main-Bold.woff", weight: "bold", style: "normal" },
-  { family: "KaTeX_Main", file: "KaTeX_Main-BoldItalic.woff", weight: "bold", style: "italic" },
-  { family: "KaTeX_Main", file: "KaTeX_Main-Italic.woff", weight: "normal", style: "italic" },
-  { family: "KaTeX_Main", file: "KaTeX_Main-Regular.woff", weight: "normal", style: "normal" },
-  { family: "KaTeX_Math", file: "KaTeX_Math-BoldItalic.woff", weight: "bold", style: "italic" },
-  { family: "KaTeX_Math", file: "KaTeX_Math-Italic.woff", weight: "normal", style: "italic" },
-  { family: "KaTeX_SansSerif", file: "KaTeX_SansSerif-Bold.woff", weight: "bold", style: "normal" },
-  { family: "KaTeX_SansSerif", file: "KaTeX_SansSerif-Italic.woff", weight: "normal", style: "italic" },
-  { family: "KaTeX_SansSerif", file: "KaTeX_SansSerif-Regular.woff", weight: "normal", style: "normal" },
-  { family: "KaTeX_Script", file: "KaTeX_Script-Regular.woff", weight: "normal", style: "normal" },
-  { family: "KaTeX_Size1", file: "KaTeX_Size1-Regular.woff", weight: "normal", style: "normal" },
-  { family: "KaTeX_Size2", file: "KaTeX_Size2-Regular.woff", weight: "normal", style: "normal" },
-  { family: "KaTeX_Size3", file: "KaTeX_Size3-Regular.woff", weight: "normal", style: "normal" },
-  { family: "KaTeX_Size4", file: "KaTeX_Size4-Regular.woff", weight: "normal", style: "normal" },
-  { family: "KaTeX_Typewriter", file: "KaTeX_Typewriter-Regular.woff", weight: "normal", style: "normal" }
+  { file: "KaTeX_Main-Regular.woff", alipayFile: "KaTeX_Main-Regular.ttf", family: "KaTeX_Main", weight: "normal", style: "normal", alipayFamily: "KaTeX_Main" },
+  { file: "KaTeX_Math-Italic.woff", alipayFile: "KaTeX_Math-Italic.ttf", family: "KaTeX_Math", weight: "normal", style: "italic", alipayFamily: "KaTeX_MathItalic" },
+  { file: "KaTeX_Main-Bold.woff", alipayFile: "KaTeX_Main-Bold.ttf", family: "KaTeX_Main", weight: "bold", style: "normal", alipayFamily: "KaTeX_MainBold" },
+  { file: "KaTeX_Main-Italic.woff", alipayFile: "KaTeX_Main-Italic.ttf", family: "KaTeX_Main", weight: "normal", style: "italic", alipayFamily: "KaTeX_MainItalic" },
+  { file: "KaTeX_Math-BoldItalic.woff", alipayFile: "KaTeX_Math-BoldItalic.ttf", family: "KaTeX_Math", weight: "bold", style: "italic", alipayFamily: "KaTeX_MathBoldItalic" },
+  { file: "KaTeX_Main-BoldItalic.woff", alipayFile: "KaTeX_Main-BoldItalic.ttf", family: "KaTeX_Main", weight: "bold", style: "italic", alipayFamily: "KaTeX_MainBoldItalic" },
+  { file: "KaTeX_Size1-Regular.woff", alipayFile: "KaTeX_Size1-Regular.ttf", family: "KaTeX_Size1", weight: "normal", style: "normal", alipayFamily: "KaTeX_Size1" },
+  { file: "KaTeX_Size2-Regular.woff", alipayFile: "KaTeX_Size2-Regular.ttf", family: "KaTeX_Size2", weight: "normal", style: "normal", alipayFamily: "KaTeX_Size2" },
+  { file: "KaTeX_Size3-Regular.woff", alipayFile: "KaTeX_Size3-Regular.ttf", family: "KaTeX_Size3", weight: "normal", style: "normal", alipayFamily: "KaTeX_Size3" },
+  { file: "KaTeX_Size4-Regular.woff", alipayFile: "KaTeX_Size4-Regular.ttf", family: "KaTeX_Size4", weight: "normal", style: "normal", alipayFamily: "KaTeX_Size4" },
+  { file: "KaTeX_AMS-Regular.woff", alipayFile: "KaTeX_AMS-Regular.ttf", family: "KaTeX_AMS", weight: "normal", style: "normal", alipayFamily: "KaTeX_AMS" },
+  { file: "KaTeX_SansSerif-Regular.woff", alipayFile: "KaTeX_SansSerif-Regular.ttf", family: "KaTeX_SansSerif", weight: "normal", style: "normal", alipayFamily: "KaTeX_SansSerif" },
+  { file: "KaTeX_SansSerif-Bold.woff", alipayFile: "KaTeX_SansSerif-Bold.ttf", family: "KaTeX_SansSerif", weight: "bold", style: "normal", alipayFamily: "KaTeX_SansSerifBold" },
+  { file: "KaTeX_SansSerif-Italic.woff", alipayFile: "KaTeX_SansSerif-Italic.ttf", family: "KaTeX_SansSerif", weight: "normal", style: "italic", alipayFamily: "KaTeX_SansSerifItalic" },
+  { file: "KaTeX_Caligraphic-Regular.woff", alipayFile: "KaTeX_Caligraphic-Regular.ttf", family: "KaTeX_Caligraphic", weight: "normal", style: "normal", alipayFamily: "KaTeX_Caligraphic" },
+  { file: "KaTeX_Caligraphic-Bold.woff", alipayFile: "KaTeX_Caligraphic-Bold.ttf", family: "KaTeX_Caligraphic", weight: "bold", style: "normal", alipayFamily: "KaTeX_CaligraphicBold" },
+  { file: "KaTeX_Fraktur-Regular.woff", alipayFile: "KaTeX_Fraktur-Regular.ttf", family: "KaTeX_Fraktur", weight: "normal", style: "normal", alipayFamily: "KaTeX_Fraktur" },
+  { file: "KaTeX_Fraktur-Bold.woff", alipayFile: "KaTeX_Fraktur-Bold.ttf", family: "KaTeX_Fraktur", weight: "bold", style: "normal", alipayFamily: "KaTeX_FrakturBold" },
+  { file: "KaTeX_Script-Regular.woff", alipayFile: "KaTeX_Script-Regular.ttf", family: "KaTeX_Script", weight: "normal", style: "normal", alipayFamily: "KaTeX_Script" },
+  { file: "KaTeX_Typewriter-Regular.woff", alipayFile: "KaTeX_Typewriter-Regular.ttf", family: "KaTeX_Typewriter", weight: "normal", style: "normal", alipayFamily: "KaTeX_Typewriter" }
 ];
 var started = false;
-function loadKatexFonts() {
-  if (started) return;
-  const api = typeof my !== "undefined" ? my : typeof wx !== "undefined" ? wx : null;
-  if (!api || typeof api.loadFontFace !== "function") return;
-  started = true;
-  for (let i = 0; i < FACES.length; i++) {
-    const f = FACES[i];
+var ready = false;
+var readyCallbacks = [];
+function callSafe(cb) {
+  if (!cb) return;
+  try {
+    cb();
+  } catch (e) {
+  }
+}
+function sourcesForFace(f, isAlipay) {
+  const localBases = isAlipay ? ALIPAY_LOCAL_BASES : WECHAT_LOCAL_BASES;
+  const sources = [];
+  for (let i = 0; i < localBases.length; i++) {
+    sources.push('url("' + localBases[i] + "/" + f.alipayFile + '")');
+  }
+  if (!isAlipay) sources.push('url("' + CDN + "/" + f.file + '")');
+  return sources;
+}
+function loadFace(api, opts, done) {
+  let index = 0;
+  const tryNext = () => {
+    const source = opts.sources[index++];
+    if (!source) {
+      done();
+      return;
+    }
     api.loadFontFace({
       global: true,
-      family: f.family,
-      source: 'url("' + CDN + "/" + f.file + '")',
-      desc: { style: f.style, weight: f.weight },
-      success() {
-      },
-      fail() {
-      }
+      family: opts.family,
+      source,
+      desc: opts.desc,
+      success: done,
+      fail: tryNext
     });
+  };
+  tryNext();
+}
+function loadKatexFonts(onReady) {
+  const isAlipay = typeof my !== "undefined" && typeof my.loadFontFace === "function";
+  const api = isAlipay ? my : typeof wx !== "undefined" && typeof wx.loadFontFace === "function" ? wx : null;
+  if (!api) {
+    callSafe(onReady);
+    return;
+  }
+  if (ready) {
+    callSafe(onReady);
+    return;
+  }
+  if (onReady) readyCallbacks.push(onReady);
+  if (started) return;
+  started = true;
+  let done = 0;
+  const total = FACES.length;
+  const tick = () => {
+    done++;
+    if (done >= total && !ready) {
+      ready = true;
+      const callbacks = readyCallbacks;
+      readyCallbacks = [];
+      for (let i = 0; i < callbacks.length; i++) callSafe(callbacks[i]);
+    }
+  };
+  for (let i = 0; i < FACES.length; i++) {
+    const f = FACES[i];
+    loadFace(api, {
+      // 支付宝：唯一 family + 统一 normal/normal（CSS 的 .kxf-* 也请求 normal/normal，确定性命中，
+      // 斜/粗由字体文件本身提供）；微信：原始 family + 真实 style/weight（rich-text 内部按此选字面）。
+      family: isAlipay ? f.alipayFamily : f.family,
+      // 包内本地 ttf 零网络、零白名单；微信保留 CDN woff 兜底。
+      sources: sourcesForFace(f, isAlipay),
+      desc: isAlipay ? { style: "normal", weight: "normal" } : { style: f.style, weight: f.weight }
+    }, tick);
   }
 }
 

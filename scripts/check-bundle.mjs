@@ -68,14 +68,17 @@ const BUDGETS = [
   // Alipay 组件
   // 5→7：内联 loadKatexFonts（20 个 KaTeX 字面 + loadFontFace 全局注册，仅 latex 时调用），
   // 修复支付宝真机组件作用域 @font-face 不生效，wrapper 约 6.0 KB。
-  { file: 'es/Markdown/index.js', rawMax: 7 * KB },
+  // 7→13：支付宝真机需要多路径 TTF 字体探测 + 包内字体 root/path 兼容，Markdown wrapper
+  // 约 12.0 KB。
+  { file: 'es/Markdown/index.js', rawMax: 13 * KB },
   // MiniNodeRenderer 表格溢出测量、缓存和滚动阴影增加约 4 KB wrapper 源码。
   // 7→10：JS 接入页（裸 <mini-node-renderer>，不经 <Markdown>）也要注册 KaTeX 字体，
   // 故此处同样内联 shared/loadKatexFonts（20 个字面，约 +2.4 KB）→ wrapper 约 9.4 KB。
   // 早先这里只有一个仅注册 KaTeX_Math 的本地残桩，体积小但真机其余字体回退系统字体。
-  { file: 'es/MiniNodeRenderer/index.js', rawMax: 10 * KB },
-  { file: 'components/Markdown/index.js', rawMax: 7 * KB },
-  { file: 'components/MiniNodeRenderer/index.js', rawMax: 10 * KB },
+  // 10→16：同上，JS 接入直接使用 MiniNodeRenderer，也必须携带支付宝真机字体注册逻辑。
+  { file: 'es/MiniNodeRenderer/index.js', rawMax: 16 * KB },
+  { file: 'components/Markdown/index.js', rawMax: 13 * KB },
+  { file: 'components/MiniNodeRenderer/index.js', rawMax: 16 * KB },
   // Wechat 组件
   // Timestamped typewriter segments resume CSS animation after WeChat rebuilds
   // the node tree; the state reconciler adds ~2.8 KB to the wrapper. The
@@ -83,10 +86,12 @@ const BUDGETS = [
   // MiniNodeRenderer table overflow measurement + position-aware edge shadows
   // add ~4 KB to the wrapper (selector query, cached geometry, scroll handler).
   // 7→10：同上叠加 loadKatexFonts；微信 wrapper（含动画协调器）约 9.0 KB。
-  { file: 'miniprogram_dist/es/Markdown/index.js', rawMax: 10 * KB },
-  { file: 'miniprogram_dist/es/MiniNodeRenderer/index.js', rawMax: 7 * KB },
-  { file: 'miniprogram_dist/components/Markdown/index.js', rawMax: 10 * KB },
-  { file: 'miniprogram_dist/components/MiniNodeRenderer/index.js', rawMax: 7 * KB },
+  // 10→15：微信 Markdown wrapper 同步携带字体路径候选与注册逻辑，约 14.1 KB。
+  { file: 'miniprogram_dist/es/Markdown/index.js', rawMax: 15 * KB },
+  // 7→8：微信 MiniNodeRenderer 加入同一字体注册入口后约 7.2 KB。
+  { file: 'miniprogram_dist/es/MiniNodeRenderer/index.js', rawMax: 8 * KB },
+  { file: 'miniprogram_dist/components/Markdown/index.js', rawMax: 15 * KB },
+  { file: 'miniprogram_dist/components/MiniNodeRenderer/index.js', rawMax: 8 * KB },
   // Plugin bundles (separate entries — not counted against main lib budget)
   // KaTeX includes font data and CSS; highlight.js/lib/common bundles ~18 languages.
   { file: 'plugins/Latex/index.js', rawMax: 500 * KB, gzipMax: 110 * KB },
@@ -231,8 +236,9 @@ for (const file of COMPAT_FILES) {
 console.log('\nCompatibility (ES2018 syntax via es-check):');
 function runEsCheck(label, extraArgs, files) {
   if (files.length === 0) return;
-  const args = ['--no-install', 'es-check', ...extraArgs, 'es2018', ...files.map((f) => join('dist', f))];
-  const r = spawnSync('npx', args, { cwd: root, encoding: 'utf8' });
+  const esCheckBin = join(dirname(require.resolve('es-check/package.json')), 'index.js');
+  const args = [esCheckBin, ...extraArgs, 'es2018', ...files.map((f) => join('dist', f))];
+  const r = spawnSync(process.execPath, args, { cwd: root, encoding: 'utf8' });
   if (r.status === 0) {
     console.log(`  OK    ${label} (${files.length} file${files.length === 1 ? '' : 's'})`);
     return;

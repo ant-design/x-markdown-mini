@@ -7,21 +7,20 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const require = createRequire(import.meta.url);
 const { createSample } = require(join(root, 'examples', 'sample.js'));
-const LOCAL_DIST_DEP = 'file:../../dist';
+const packageVersion = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version;
 
-// Each example demonstrates the same two integration paths against the package
-// root produced by npm publish ./dist (no reaching into src):
+// Each example demonstrates the same two integration paths against the published
+// npm package (no reaching into src or local dist links):
 //   - 组件接入: the shipped <Markdown> component via its package path, with
 //     latex/highlight baked inside the component (booleans, not props).
 //   - JS 接入: renderNodes() in page JS feeding the low-level MiniNodeRenderer.
-// Local development consumes file:../../dist so changes can be validated in the
-// mini-program IDE before publishing. Published package contents have no dist/
-// segment. Both examples use package requests and let their IDE resolve the
-// installed package:
+// Both examples use package requests and let their IDE resolve the installed
+// package:
 // - Alipay resolves npm subpaths RAW from the package root filesystem (it does NOT
-//   honor package.json#exports) → es/ now sits at that root, so no dist/ prefix is
-//   needed (a missing path would still be CE1000.01). It also needs Component2 plus
-//   node_modules transpilation, or the component fails to register ("reading 'options'").
+//   honor package.json#exports). The package is published from dist/, so es/,
+//   plugins/, shared/, and index.js sit at the package root. It also needs
+//   Component2 plus node_modules transpilation, or the component fails to register
+//   ("reading 'options'").
 // - WeChat 构建npm resolves `package.json#miniprogram` (→ miniprogram_dist) into
 //   miniprogram_npm. Pages must keep using the package request; treating that
 //   generated directory as an ordinary relative component path is not supported.
@@ -64,8 +63,8 @@ for (const example of examples) {
   const packageJson = readJson(join(example.dir, 'package.json'));
   assertEqual(
     packageJson.dependencies?.['@ant-design/x-markdown-mini'],
-    LOCAL_DIST_DEP,
-    `${example.name} example must consume the local dist package`,
+    packageVersion,
+    `${example.name} example must consume the published package version`,
   );
 
   if (example.name === 'alipay') {

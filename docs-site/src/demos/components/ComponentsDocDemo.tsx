@@ -43,7 +43,7 @@ const demos: DocDemoItem[] = [
       json: `{
   "defaultTitle": "Markdown 组件",
   "usingComponents": {
-    "x-markdown": "@ant-design/x-markdown-mini/dist/components/Markdown/index"
+    "x-markdown": "@ant-design/x-markdown-mini/components/Markdown/index"
   }
 }`,
     },

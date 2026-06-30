@@ -1,5 +1,5 @@
-/* KaTeX styles for WeChat mini-program. */
-@import "./fonts.wxss";
+/* KaTeX styles for WeChat mini-program.
+ * Fonts are registered on demand by loadFontFace from packaged katex-fonts/*.ttf. */
 
 /* --- KaTeX core styles --- */
 /* Note: '>' child combinators replaced with ' ' (descendant) for mini-program compat */

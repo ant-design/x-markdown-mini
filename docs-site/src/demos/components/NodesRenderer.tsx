@@ -29,7 +29,7 @@ export default () => (
       script: SCRIPT,
       json: `{
   "usingComponents": {
-    "mini-node-renderer": "@ant-design/x-markdown-mini/dist/components/MiniNodeRenderer/index"
+    "mini-node-renderer": "@ant-design/x-markdown-mini/components/MiniNodeRenderer/index"
   }
 }`,
     }}

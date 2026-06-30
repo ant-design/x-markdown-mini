@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-This directory holds the **consumer-facing example mini-programs** for `@ant-design/x-markdown-mini`. Their purpose is to prove the package works through the same package-root layout a real end user gets from `npm publish ./dist`, while local development consumes the freshly built `dist/` package before publishing.
+This directory holds the **consumer-facing example mini-programs** for `@ant-design/x-markdown-mini`. Their purpose is to prove the package works through the same package-root layout a real end user gets from `npm publish ./dist`.
 
 ## The one rule that governs everything here: no 魔改
 
@@ -14,7 +14,7 @@ These examples must reflect a pristine real-user integration. **Never hand-modif
 
 If a demo renders wrong or an import won't resolve, the fix belongs in the package source/output, not in the example: change `src/`, rebuild, reinstall/sync the example package, then verify in the target IDE. The only files you should ever edit in an example are its own page/app sources (`pages/**`, `app.*`, `*.json` config, `*.acss`/`*.wxss`, `sample.js`), package metadata, or the deterministic sync scripts.
 
-Corollary: the examples depend on `@ant-design/x-markdown-mini` through `"file:../../dist"` during local development. Alipay cannot compile a symlink that resolves outside the project, so `examples/alipay/scripts/sync-local-package.mjs` replaces npm's file-link with a real package directory under `examples/alipay/node_modules`.
+Corollary: the examples depend on the current published `@ant-design/x-markdown-mini` version, not a local `file:../../dist` link. Alipay cannot rely on `package.json#exports`, so source imports must match the physical package root produced by `npm publish ./dist`.
 
 ## Layout — two apps, same four pages, two integration modes plus benchmarks
 
@@ -51,7 +51,7 @@ all sit at the package root, and the **same no-`dist/` import works on both plat
 There is no build/lint/test step in this directory — these are apps you open in a devtool.
 
 ```bash
-cd examples/alipay && npm install   # postinstall copies ../../dist into node_modules, then open examples/alipay
+cd examples/alipay && npm install   # then open examples/alipay
 cd examples/wechat && npm install   # then open examples/wechat in WeChat DevTool → 工具 → 构建 npm
 ```
 

@@ -1,4 +1,3 @@
-@import "../../plugins/Latex/fonts.wxss";
 @import "../../plugins/Latex/style.wxss";
 /* 微信 / 支付宝共享的通用 Markdown 元素样式（单一来源）。
  *

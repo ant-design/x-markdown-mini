@@ -148,9 +148,9 @@ const md = new XMarkdownMini({
 **样式引入**（在页面或组件样式文件中）：
 
 ```css
-/* 支付宝 .acss —— 从 node_modules 解析，需要显式 dist/ 前缀（支付宝忽略 package.json exports） */
-@import "@ant-design/x-markdown-mini/dist/plugins/Latex/style.acss";
-@import "@ant-design/x-markdown-mini/dist/plugins/CodeHighlight/style.acss";
+/* 支付宝 .acss —— 从 node_modules 包根解析（支付宝忽略 package.json exports） */
+@import "@ant-design/x-markdown-mini/plugins/Latex/style.acss";
+@import "@ant-design/x-markdown-mini/plugins/CodeHighlight/style.acss";
 
 /* 微信 .wxss —— @import 只认相对路径（不支持裸包名 / 根绝对 /），需指向「构建 npm」产物 miniprogram_npm。
    下例以「位于小程序根下两级的页面/组件」为准（如 pages/index/、components/foo/）；
@@ -159,7 +159,7 @@ const md = new XMarkdownMini({
 @import "../../miniprogram_npm/@ant-design/x-markdown-mini/plugins/Latex/style.wxss";
 ```
 
-> 直接使用底层 `MiniNodeRenderer` 组件（而非高层 `<Markdown>`）时，markdown 元素样式（代码/表格卡片、复制图标、标题等）还需额外引入 `Markdown` 组件的样式：支付宝 `@import "@ant-design/x-markdown-mini/dist/components/Markdown/index.acss"`，微信 `@import "../../miniprogram_npm/@ant-design/x-markdown-mini/components/Markdown/index.wxss"`。用高层 `<Markdown>` 组件则会随 `usingComponents` 自动带上，无需手动引入。
+> 直接使用底层 `MiniNodeRenderer` 组件（而非高层 `<Markdown>`）时，markdown 元素样式（代码/表格卡片、复制图标、标题等）还需额外引入 `Markdown` 组件的样式：支付宝 `@import "@ant-design/x-markdown-mini/components/Markdown/index.acss"`，微信 `@import "../../miniprogram_npm/@ant-design/x-markdown-mini/components/Markdown/index.wxss"`。用高层 `<Markdown>` 组件则会随 `usingComponents` 自动带上，无需手动引入。
 
 ### Latex
 

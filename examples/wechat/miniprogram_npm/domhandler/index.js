@@ -4,7 +4,7 @@ var __DEFINE__ = function(modId, func, req) { var m = { exports: {}, _tempexport
 var __REQUIRE__ = function(modId, source) { if(!__MODS__[modId]) return require(source); if(!__MODS__[modId].status) { var m = __MODS__[modId].m; m._exports = m._tempexports; var desp = Object.getOwnPropertyDescriptor(m, "exports"); if (desp && desp.configurable) Object.defineProperty(m, "exports", { set: function (val) { if(typeof val === "object" && val !== m._exports) { m._exports.__proto__ = val.__proto__; Object.keys(val).forEach(function (k) { m._exports[k] = val[k]; }); } m._tempexports = val }, get: function () { return m._tempexports; } }); __MODS__[modId].status = 1; __MODS__[modId].func(__MODS__[modId].req, m, m.exports); } return __MODS__[modId].m.exports; };
 var __REQUIRE_WILDCARD__ = function(obj) { if(obj && obj.__esModule) { return obj; } else { var newObj = {}; if(obj != null) { for(var k in obj) { if (Object.prototype.hasOwnProperty.call(obj, k)) newObj[k] = obj[k]; } } newObj.default = obj; return newObj; } };
 var __REQUIRE_DEFAULT__ = function(obj) { return obj && obj.__esModule ? obj.default : obj; };
-__DEFINE__(1782354231566, function(require, module, exports) {
+__DEFINE__(1782780225113, function(require, module, exports) {
 var ElementType = require("domelementtype");
 
 var re_whitespace = /\s+/g;
@@ -223,8 +223,8 @@ DomHandler.prototype.onprocessinginstruction = function(name, data){
 
 module.exports = DomHandler;
 
-}, function(modId) {var map = {"./lib/node":1782354231567,"./lib/element":1782354231568}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231567, function(require, module, exports) {
+}, function(modId) {var map = {"./lib/node":1782780225114,"./lib/element":1782780225115}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782780225114, function(require, module, exports) {
 // This object will be used as the prototype for Nodes when creating a
 // DOM-Level-1-compliant structure.
 var NodePrototype = module.exports = {
@@ -271,7 +271,7 @@ Object.keys(domLvl1).forEach(function(key) {
 });
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231568, function(require, module, exports) {
+__DEFINE__(1782780225115, function(require, module, exports) {
 // DOM-Level-1-compliant structure
 var NodePrototype = require('./node');
 var ElementPrototype = module.exports = Object.create(NodePrototype);
@@ -293,8 +293,8 @@ Object.keys(domLvl1).forEach(function(key) {
 	});
 });
 
-}, function(modId) { var map = {"./node":1782354231567}; return __REQUIRE__(map[modId], modId); })
-return __REQUIRE__(1782354231566);
+}, function(modId) { var map = {"./node":1782780225114}; return __REQUIRE__(map[modId], modId); })
+return __REQUIRE__(1782780225113);
 })()
 //miniprogram-npm-outsideDeps=["domelementtype"]
 //# sourceMappingURL=index.js.map

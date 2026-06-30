@@ -30,9 +30,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// node_modules/highlight.js/lib/core.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/lib/core.js
 var require_core = __commonJS({
-  "node_modules/highlight.js/lib/core.js"(exports2, module2) {
+  "node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/lib/core.js"(exports2, module2) {
     "use strict";
     function deepFreeze(obj) {
       if (obj instanceof Map) {
@@ -1576,7 +1576,7 @@ __export(CodeHighlight_exports, {
 });
 module.exports = __toCommonJS(CodeHighlight_exports);
 
-// node_modules/highlight.js/es/core.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/core.js
 var import_core = __toESM(require_core(), 1);
 var core_default = import_core.default;
 
@@ -1711,7 +1711,7 @@ function htmlToMiniNodes(html, escapeText) {
   return (_a = root.children) != null ? _a : [];
 }
 
-// node_modules/highlight.js/es/languages/javascript.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/javascript.js
 var IDENT_RE = "[A-Za-z$_][0-9A-Za-z$_]*";
 var KEYWORDS = [
   "as",
@@ -2412,7 +2412,7 @@ function javascript(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/typescript.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/typescript.js
 var IDENT_RE2 = "[A-Za-z$_][0-9A-Za-z$_]*";
 var KEYWORDS2 = [
   "as",
@@ -3226,7 +3226,7 @@ function typescript(hljs) {
   return tsLanguage;
 }
 
-// node_modules/highlight.js/es/languages/python.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/python.js
 function python(hljs) {
   const regex = hljs.regex;
   const IDENT_RE3 = new RegExp("[\\p{XID_Start}_]\\p{XID_Continue}*", "u");
@@ -3641,7 +3641,7 @@ function python(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/java.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/java.js
 var decimalDigits = "[0-9](_*[0-9])*";
 var frac = `\\.(${decimalDigits})`;
 var hexDigits = "[0-9a-fA-F](_*[0-9a-fA-F])*";
@@ -3895,7 +3895,7 @@ function java(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/css.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/css.js
 var MODES = (hljs) => {
   return {
     IMPORTANT: {
@@ -4832,7 +4832,7 @@ function css(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/xml.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/xml.js
 function xml(hljs) {
   const regex = hljs.regex;
   const TAG_NAME_RE = regex.concat(/[A-Za-z\u00C0-\uFFFF_]/u, regex.optional(/[A-Za-z\u00C0-\uFFFF0-9_.-]*:/u), /[A-Za-z\u00C0-\uFFFF0-9_.-]*/u);
@@ -5058,7 +5058,7 @@ function xml(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/json.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/json.js
 function json(hljs) {
   const ATTRIBUTE = {
     className: "attr",
@@ -5098,7 +5098,7 @@ function json(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/sql.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/sql.js
 function sql(hljs) {
   const regex = hljs.regex;
   const COMMENT_MODE = hljs.COMMENT("--", "$");
@@ -5741,7 +5741,7 @@ function sql(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/bash.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/bash.js
 function bash(hljs) {
   const regex = hljs.regex;
   const VAR = {};
@@ -6135,7 +6135,7 @@ function bash(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/shell.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/shell.js
 function shell(hljs) {
   return {
     name: "Shell Session",
@@ -6159,7 +6159,7 @@ function shell(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/c.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/c.js
 function c(hljs) {
   const regex = hljs.regex;
   const C_LINE_COMMENT_MODE = hljs.COMMENT("//", "$", { contains: [{ begin: /\\\n/ }] });
@@ -6453,7 +6453,7 @@ function c(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/cpp.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/cpp.js
 function cpp(hljs) {
   const regex = hljs.regex;
   const C_LINE_COMMENT_MODE = hljs.COMMENT("//", "$", { contains: [{ begin: /\\\n/ }] });
@@ -6996,7 +6996,7 @@ function cpp(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/go.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/go.js
 function go(hljs) {
   const LITERALS3 = [
     "true",
@@ -7150,7 +7150,7 @@ function go(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/rust.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/rust.js
 function rust(hljs) {
   const regex = hljs.regex;
   const RAW_IDENTIFIER = /(r#)?/;
@@ -7463,7 +7463,7 @@ function rust(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/yaml.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/yaml.js
 function yaml(hljs) {
   const LITERALS3 = "true false yes no null";
   const URI_CHARACTERS = "[\\w#;/?:@&=+$,.~*'()[\\]]+";
@@ -7664,7 +7664,7 @@ function yaml(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/markdown.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/markdown.js
 function markdown(hljs) {
   const regex = hljs.regex;
   const INLINE_HTML = {
@@ -7896,7 +7896,7 @@ function markdown(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/diff.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/diff.js
 function diff(hljs) {
   const regex = hljs.regex;
   return {
@@ -7949,7 +7949,7 @@ function diff(hljs) {
   };
 }
 
-// node_modules/highlight.js/es/languages/plaintext.js
+// node_modules/.pnpm/highlight.js@11.11.1/node_modules/highlight.js/es/languages/plaintext.js
 function plaintext(hljs) {
   return {
     name: "Plain text",

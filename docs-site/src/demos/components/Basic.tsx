@@ -31,7 +31,7 @@ export default () => (
       script: SCRIPT,
       json: `{
   "usingComponents": {
-    "x-markdown": "@ant-design/x-markdown-mini/dist/components/Markdown/index"
+    "x-markdown": "@ant-design/x-markdown-mini/components/Markdown/index"
   }
 }`,
     }}
