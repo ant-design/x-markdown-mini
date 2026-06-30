@@ -14,6 +14,55 @@ function replaceAlign(text: string): string {
   return text.replace(/\{align\*\}/g, '{aligned}');
 }
 
+// --- 字体「下沉到叶子」---------------------------------------------------------
+// 背景：KaTeX 把字体类（mathnormal/mathbf/…）挂在 wrapper <span>（渲染为 <view>），真正字形
+// 是无类名的后代 <text>。支付宝真机 (a) 不把 font-family 从 <view> 继承进叶子 <text>，(b) 跨
+// 嵌套 <mini-node-renderer> 组件边界的「后代选择器」（.katex .mathnormal text）也不命中。所以
+// 唯一可靠的办法是把字体意图「下沉」成一个类、直接盖到每个字形 <text> 上，再用「单类选择器」
+// （.kxf-*，命中 text 自身、不跨边界）赋字体——与 element 样式必须放在 MiniNodeRenderer 的既有
+// 结论一致。kxf-* → 唯一 family 的映射见 plugins/Latex/style.acss 与 shared/loadKatexFonts.ts。
+function fontClassFor(cls: string): string | null {
+  const c = ' ' + cls + ' ';
+  if (c.indexOf(' mathnormal ') > -1) return 'kxf-mathitalic';
+  if (c.indexOf(' boldsymbol ') > -1) return 'kxf-mathbolditalic';
+  if (c.indexOf(' mathbf ') > -1 || c.indexOf(' textbf ') > -1) return 'kxf-mainbold';
+  if (c.indexOf(' mathit ') > -1 || c.indexOf(' textit ') > -1) return 'kxf-mainitalic';
+  if (c.indexOf(' mathboldfrak ') > -1 || c.indexOf(' textboldfrak ') > -1) return 'kxf-frakbold';
+  if (c.indexOf(' mathfrak ') > -1 || c.indexOf(' textfrak ') > -1) return 'kxf-frak';
+  if (c.indexOf(' amsrm ') > -1 || c.indexOf(' mathbb ') > -1 || c.indexOf(' textbb ') > -1) return 'kxf-ams';
+  if (c.indexOf(' mathcal ') > -1) return 'kxf-cal';
+  if (c.indexOf(' mathscr ') > -1 || c.indexOf(' textscr ') > -1) return 'kxf-script';
+  if (c.indexOf(' mathboldsf ') > -1 || c.indexOf(' textboldsf ') > -1) return 'kxf-sfbold';
+  if (c.indexOf(' mathsfit ') > -1 || c.indexOf(' mathitsf ') > -1 || c.indexOf(' textitsf ') > -1) return 'kxf-sfitalic';
+  if (c.indexOf(' mathsf ') > -1 || c.indexOf(' textsf ') > -1) return 'kxf-sf';
+  if (c.indexOf(' mathtt ') > -1 || c.indexOf(' texttt ') > -1) return 'kxf-tt';
+  if (c.indexOf(' mathrm ') > -1 || c.indexOf(' textrm ') > -1 || c.indexOf(' mainrm ') > -1) return 'kxf-main';
+  if (c.indexOf(' delimsizing ') > -1 || c.indexOf(' delim-size1 ') > -1 || c.indexOf(' delim-size4 ') > -1) {
+    if (c.indexOf(' size4 ') > -1 || c.indexOf(' delim-size4 ') > -1) return 'kxf-size4';
+    if (c.indexOf(' size3 ') > -1) return 'kxf-size3';
+    if (c.indexOf(' size2 ') > -1) return 'kxf-size2';
+    if (c.indexOf(' size1 ') > -1 || c.indexOf(' delim-size1 ') > -1) return 'kxf-size1';
+  }
+  if (c.indexOf(' small-op ') > -1) return 'kxf-size1';
+  if (c.indexOf(' large-op ') > -1) return 'kxf-size2';
+  return null;
+}
+
+// 把字体意图下沉到每个字形 <text>：沿途记住最近祖先的字体类，盖到叶子 text 的 class 上。
+function stampFontClasses(list: MiniNode[], inherited: string): void {
+  for (const node of list) {
+    if (node.name === 'text') {
+      const prev = node.attrs && node.attrs.class ? String(node.attrs.class) + ' ' : '';
+      node.attrs = { ...node.attrs, class: prev + inherited };
+      continue;
+    }
+    if (node.name === 'br') continue;
+    const cls = node.attrs && node.attrs.class ? String(node.attrs.class) : '';
+    const next = fontClassFor(cls) || inherited;
+    if (node.children) stampFontClasses(node.children, next);
+  }
+}
+
 // --- Tokenizers ---
 
 const inlineRule = /^(?:\${1,2}([^\$\n]+?)\${1,2}|\\\((.+?)\\\))/;
@@ -94,6 +143,8 @@ function renderKatex(tex: string, displayMode: boolean, options: LatexOptions): 
     }
   };
   markNodes(nodes);
+  // 字体下沉：默认 kxf-main（正体数字/算符/标点），遇字体类则切换。真机靠这些单类选择器赋字体。
+  stampFontClasses(nodes, 'kxf-main');
   const wrapper = displayMode ? 'div' : 'span';
   const className = displayMode ? 'katex-display' : 'katex-inline';
   return [{ name: wrapper, attrs: { class: className }, children: nodes }];

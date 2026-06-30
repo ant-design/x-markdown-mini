@@ -7,7 +7,7 @@
 // 注意：examples/{alipay,wechat} 现在通过 `npm i @ant-design/x-markdown-mini` 真实消费
 // 已发布包（alipay 走 node_modules + dist/ 前缀，wechat 走 miniprogram_npm），不再向
 // examples 目录回灌 dist/，所以本脚本不再同步 examples。
-import { readdirSync, statSync, mkdirSync, copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, statSync, mkdirSync, copyFileSync, existsSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -41,6 +41,17 @@ function copyComponentAssets(platformSrc, baseDest, filter) {
     if (!statSync(sd).isDirectory()) continue;
     walkAndCopy(sd, join(baseDest, 'es', comp), filter);
     walkAndCopy(sd, join(baseDest, 'components', comp), filter);
+  }
+}
+
+function copyKatexTtfFonts(baseDest) {
+  const srcDir = join(root, 'node_modules', 'katex', 'dist', 'fonts');
+  if (!existsSync(srcDir)) return;
+  const destDir = join(baseDest, 'katex-fonts');
+  rmSync(destDir, { force: true, recursive: true });
+  mkdirSync(destDir, { recursive: true });
+  for (const f of readdirSync(srcDir)) {
+    if (f.endsWith('.ttf')) copyFileSync(join(srcDir, f), join(destDir, f));
   }
 }
 
@@ -101,9 +112,11 @@ if (existsSync(pluginsSrc)) {
   for (const plugin of readdirSync(pluginsSrc)) {
     const pluginDir = join(pluginsSrc, plugin);
     if (!statSync(pluginDir).isDirectory()) continue;
+    rmSync(join(distRoot, 'plugins', plugin, 'fonts.acss'), { force: true });
+    rmSync(join(distMpRoot, 'plugins', plugin, 'fonts.wxss'), { force: true });
     // Alipay: .acss
     for (const f of readdirSync(pluginDir)) {
-      if (f.endsWith('.acss')) {
+      if (f.endsWith('.acss') && f !== 'fonts.acss') {
         const destDir = join(distRoot, 'plugins', plugin);
         mkdirSync(destDir, { recursive: true });
         copyFileSync(join(pluginDir, f), join(destDir, f));
@@ -111,7 +124,7 @@ if (existsSync(pluginsSrc)) {
     }
     // WeChat: .wxss
     for (const f of readdirSync(pluginDir)) {
-      if (f.endsWith('.wxss')) {
+      if (f.endsWith('.wxss') && f !== 'fonts.wxss') {
         const destDir = join(distMpRoot, 'plugins', plugin);
         mkdirSync(destDir, { recursive: true });
         copyFileSync(join(pluginDir, f), join(destDir, f));
@@ -120,3 +133,9 @@ if (existsSync(pluginsSrc)) {
   }
   console.log('[x-markdown-mini] plugin styles copied to dist/plugins and dist/miniprogram_dist/plugins');
 }
+
+// 1c. KaTeX runtime fonts — publish real ttf files in the npm package.
+// They are loaded lazily via loadFontFace only when latex is enabled / formula nodes exist.
+copyKatexTtfFonts(distRoot);
+copyKatexTtfFonts(distMpRoot);
+console.log('[x-markdown-mini] KaTeX ttf fonts copied to dist/katex-fonts entries');

@@ -1,5 +1,6 @@
 <import-sjs from="./index.sjs" name="u" />
 
+<block a:if="{{katexReflow}}">
 <block a:for="{{nodes}}" a:for-item="node" a:for-index="i" a:key="k">
   <!-- text leaf: 流式时逐字淡入（Alipay 不能嵌套 <text>，用 inline <view> 包裹字符 <text>，
        按下标 key 复用，只有新字触发动画）；非流式时整段渲染为单个 <text>。 -->
@@ -11,7 +12,7 @@
       a:for="{{u.charsOf(node)}}"
       a:for-item="ch"
       a:key="k"
-      class="md-anim-char"
+      class="md-anim-char {{u.classOf(node)}}"
       selectable="{{selectable}}"
     >{{ch.c}}</text>
   </view>
@@ -68,19 +69,30 @@
         </view>
       </block>
     </view>
-    <scroll-view scroll-x class="md-code-block">
-      <mini-node-renderer
-        a:if="{{node.children}}"
-        nodes="{{node.children}}"
-        selectable="{{selectable}}"
-        animation="{{false}}"
-        slotComponents="{{slotComponents}}"
-        onTap="onTap"
-        onAppear="onAppear"
+    <view class="markdownx-code-scroll">
+      <view class="markdownx-edge-shadow markdownx-edge-shadow-left {{u.leftShadowClass(shadows, 'code-', i, true)}}" />
+      <view class="markdownx-edge-shadow markdownx-edge-shadow-right {{u.rightShadowClass(shadows, 'code-', i, true)}}" />
+      <scroll-view
+        scroll-x
+        class="md-code-block"
+        data-scroll-key="code-{{i}}"
+        onScroll="_codeScroll"
       >
-        <slot slot-scope="prop" data="{{prop.data}}" />
-      </mini-node-renderer>
-    </scroll-view>
+        <view class="markdownx-code-body" data-scroll-key="code-{{i}}">
+          <mini-node-renderer
+            a:if="{{node.children}}"
+            nodes="{{node.children}}"
+            selectable="{{selectable}}"
+            animation="{{false}}"
+            slotComponents="{{slotComponents}}"
+            onTap="onTap"
+            onAppear="onAppear"
+          >
+            <slot slot-scope="prop" data="{{prop.data}}" />
+          </mini-node-renderer>
+        </view>
+      </scroll-view>
+    </view>
   </view>
 
   <!-- table: caption + copy toolbar card, horizontal-scroll CSS table (columns kept aligned) -->
@@ -112,14 +124,18 @@
         </view>
       </block>
     </view>
-    <view class="markdownx-table-content {{u.tableShadowClass(tableShadows, i)}}">
+    <view class="markdownx-table-content">
+      <view class="markdownx-edge-shadow markdownx-edge-shadow-left {{u.leftShadowClass(shadows, 'table-', i, u.defaultRightShadow(node))}}" />
+      <view class="markdownx-edge-shadow markdownx-edge-shadow-right {{u.rightShadowClass(shadows, 'table-', i, u.defaultRightShadow(node))}}" />
       <scroll-view
         scroll-x
         class="md-table-scroll"
         data-table-key="{{i}}"
+        data-scroll-key="table-{{i}}"
+        data-default-right="{{u.defaultRightShadow(node)}}"
         onScroll="_tableScroll"
       >
-        <view class="{{u.classOf(node)}}" data-table-key="{{i}}">
+        <view class="{{u.classOf(node)}}" data-table-key="{{i}}" data-scroll-key="table-{{i}}">
           <view
             a:for="{{node.children}}"
             a:for-item="row"
@@ -213,4 +229,5 @@
       <slot slot-scope="prop" data="{{prop.data}}" />
     </mini-node-renderer>
   </view>
+</block>
 </block>

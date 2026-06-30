@@ -62,7 +62,11 @@
 
   <!-- KaTeX trees are 14–15 levels deep. Rendering each level through this
        recursive custom component exceeds WeChat's practical component depth;
-       rich-text keeps the static span tree inside one native boundary. -->
+       rich-text keeps the whole static span tree inside one native boundary and
+       resolves the real KaTeX font internally. Inline ($…$) and block ($$…$$)
+       share this branch — inline carries the .katex-inline class (display:
+       inline-block) so its rich-text box stays in the surrounding text flow,
+       while block carries .katex-display (display:block). -->
   <rich-text
     wx:elif="{{u.isKatex(node)}}"
     class="{{u.classOf(node)}}"
@@ -141,7 +145,11 @@
         </view>
       </block>
     </view>
-    <view class="md-table-content {{u.tableShadowClass(tableShadows, i)}}">
+    <view class="markdownx-table-content">
+      <!-- 左右边缘阴影用 overlay <view>（公用样式 markdownx-edge-shadow），不用 ::before/
+           ::after 伪元素——微信嵌套自定义组件里伪元素不可靠，曾导致表格阴影不显示。 -->
+      <view class="markdownx-edge-shadow markdownx-edge-shadow-left {{u.leftShadowClass(tableShadows, i)}}" />
+      <view class="markdownx-edge-shadow markdownx-edge-shadow-right {{u.rightShadowClass(tableShadows, i)}}" />
       <scroll-view
         scroll-x
         class="md-table-scroll"
@@ -207,6 +215,38 @@
     data-data="{{node}}"
     catch:tap="_tap"
   />
+
+  <!-- list item: marker (<text>) and content (<view>) must be DIRECT children of the
+       flex container .md-list-item, else WeChat's non-flex-transparent component host
+       collapses them and "1."/"•" drops to its own line. The marker is a flat text leaf;
+       the content's own children still recurse through a nested renderer. -->
+  <view
+    wx:elif="{{u.isListItem(node)}}"
+    class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
+    data-data="{{node}}"
+    catch:tap="_tap"
+  >
+    <block wx:for="{{node.children}}" wx:for-item="li" wx:for-index="lii" wx:key="k">
+      <text
+        wx:if="{{u.isText(li.name)}}"
+        class="{{u.classOf(li)}}"
+        selectable="{{selectable}}"
+      >{{u.valueOf(li)}}</text>
+      <view wx:else class="{{u.classOf(li)}}" style="{{u.styleOf(li)}}">
+        <mini-node-renderer
+          wx:if="{{li.children}}"
+          generic:custom-slot="custom-slot"
+          nodes="{{li.children}}"
+          selectable="{{selectable}}"
+          animation="{{animation}}"
+          slotComponents="{{slotComponents}}"
+          bind:tap="_tap"
+          bind:appear="_appear"
+        />
+      </view>
+    </block>
+  </view>
 
   <!-- block tag rendered as <view> -->
   <view

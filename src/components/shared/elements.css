@@ -104,6 +104,36 @@
   border-radius: 12rpx;
 }
 
+/* 表格/代码块横向滚动的左右边缘阴影（公用样式，两端共用）。
+   用绝对定位的 overlay <view> 而非 ::before/::after 伪元素——小程序自定义组件里
+   伪元素在真机/嵌套渲染层不可靠（微信表格阴影曾因此不显示）。本文件构建时内联进
+   MiniNodeRenderer 的 wxss/acss，能触达深层渲染的表格，无论是否经高层 Markdown 组件。 */
+.markdownx-table-content {
+  position: relative;
+  overflow: hidden;
+}
+.markdownx-edge-shadow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 24rpx;
+  pointer-events: none;
+  border-radius: 0;
+  opacity: 0;
+}
+.markdownx-edge-shadow--visible {
+  opacity: 1;
+}
+.markdownx-edge-shadow-left {
+  left: 0;
+  background: linear-gradient(90deg, rgba(51, 51, 51, 0.16), rgba(51, 51, 51, 0));
+}
+.markdownx-edge-shadow-right {
+  right: 0;
+  background: linear-gradient(270deg, rgba(51, 51, 51, 0.16), rgba(51, 51, 51, 0));
+}
+
 /* 荧光标记 / 上下标 */
 .md-mark {
   border-radius: 4rpx;

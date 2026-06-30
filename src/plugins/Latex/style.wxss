@@ -1,5 +1,5 @@
-/* KaTeX styles for WeChat mini-program. */
-@import "./fonts.wxss";
+/* KaTeX styles for WeChat mini-program.
+ * Fonts are registered on demand by loadFontFace from packaged katex-fonts/*.ttf. */
 
 /* --- KaTeX core styles --- */
 /* Note: '>' child combinators replaced with ' ' (descendant) for mini-program compat */
@@ -441,6 +441,9 @@
 }
 
 /* --- Inline math wrapper --- */
+/* inline-block (not inline) so the rich-text formula box keeps its KaTeX layout
+   yet still flows inside the surrounding line instead of forcing its own row. */
 .katex-inline {
-  display: inline;
+  display: inline-block;
+  vertical-align: middle;
 }

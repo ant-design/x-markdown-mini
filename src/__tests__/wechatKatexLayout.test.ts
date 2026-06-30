@@ -39,6 +39,33 @@ describe('WeChat KaTeX layout', () => {
     );
   });
 
+  it('renders inline KaTeX through the same rich-text path as block (real KaTeX fonts)', () => {
+    const wxml = readFileSync(
+      resolve(root, 'src/components/wechat/MiniNodeRenderer/index.wxml'),
+      'utf8',
+    );
+    const wxs = readFileSync(
+      resolve(root, 'src/components/wechat/MiniNodeRenderer/index.wxs'),
+      'utf8',
+    );
+
+    // Inline math no longer falls back to a unicode-approximation <text>; both
+    // inline and block KaTeX render via the single isKatex rich-text branch so
+    // inline formulas get the real KaTeX font instead of the system font.
+    expect(wxml).not.toContain('isInlineKatex');
+    expect(wxml).not.toContain('inlineKatexText');
+    expect(wxs).not.toContain('isInlineKatex');
+    expect(wxs).not.toContain('inlineKatexText');
+
+    // The katex-inline wrapper must be inline-block so the rich-text box stays in
+    // the surrounding text flow instead of forcing its own line.
+    const wxss = readFileSync(
+      resolve(root, 'src/plugins/Latex/style.wxss'),
+      'utf8',
+    );
+    expect(wxss).toMatch(/\.katex-inline\s*\{[^}]*display:\s*inline-block;/s);
+  });
+
   it('compensates WeChat vlist baseline rounding without affecting Alipay', () => {
     const wechatStyles = readFileSync(
       resolve(root, 'src/plugins/Latex/style.wxss'),

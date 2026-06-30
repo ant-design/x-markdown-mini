@@ -1,5 +1,6 @@
 <view class="md-root {{className}}">
   <mini-node-renderer
+    a:if="{{katexReflow}}"
     nodes="{{nodes}}"
     selectable="{{selectable}}"
     animation="{{animation}}"

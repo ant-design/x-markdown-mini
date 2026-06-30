@@ -39,13 +39,19 @@ Component({
   _tableViewportWidths: {} as Record<string, number>,
   _tableContentWidths: {} as Record<string, number>,
   _tableMeasureTimer: null as ReturnType<typeof setTimeout> | null,
+  _mounted: false,
   observers: {
     nodes(this: any) {
       this._scheduleTableMeasure();
     },
   },
   lifetimes: {
+    attached(this: any) {
+      this._mounted = true;
+      this._scheduleTableMeasure();
+    },
     detached(this: any) {
+      this._mounted = false;
       if (this._tableMeasureTimer !== null) clearTimeout(this._tableMeasureTimer);
       this._tableMeasureTimer = null;
     },
@@ -79,14 +85,17 @@ Component({
       // of querying layout on every token burst.
       this._tableMeasureTimer = setTimeout(() => {
         this._tableMeasureTimer = null;
+        if (!this._mounted) return;
         this._measureTables();
       }, 160);
     },
     _measureTables(this: any) {
+      if (!this._mounted) return;
       const query = wx.createSelectorQuery().in(this);
       query.selectAll('.md-table-scroll').boundingClientRect();
       query.selectAll('.md-table').boundingClientRect();
       query.exec((result: any[]) => {
+        if (!this._mounted) return;
         const viewports = (result && result[0]) || [];
         const tables = (result && result[1]) || [];
         const tableByKey: Record<string, any> = {};

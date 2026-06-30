@@ -4,6 +4,51 @@
 var import__ = require("../../index.js");
 var import_flattenInline = require("../../shared/flattenInline.js");
 
+// src/components/shared/loadKatexFonts.ts
+var CDN = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts";
+var FACES = [
+  { family: "KaTeX_AMS", file: "KaTeX_AMS-Regular.woff", weight: "normal", style: "normal" },
+  { family: "KaTeX_Caligraphic", file: "KaTeX_Caligraphic-Bold.woff", weight: "bold", style: "normal" },
+  { family: "KaTeX_Caligraphic", file: "KaTeX_Caligraphic-Regular.woff", weight: "normal", style: "normal" },
+  { family: "KaTeX_Fraktur", file: "KaTeX_Fraktur-Bold.woff", weight: "bold", style: "normal" },
+  { family: "KaTeX_Fraktur", file: "KaTeX_Fraktur-Regular.woff", weight: "normal", style: "normal" },
+  { family: "KaTeX_Main", file: "KaTeX_Main-Bold.woff", weight: "bold", style: "normal" },
+  { family: "KaTeX_Main", file: "KaTeX_Main-BoldItalic.woff", weight: "bold", style: "italic" },
+  { family: "KaTeX_Main", file: "KaTeX_Main-Italic.woff", weight: "normal", style: "italic" },
+  { family: "KaTeX_Main", file: "KaTeX_Main-Regular.woff", weight: "normal", style: "normal" },
+  { family: "KaTeX_Math", file: "KaTeX_Math-BoldItalic.woff", weight: "bold", style: "italic" },
+  { family: "KaTeX_Math", file: "KaTeX_Math-Italic.woff", weight: "normal", style: "italic" },
+  { family: "KaTeX_SansSerif", file: "KaTeX_SansSerif-Bold.woff", weight: "bold", style: "normal" },
+  { family: "KaTeX_SansSerif", file: "KaTeX_SansSerif-Italic.woff", weight: "normal", style: "italic" },
+  { family: "KaTeX_SansSerif", file: "KaTeX_SansSerif-Regular.woff", weight: "normal", style: "normal" },
+  { family: "KaTeX_Script", file: "KaTeX_Script-Regular.woff", weight: "normal", style: "normal" },
+  { family: "KaTeX_Size1", file: "KaTeX_Size1-Regular.woff", weight: "normal", style: "normal" },
+  { family: "KaTeX_Size2", file: "KaTeX_Size2-Regular.woff", weight: "normal", style: "normal" },
+  { family: "KaTeX_Size3", file: "KaTeX_Size3-Regular.woff", weight: "normal", style: "normal" },
+  { family: "KaTeX_Size4", file: "KaTeX_Size4-Regular.woff", weight: "normal", style: "normal" },
+  { family: "KaTeX_Typewriter", file: "KaTeX_Typewriter-Regular.woff", weight: "normal", style: "normal" }
+];
+var started = false;
+function loadKatexFonts() {
+  if (started) return;
+  const api = typeof my !== "undefined" ? my : typeof wx !== "undefined" ? wx : null;
+  if (!api || typeof api.loadFontFace !== "function") return;
+  started = true;
+  for (let i = 0; i < FACES.length; i++) {
+    const f = FACES[i];
+    api.loadFontFace({
+      global: true,
+      family: f.family,
+      source: 'url("' + CDN + "/" + f.file + '")',
+      desc: { style: f.style, weight: f.weight },
+      success() {
+      },
+      fail() {
+      }
+    });
+  }
+}
+
 // src/components/shared/textAnimation.ts
 var ANIMATION_DURATION = 360;
 function createTextAnimationState() {
@@ -145,6 +190,7 @@ Component({
     _build() {
       var _a, _b;
       const components = (_a = this.data.components) != null ? _a : [];
+      if (this.data.latex) loadKatexFonts();
       const extensions = bakeExtensions(!!this.data.latex, !!this.data.highlight);
       (_b = this.md) == null ? void 0 : _b.reset();
       resetTextAnimation(this.textAnimation);

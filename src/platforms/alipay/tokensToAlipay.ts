@@ -64,5 +64,6 @@ export function tokensToAlipay(
 
 /** Converts pre-lexed marked Token[] into Alipay mini-program nodes. */
 export function tokensToAlipayNodes(tokens: Token[], ctx: RenderContext = {}): MiniNode[] {
+  ctx.a = 1;
   return renderTokensToMiniNodes(tokens, alipayAdapter, ctx);
 }

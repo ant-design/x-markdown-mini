@@ -202,12 +202,21 @@ describe('mini-program streaming examples', () => {
     expect(markdown).toContain('selectable="{{selectable}}"');
   });
 
-  it('both examples consume the published beta package', () => {
+  it('both examples consume the local dist package', () => {
     for (const platform of ['alipay', 'wechat']) {
       const pkg = JSON.parse(
         readFileSync(resolve(root, `examples/${platform}/package.json`), 'utf8'),
       ) as { dependencies: Record<string, string> };
-      expect(pkg.dependencies['@ant-design/x-markdown-mini'], platform).toBe('0.1.0-beta.9');
+      expect(pkg.dependencies['@ant-design/x-markdown-mini'], platform).toBe('file:../../dist');
     }
+  });
+
+  it('Alipay postinstall materializes the local dist inside the project', () => {
+    const pkg = JSON.parse(
+      readFileSync(resolve(root, 'examples/alipay/package.json'), 'utf8'),
+    ) as { scripts: Record<string, string> };
+
+    expect(pkg.scripts.postinstall).toContain('sync-local-package.mjs');
+    expect(pkg.scripts.postinstall).toContain('patch-mp-html.mjs');
   });
 });

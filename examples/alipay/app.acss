@@ -1,0 +1,39 @@
+/* KaTeX 字体注册：已统一改为 JS API（my.loadFontFace，每字面唯一 family），由
+ * @ant-design/x-markdown-mini 组件在开启 latex 时自动调用——见
+ * src/components/shared/loadKatexFonts.ts。
+ *
+ * 真机实证结论（字体自检探针）：CSS `@font-face`（base64 / CDN / 任何作用域）在支付宝真机
+ * 一律不注册（仅模拟器生效）；而 `my.loadFontFace` 真机可用。故此前 app.acss 里 408KB 的
+ * `@import "./katex-fonts.acss"`（base64 @font-face）是「只在模拟器有效」的死代码 + 首包负担，
+ * 已移除——真机字体完全由组件内 loadFontFace 注册，无需任何 @import / 网络 / 合法域名配置。 */
+
+page {
+  background: #f7f7f7;
+}
+
+/* 真机字体「赋值」兜底（defense-in-depth）。
+ *
+ * 字体「注册」由组件 loadFontFace 完成（每字面唯一 family）；「赋值」由 plugins/Latex/index.ts 的
+ * stampFontClasses 把 kxf-* 类下沉到每个字形 <text>，再用单类选择器命中。组件内 Latex/style.acss
+ * 已带这些 .kxf-* 规则；这里全局再放一份兜底（两组件均 styleIsolation:"shared"，全局可级联）。
+ * 单类选择器命中 text 自身、跨任意组件嵌套层都生效（后代选择器与 view→text 继承在真机都不可靠）。
+ * family 名与 src/components/shared/loadKatexFonts.ts、src/plugins/Latex/style.acss 完全一致。 */
+.katex text { font-style: normal; font-weight: normal; }
+.kxf-main { font-family: "KaTeX_Main", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-mainbold { font-family: "KaTeX_MainBold", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-mainitalic { font-family: "KaTeX_MainItalic", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-mathitalic { font-family: "KaTeX_MathItalic", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-mathbolditalic { font-family: "KaTeX_MathBoldItalic", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-ams { font-family: "KaTeX_AMS", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-cal { font-family: "KaTeX_Caligraphic", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-frak { font-family: "KaTeX_Fraktur", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-frakbold { font-family: "KaTeX_FrakturBold", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-script { font-family: "KaTeX_Script", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-sf { font-family: "KaTeX_SansSerif", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-sfbold { font-family: "KaTeX_SansSerifBold", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-sfitalic { font-family: "KaTeX_SansSerifItalic", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-tt { font-family: "KaTeX_Typewriter", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-size1 { font-family: "KaTeX_Size1", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-size2 { font-family: "KaTeX_Size2", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-size3 { font-family: "KaTeX_Size3", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-size4 { font-family: "KaTeX_Size4", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }

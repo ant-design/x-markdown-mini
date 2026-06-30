@@ -1,9 +1,7 @@
 /* KaTeX styles for Alipay mini-program.
  * Adapted from KaTeX 0.16.x CSS. Replaces Less @import/@variable with plain CSS,
  * replaces '>' child combinators with ' ' (descendant) for mini-program compat,
- * fonts base64-inlined via fonts.acss (see scripts/generate-katex-fonts.mjs). */
-
-@import "./fonts.acss";
+ * fonts are registered on demand by loadFontFace from packaged katex-fonts/*.ttf. */
 
 /* --- KaTeX core styles --- */
 /* Note: '>' child combinators replaced with ' ' (descendant) for mini-program compat */
@@ -71,6 +69,37 @@
 .katex .mathboldsf, .katex .textboldsf { font-family: "KaTeX_SansSerif"; font-weight: bold; }
 .katex .mathsfit, .katex .mathitsf, .katex .textitsf { font-family: "KaTeX_SansSerif"; font-style: italic; }
 .katex .mainrm { font-family: "KaTeX_Main"; font-style: normal; }
+
+/* 叶子 <text> 的字体指派（真机关键）。
+ *
+ * 真机两大坑：(a) 支付宝不把 font-family 从 <view> 祖先继承进叶子 <text>；(b) KaTeX 子树经
+ * 嵌套 <mini-node-renderer> 渲染，跨组件边界的「后代选择器」（.katex .mathnormal text）在真机
+ * 也不命中。所以这里不用后代选择器、也不靠继承，而是由 plugins/Latex/index.ts 的 stampFontClasses
+ * 把字体意图「下沉」成 kxf-* 类、直接盖到每个字形 <text> 上，再用下面的「单类选择器」赋字体——
+ * 单类命中 text 自身、在每层组件作用域内都生效（与 element 样式必须放 MiniNodeRenderer 的结论一致）。
+ *
+ * 每个 kxf-* → 一个「唯一 family」（真机 loadFontFace 同名 family 只认首字面，故一对一拆名，见
+ * shared/loadKatexFonts.ts）。统一请求 normal/normal（同时覆盖继承来的斜/粗，避免在本身已是斜/粗
+ * 的字体文件上再合成一次），斜/粗视觉由字体文件本身提供。family 名必须与 loadKatexFonts.ts 一致。 */
+.katex text { font-style: normal; font-weight: normal; }
+.kxf-main { font-family: "KaTeX_Main", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-mainbold { font-family: "KaTeX_MainBold", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-mainitalic { font-family: "KaTeX_MainItalic", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-mathitalic { font-family: "KaTeX_MathItalic", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-mathbolditalic { font-family: "KaTeX_MathBoldItalic", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-ams { font-family: "KaTeX_AMS", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-cal { font-family: "KaTeX_Caligraphic", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-frak { font-family: "KaTeX_Fraktur", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-frakbold { font-family: "KaTeX_FrakturBold", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-script { font-family: "KaTeX_Script", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-sf { font-family: "KaTeX_SansSerif", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-sfbold { font-family: "KaTeX_SansSerifBold", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-sfitalic { font-family: "KaTeX_SansSerifItalic", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-tt { font-family: "KaTeX_Typewriter", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-size1 { font-family: "KaTeX_Size1", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-size2 { font-family: "KaTeX_Size2", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-size3 { font-family: "KaTeX_Size3", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
+.kxf-size4 { font-family: "KaTeX_Size4", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif; font-style: normal; font-weight: normal; }
 
 .katex .vlist-t {
   display: inline-table;

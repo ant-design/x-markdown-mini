@@ -33,16 +33,6 @@ function isRich(node) {
 function isSlot(name, slotComponents) {
   return !!slotComponents && slotComponents.indexOf(name) > -1;
 }
-// KaTeX 公式子树（class 含 'katex'）很深（实测 inline 14 层 / block 15 层）。若沿用
-// 每层一个 <mini-node-renderer> 自定义组件的递归，单个公式就会实例化 13~33 个组件，
-// 支付宝渲染层撑不住而白屏。KaTeX 子树无交互（无 tap/slot），改用「递归 AXML 模板」
-// 渲染——产出完全相同的 view/text + class/style，但没有组件实例。微信侧不受影响。
-function isKatex(node) {
-  var attrs = node.attrs || {};
-  var cls = attrs['class'] || '';
-  return cls.indexOf('katex') > -1;
-}
-
 function classOf(node) {
   var attrs = node.attrs || {};
   var cls = attrs['class'] || '';
@@ -101,15 +91,24 @@ function valueOf(node) {
   return attrs.value || '';
 }
 
-function tableShadowClass(shadows, key) {
-  var state = shadows && shadows[key];
-  if (!state) return '';
-  var cls = '';
-  if (state.left) cls += ' markdownx-table-content--left-shadow';
-  if (state.right) cls += ' markdownx-table-content--right-shadow';
-  return cls;
+function shadowState(shadows, prefix, key, defaultRight) {
+  var fullKey = prefix + key;
+  var state = shadows && shadows[fullKey];
+  if (!state && defaultRight) return { left: false, right: true };
+  return state;
 }
-
+function leftShadowClass(shadows, prefix, key, defaultRight) {
+  var state = shadowState(shadows, prefix, key, defaultRight);
+  return state && state.left ? 'markdownx-edge-shadow--visible' : '';
+}
+function rightShadowClass(shadows, prefix, key, defaultRight) {
+  var state = shadowState(shadows, prefix, key, defaultRight);
+  return state && state.right ? 'markdownx-edge-shadow--visible' : '';
+}
+function defaultRightShadow(node) {
+  var cls = ((node && node.attrs) || {})['class'] || '';
+  return cls.indexOf('md-table-multi') > -1;
+}
 export default {
   isInline: isInline,
   isBlock: isBlock,
@@ -122,7 +121,6 @@ export default {
   isCopy: isCopy,
   copyOf: copyOf,
   isRich: isRich,
-  isKatex: isKatex,
   isSlot: isSlot,
   classOf: classOf,
   charsOf: charsOf,
@@ -131,5 +129,7 @@ export default {
   langOf: langOf,
   altOf: altOf,
   valueOf: valueOf,
-  tableShadowClass: tableShadowClass,
+  leftShadowClass: leftShadowClass,
+  rightShadowClass: rightShadowClass,
+  defaultRightShadow: defaultRightShadow,
 };

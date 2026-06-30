@@ -1,4 +1,3 @@
-@import "../../plugins/Latex/fonts.wxss";
 @import "../../plugins/Latex/style.wxss";
 
 /* 仅含微信端专属样式（块入场/逐字动画）。通用元素样式由 src/components/shared/elements.css

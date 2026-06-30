@@ -4835,8 +4835,8 @@ function css(hljs) {
 // node_modules/highlight.js/es/languages/xml.js
 function xml(hljs) {
   const regex = hljs.regex;
-  const TAG_NAME_RE = regex.concat(/[\p{L}_]/u, regex.optional(/[\p{L}0-9_.-]*:/u), /[\p{L}0-9_.-]*/u);
-  const XML_IDENT_RE = /[\p{L}0-9._:-]+/u;
+  const TAG_NAME_RE = regex.concat(/[A-Za-z\u00C0-\uFFFF_]/u, regex.optional(/[A-Za-z\u00C0-\uFFFF0-9_.-]*:/u), /[A-Za-z\u00C0-\uFFFF0-9_.-]*/u);
+  const XML_IDENT_RE = /[A-Za-z\u00C0-\uFFFF0-9._:-]+/u;
   const XML_ENTITIES = {
     className: "symbol",
     begin: /&[a-z]+;|&#[0-9]+;|&#x[a-f0-9]+;/

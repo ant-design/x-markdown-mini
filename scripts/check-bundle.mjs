@@ -51,11 +51,13 @@ const BUDGETS = [
   // raw +~1.2 KB：代码块/表格 header 改为数据驱动（renderer 产出默认 header +
   //   copyButton 帮助函数 + buildCodeHeader/buildTableHeader）。实测 mjs raw
   //   ~119.62 KB、index.js ~121.17 KB；预算上调留 ~1 KB headroom。
-  { file: 'index.mjs', rawMax: 121 * KB, gzipMax: 30 * KB },
-  // raw/gzip +<1 KB：支付宝表格补齐溢出测量和左右阴影状态。
-  { file: 'index.js', rawMax: 123 * KB, gzipMax: 31 * KB },
+  // raw +~0.6 KB：patch-modern-regex 把 marked 的 \p{L}\p{N}\p{P}\p{S} 展开成
+  //   ASCII+BMP 字符区间（修复微信真机 "Invalid property name in character class"
+  //   导致整包 require 失败白屏），展开串比 \p{X} 长。
+  { file: 'index.mjs', rawMax: 122 * KB, gzipMax: 30 * KB },
+  { file: 'index.js', rawMax: 124 * KB, gzipMax: 31 * KB },
   // 微信专用主库副本（通过 package.json#miniprogram 进入）
-  { file: 'miniprogram_dist/index.js', rawMax: 123 * KB, gzipMax: 31 * KB },
+  { file: 'miniprogram_dist/index.js', rawMax: 124 * KB, gzipMax: 31 * KB },
   // 共享 helper（alipay 包根 + wechat 包根 各一份）。JS 接入复用时间戳
   // 动画协调器完整内联后约 7.59 KB，只让新增字符渐显，避免微信旧字符重复播放；
   // 入口必须自包含，不能留下未发布的 ./textAnimation.js require。
@@ -64,20 +66,26 @@ const BUDGETS = [
   { file: 'shared/flattenInline.js', rawMax: 9 * KB },
   { file: 'miniprogram_dist/shared/flattenInline.js', rawMax: 9 * KB },
   // Alipay 组件
-  { file: 'es/Markdown/index.js', rawMax: 5 * KB },
+  // 5→7：内联 loadKatexFonts（20 个 KaTeX 字面 + loadFontFace 全局注册，仅 latex 时调用），
+  // 修复支付宝真机组件作用域 @font-face 不生效，wrapper 约 6.0 KB。
+  { file: 'es/Markdown/index.js', rawMax: 7 * KB },
   // MiniNodeRenderer 表格溢出测量、缓存和滚动阴影增加约 4 KB wrapper 源码。
-  { file: 'es/MiniNodeRenderer/index.js', rawMax: 7 * KB },
-  { file: 'components/Markdown/index.js', rawMax: 5 * KB },
-  { file: 'components/MiniNodeRenderer/index.js', rawMax: 7 * KB },
+  // 7→10：JS 接入页（裸 <mini-node-renderer>，不经 <Markdown>）也要注册 KaTeX 字体，
+  // 故此处同样内联 shared/loadKatexFonts（20 个字面，约 +2.4 KB）→ wrapper 约 9.4 KB。
+  // 早先这里只有一个仅注册 KaTeX_Math 的本地残桩，体积小但真机其余字体回退系统字体。
+  { file: 'es/MiniNodeRenderer/index.js', rawMax: 10 * KB },
+  { file: 'components/Markdown/index.js', rawMax: 7 * KB },
+  { file: 'components/MiniNodeRenderer/index.js', rawMax: 10 * KB },
   // Wechat 组件
   // Timestamped typewriter segments resume CSS animation after WeChat rebuilds
   // the node tree; the state reconciler adds ~2.8 KB to the wrapper. The
   // latex/highlight opt-in plugin bake-in (require + extension assembly) adds ~0.5 KB.
   // MiniNodeRenderer table overflow measurement + position-aware edge shadows
   // add ~4 KB to the wrapper (selector query, cached geometry, scroll handler).
-  { file: 'miniprogram_dist/es/Markdown/index.js', rawMax: 7 * KB },
+  // 7→10：同上叠加 loadKatexFonts；微信 wrapper（含动画协调器）约 9.0 KB。
+  { file: 'miniprogram_dist/es/Markdown/index.js', rawMax: 10 * KB },
   { file: 'miniprogram_dist/es/MiniNodeRenderer/index.js', rawMax: 7 * KB },
-  { file: 'miniprogram_dist/components/Markdown/index.js', rawMax: 7 * KB },
+  { file: 'miniprogram_dist/components/Markdown/index.js', rawMax: 10 * KB },
   { file: 'miniprogram_dist/components/MiniNodeRenderer/index.js', rawMax: 7 * KB },
   // Plugin bundles (separate entries — not counted against main lib budget)
   // KaTeX includes font data and CSS; highlight.js/lib/common bundles ~18 languages.
@@ -175,6 +183,28 @@ for (const file of COMPAT_FILES) {
         `scripts/patch-modern-regex.mjs did not run, or its match pattern needs an update.`,
     );
     console.log(`  FAIL  ${file} — ${leaked} leaked literal(s)`);
+  } else {
+    console.log(`  OK    ${file}`);
+  }
+}
+
+// --- 2b. unicode property escape scan ---
+// WeChat's runtime JS engine throws on `\p{...}` ("Invalid property name in
+// character class"), aborting the whole bundle's require → blank page.
+// scripts/patch-modern-regex.mjs must down-level every `\p{X}` (both `\p{` regex
+// literals and `\\p{` new RegExp string bodies).
+console.log('\nCompatibility (unicode property escapes):');
+for (const file of COMPAT_FILES) {
+  const path = join(dist, file);
+  if (!existsSync(path)) continue;
+  const src = readFileSync(path, 'utf8');
+  const leaked = (src.match(/\\p\{[A-Za-z]+\}/g) || []).length;
+  if (leaked > 0) {
+    errors.push(
+      `[compat] ${file} contains ${leaked} unicode property escape(s) (\\p{...}) — ` +
+        `scripts/patch-modern-regex.mjs did not run or needs an update; WeChat will blank-screen.`,
+    );
+    console.log(`  FAIL  ${file} — ${leaked} leaked \\p{...}`);
   } else {
     console.log(`  OK    ${file}`);
   }

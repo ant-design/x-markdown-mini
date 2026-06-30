@@ -105,7 +105,7 @@ describe('CodeHighlight — extension miniRenderer override', () => {
 // ---------------------------------------------------------------------------
 
 describe('Latex — tokenizer', () => {
-  it('inlines KaTeX fonts as base64 (offline) for both platforms', () => {
+  it('keeps KaTeX layout styles separate from default font payload', () => {
     const wxss = readFileSync(
       new URL('../plugins/Latex/style.wxss', import.meta.url),
       'utf8',
@@ -114,35 +114,22 @@ describe('Latex — tokenizer', () => {
       new URL('../plugins/Latex/style.acss', import.meta.url),
       'utf8',
     );
-    const fontsWxss = readFileSync(
-      new URL('../plugins/Latex/fonts.wxss', import.meta.url),
-      'utf8',
-    );
-    const fontsAcss = readFileSync(
-      new URL('../plugins/Latex/fonts.acss', import.meta.url),
-      'utf8',
-    );
 
-    // Each platform's style sheet pulls its own base64 font sheet — consumers
-    // import a single style file and get working glyphs with no network/CDN.
-    expect(wxss).toContain('@import "./fonts.wxss";');
-    expect(acss).toContain('@import "./fonts.acss";');
+    // Default component styles must not import the generated base64 font sheets:
+    // users who never render formulas should not pay that CSS payload.
+    expect(wxss).not.toContain('@import "./fonts.wxss";');
+    expect(acss).not.toContain('@import "./fonts.acss";');
     expect(wxss).toContain('font-family: "KaTeX_Main"');
     expect(acss).toContain('font-family: "KaTeX_Main"');
     expect(wxss).not.toMatch(/font-family:\s*KaTeX_/);
     expect(acss).not.toMatch(/font-family:\s*KaTeX_/);
 
-    // Fonts are base64 data URIs, never CDN/http (broken inside a mini-program).
-    for (const fonts of [fontsWxss, fontsAcss]) {
-      expect(fonts).toContain('data:font/woff2;base64,');
-      expect(fonts).not.toContain('http');
-    }
     // The layout sheets must not ship dead CDN url() refs anymore.
     expect(wxss).not.toContain('http');
     expect(acss).not.toContain('http');
   });
 
-  it('imports KaTeX fonts from the top-level Markdown component styles', () => {
+  it('imports only KaTeX layout styles from default component styles', () => {
     const alipayMarkdown = readFileSync(
       new URL('../components/alipay/Markdown/index.acss', import.meta.url),
       'utf8',
@@ -160,18 +147,81 @@ describe('Latex — tokenizer', () => {
       'utf8',
     );
 
-    expect(alipayMarkdown).toMatch(
-      /@import "\.\.\/\.\.\/plugins\/Latex\/fonts\.acss";[\s\S]*@import "\.\.\/\.\.\/plugins\/Latex\/style\.acss";/,
+    expect(alipayMarkdown).toContain('@import "../../plugins/Latex/style.acss";');
+    expect(wechatMarkdown).toContain('@import "../../plugins/Latex/style.wxss";');
+    expect(alipayRenderer).toMatch(/^@import "\.\.\/\.\.\/plugins\/Latex\/style\.acss";/);
+    expect(wechatRenderer).toMatch(/^@import "\.\.\/\.\.\/plugins\/Latex\/style\.wxss";/);
+    for (const css of [alipayMarkdown, wechatMarkdown, alipayRenderer, wechatRenderer]) {
+      expect(css).not.toContain('/Latex/fonts.');
+    }
+  });
+
+  it('registers KaTeX fonts globally only when latex is enabled', () => {
+    // 真机修复：组件作用域 @font-face 在支付宝真机不生效，改用 loadFontFace 全局注册；
+    // 且必须仅在开启 latex 时调用——没用公式的页面不应加载这些字体。
+    const loader = readFileSync(
+      new URL('../components/shared/loadKatexFonts.ts', import.meta.url),
+      'utf8',
     );
-    expect(wechatMarkdown).toMatch(
-      /@import "\.\.\/\.\.\/plugins\/Latex\/fonts\.wxss";[\s\S]*@import "\.\.\/\.\.\/plugins\/Latex\/style\.wxss";/,
+    expect(loader).toContain('loadFontFace');
+    expect(loader).toContain('global: true');
+    expect(loader).toContain('/node_modules/');
+    expect(loader).toContain('/miniprogram_npm/');
+    expect(loader).toContain('/katex-fonts');
+
+    for (const platform of ['alipay', 'wechat']) {
+      const src = readFileSync(
+        new URL(`../components/${platform}/Markdown/index.ts`, import.meta.url),
+        'utf8',
+      );
+      expect(src).toContain('loadKatexFonts');
+      // 调用必须门控在 latex 判断之后
+      expect(src).toMatch(/latex\)\s*loadKatexFonts\(/);
+    }
+  });
+
+  it('registers KaTeX fonts from Alipay MiniNodeRenderer for direct JS rendering', () => {
+    const renderer = readFileSync(
+      new URL('../components/alipay/MiniNodeRenderer/index.ts', import.meta.url),
+      'utf8',
     );
-    expect(alipayRenderer).toMatch(
-      /^@import "\.\.\/\.\.\/plugins\/Latex\/fonts\.acss";\s*@import "\.\.\/\.\.\/plugins\/Latex\/style\.acss";/,
+    expect(renderer).toContain('loadKatexFonts');
+    expect(renderer).toContain("indexOf('katex')");
+    expect(renderer).toMatch(/if\s*\([^)]*\(this\.props\.nodes\)[^)]*\)\s*loadKatexFonts\(/);
+    // Must reuse the shared all-faces loader, not a crippled local stub that only
+    // registers one face (the JS-接入 page relies on this for every KaTeX font on
+    // device — registering only KaTeX_Math left every other glyph in the system font).
+    expect(renderer).toMatch(
+      /import\s*\{[^}]*loadKatexFonts[^}]*\}\s*from\s*'\.\.\/\.\.\/shared\/loadKatexFonts\.js'/,
     );
-    expect(wechatRenderer).toMatch(
-      /^@import "\.\.\/\.\.\/plugins\/Latex\/fonts\.wxss";\s*@import "\.\.\/\.\.\/plugins\/Latex\/style\.wxss";/,
+    expect(renderer).not.toMatch(/function\s+loadKatexFonts\s*\(/);
+
+    // The shared loader must register the full KaTeX face set, not just one family.
+    const loader = readFileSync(
+      new URL('../components/shared/loadKatexFonts.ts', import.meta.url),
+      'utf8',
     );
+    for (const family of ['KaTeX_Main', 'KaTeX_Math', 'KaTeX_AMS', 'KaTeX_Size4', 'KaTeX_Caligraphic']) {
+      expect(loader).toContain(family);
+    }
+  });
+
+  it('guards Alipay KaTeX reflow callbacks after component unmount', () => {
+    const files = [
+      '../components/alipay/Markdown/index.ts',
+      '../components/alipay/MiniNodeRenderer/index.ts',
+    ];
+
+    for (const file of files) {
+      const src = readFileSync(new URL(file, import.meta.url), 'utf8');
+      expect(src, file).toContain('mounted: false');
+      expect(src, file).toContain('this.mounted = true;');
+      expect(src, file).toContain('this.mounted = false;');
+      expect(src, file).toContain('if (this.mounted) this._katexFontReflow();');
+      expect(src, file).toMatch(
+        /this\.setData\(\{ katexReflow: false \}, \(\) => \{\s*if \(this\.mounted\) this\.setData\(\{ katexReflow: true \}\);/s,
+      );
+    }
   });
 
   it('avoids tag selectors forbidden in component wxss', () => {
@@ -201,13 +251,52 @@ describe('Latex — tokenizer', () => {
     expect(types).toContain('blockKatex');
   });
 
-  it('inline math renders to MiniNode with katex class', async () => {
+  it('inline math renders to MiniNode with katex class on WeChat', async () => {
+    const { default: Latex } = await import('../plugins/Latex/index.js');
+    const md = new XMarkdownMini({ extensions: [Latex()] });
+    const nodes = md.renderNodes({ content: '$x^2$', platform: 'wechat' });
+    const json = JSON.stringify(nodes);
+    expect(json).toContain('katex');
+    expect(json).toContain('katex-node');
+  });
+
+  it('inline math renders to MiniNode with katex class on Alipay', async () => {
+    // 支付宝与微信一样渲染真实 KaTeX 子树（字体经 loadFontFace 全局注册）；
+    // 这是对此前「降级成 unicode 近似文本」做法的回归守卫。
     const { default: Latex } = await import('../plugins/Latex/index.js');
     const md = new XMarkdownMini({ extensions: [Latex()] });
     const nodes = md.renderNodes({ content: '$x^2$', platform: 'alipay' });
     const json = JSON.stringify(nodes);
     expect(json).toContain('katex');
     expect(json).toContain('katex-node');
+    expect(json).not.toContain('md-latex-fallback');
+  });
+
+  it('stamps kxf-* font classes onto KaTeX glyph text leaves (真机 font assignment)', async () => {
+    // 真机字体赋值不能靠后代选择器 / view→text 继承（跨嵌套组件边界失效），改由插件把字体意图
+    // 下沉成 kxf-* 类盖到每个字形 <text>，再用单类选择器赋字体。这里守卫「下沉」确实发生。
+    const { default: Latex } = await import('../plugins/Latex/index.js');
+    const md = new XMarkdownMini({ extensions: [Latex()] });
+    const nodes = md.renderNodes({ content: '$x + 1$', platform: 'alipay' });
+
+    // 收集 katex 子树里的所有 text 叶子，断言每个都带某个 kxf-* 字体类。
+    const texts: any[] = [];
+    const walk = (list: any[]): void => {
+      for (const n of list) {
+        if (n.name === 'text') texts.push(n);
+        if (n.children) walk(n.children);
+      }
+    };
+    walk(nodes);
+    expect(texts.length).toBeGreaterThan(0);
+    for (const t of texts) {
+      expect(String(t.attrs?.class ?? ''), `text "${t.attrs?.value}" needs a kxf-* class`)
+        .toMatch(/\bkxf-[a-z0-9]+\b/);
+    }
+    const json = JSON.stringify(nodes);
+    // 变量 x → mathnormal → kxf-mathitalic；数字/算符 → 默认 kxf-main。
+    expect(json).toContain('kxf-mathitalic');
+    expect(json).toContain('kxf-main');
   });
 
   it('block math renders to MiniNode with katex-display class', async () => {

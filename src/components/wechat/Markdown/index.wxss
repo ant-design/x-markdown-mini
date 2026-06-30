@@ -1,9 +1,7 @@
 /* 高层 <Markdown> 组件自带插件样式：开启 latex/highlight 后无需页面再 @import。
-   字体放在顶层 import，避免不同小程序构建器对嵌套 @import 行为不一致；
-   Latex/style.wxss 仍自带 fonts.wxss，保证底层直用 MiniNodeRenderer 时单独 import
-   Latex/style.wxss 仍能拿到字体。 */
+   KaTeX 字体不再以内联 base64 CSS 默认引入；运行时仅在启用 latex / 出现公式时，
+   通过 loadFontFace 从 npm 包内 katex-fonts/*.ttf 注册。 */
 @import "../../plugins/CodeHighlight/style.wxss";
-@import "../../plugins/Latex/fonts.wxss";
 @import "../../plugins/Latex/style.wxss";
 
 /* 元素级样式（标题/段落/列表/引用/强调/链接/行内代码/图片/分隔线/上下标等）已统一到
@@ -77,28 +75,9 @@
   overflow: hidden;
   white-space: nowrap;
 }
-.md-table-content {
-  position: relative;
-  overflow: hidden;
-}
-.md-table-content--left-shadow::before,
-.md-table-content--right-shadow::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  z-index: 2;
-  width: 24rpx;
-  pointer-events: none;
-}
-.md-table-content--left-shadow::before {
-  left: 0;
-  background: linear-gradient(90deg, rgba(51, 51, 51, 0.16), rgba(51, 51, 51, 0));
-}
-.md-table-content--right-shadow::after {
-  right: 0;
-  background: linear-gradient(270deg, rgba(51, 51, 51, 0.16), rgba(51, 51, 51, 0));
-}
+/* 表格左右边缘阴影改为公用 overlay 样式（.markdownx-edge-shadow，见
+   src/components/shared/elements.css，构建时内联进 MiniNodeRenderer 能触达表格），
+   不再用此处的 ::before/::after 伪元素——伪元素在微信嵌套自定义组件里不渲染。 */
 .md-table {
   display: table;
   table-layout: auto;

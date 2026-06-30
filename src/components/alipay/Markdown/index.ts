@@ -6,6 +6,7 @@ import type {
   MarkedExtension,
 } from '../../../index.js';
 import { flattenInlineNodes } from '../../shared/flattenInline.js';
+import { loadKatexFonts } from '../../shared/loadKatexFonts.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
 // 运行时按需加载插件：插件扩展带 tokenizer/miniRenderer 等函数，无法通过属性绑定/
@@ -75,10 +76,15 @@ Component({
     nodes: [] as MiniNode[],
     slotComponents: [] as string[],
     animation: false,
+    // KaTeX 字体就绪后用它做一次「卸载-重挂」强制重排：字体经 loadFontFace 异步注册，已渲染的
+    // 公式 <text> 不会自动重绘，toggle 一下 a:if 让渲染子树重挂、用已就绪的字体重画。
+    katexReflow: true,
   },
   md: null as XMarkdownMini | null,
+  mounted: false,
 
   didMount(this: any) {
+    this.mounted = true;
     this._build(this.props);
     this._render(this.props);
   },
@@ -109,6 +115,7 @@ Component({
   },
 
   didUnmount(this: any) {
+    this.mounted = false;
     this.md?.reset();
     this.md = null;
   },
@@ -116,6 +123,10 @@ Component({
   methods: {
     _build(this: any, props: MarkdownProps) {
       const components = props.components ?? [];
+      // 仅在开启 latex 时注册 KaTeX 字体（支付宝走包内本地 woff）；字体就绪后强制重排一次。
+      if (props.latex) loadKatexFonts(() => {
+        if (this.mounted) this._katexFontReflow();
+      });
       const extensions = bakeExtensions(!!props.latex, !!props.highlight);
       this.md?.reset();
       this.md = new XMarkdownMini({ escapeText: false, components, extensions });
@@ -141,8 +152,18 @@ Component({
         onRenderProgress: (payload: { markdown: string }) =>
           props.onRenderProgress?.(payload),
         onRenderComplete: () => props.onRenderComplete?.(),
-        onPatch: (nodes: MiniNode[]) =>
-          this.setData({ nodes: flattenInlineNodes(nodes) }),
+        onPatch: (nodes: MiniNode[]) => {
+          if (this.mounted) this.setData({ nodes: flattenInlineNodes(nodes) });
+        },
+      });
+    },
+
+    // KaTeX 字体就绪后强制重排：卸载再重挂渲染子树，让公式 <text> 用已注册的字体重绘。
+    _katexFontReflow(this: any) {
+      if (!this.mounted) return;
+      if (!this.data.nodes || this.data.nodes.length === 0) return;
+      this.setData({ katexReflow: false }, () => {
+        if (this.mounted) this.setData({ katexReflow: true });
       });
     },
 

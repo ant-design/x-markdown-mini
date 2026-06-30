@@ -441,6 +441,9 @@
 }
 
 /* --- Inline math wrapper --- */
+/* inline-block (not inline) so the rich-text formula box keeps its KaTeX layout
+   yet still flows inside the surrounding line instead of forcing its own row. */
 .katex-inline {
-  display: inline;
+  display: inline-block;
+  vertical-align: middle;
 }

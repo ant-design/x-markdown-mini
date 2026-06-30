@@ -4,7 +4,7 @@ var __DEFINE__ = function(modId, func, req) { var m = { exports: {}, _tempexport
 var __REQUIRE__ = function(modId, source) { if(!__MODS__[modId]) return require(source); if(!__MODS__[modId].status) { var m = __MODS__[modId].m; m._exports = m._tempexports; var desp = Object.getOwnPropertyDescriptor(m, "exports"); if (desp && desp.configurable) Object.defineProperty(m, "exports", { set: function (val) { if(typeof val === "object" && val !== m._exports) { m._exports.__proto__ = val.__proto__; Object.keys(val).forEach(function (k) { m._exports[k] = val[k]; }); } m._tempexports = val }, get: function () { return m._tempexports; } }); __MODS__[modId].status = 1; __MODS__[modId].func(__MODS__[modId].req, m, m.exports); } return __MODS__[modId].m.exports; };
 var __REQUIRE_WILDCARD__ = function(obj) { if(obj && obj.__esModule) { return obj; } else { var newObj = {}; if(obj != null) { for(var k in obj) { if (Object.prototype.hasOwnProperty.call(obj, k)) newObj[k] = obj[k]; } } newObj.default = obj; return newObj; } };
 var __REQUIRE_DEFAULT__ = function(obj) { return obj && obj.__esModule ? obj.default : obj; };
-__DEFINE__(1782354231146, function(require, module, exports) {
+__DEFINE__(1782354231578, function(require, module, exports) {
 
 
 module.exports = Object.assign(
@@ -34,8 +34,8 @@ if (Object.getOwnPropertyDescriptor(fs, 'promises')) {
   })
 }
 
-}, function(modId) {var map = {"./fs":1782354231147,"./copy-sync":1782354231148,"./copy":1782354231157,"./empty":1782354231160,"./ensure":1782354231163,"./json":1782354231169,"./mkdirs":1782354231150,"./move-sync":1782354231173,"./move":1782354231175,"./output":1782354231177,"./path-exists":1782354231159,"./remove":1782354231161,"fs":1782354231147}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231147, function(require, module, exports) {
+}, function(modId) {var map = {"./fs":1782354231579,"./copy-sync":1782354231580,"./copy":1782354231589,"./empty":1782354231592,"./ensure":1782354231595,"./json":1782354231601,"./mkdirs":1782354231582,"./move-sync":1782354231605,"./move":1782354231607,"./output":1782354231609,"./path-exists":1782354231591,"./remove":1782354231593,"fs":1782354231579}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231579, function(require, module, exports) {
 
 // This is adapted from https://github.com/normalize/mz
 // Copyright (c) 2014-2016 Jonathan Ong me@jongleberry.com and Contributors
@@ -147,15 +147,15 @@ if (typeof fs.realpath.native === 'function') {
 }
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231148, function(require, module, exports) {
+__DEFINE__(1782354231580, function(require, module, exports) {
 
 
 module.exports = {
   copySync: require('./copy-sync')
 }
 
-}, function(modId) { var map = {"./copy-sync":1782354231149}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231149, function(require, module, exports) {
+}, function(modId) { var map = {"./copy-sync":1782354231581}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231581, function(require, module, exports) {
 
 
 const fs = require('graceful-fs')
@@ -321,8 +321,8 @@ function copyLink (resolvedSrc, dest) {
 
 module.exports = copySync
 
-}, function(modId) { var map = {"../mkdirs":1782354231150,"../util/utimes.js":1782354231154,"../util/stat":1782354231155,"../util/buffer":1782354231156}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231150, function(require, module, exports) {
+}, function(modId) { var map = {"../mkdirs":1782354231582,"../util/utimes.js":1782354231586,"../util/stat":1782354231587,"../util/buffer":1782354231588}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231582, function(require, module, exports) {
 
 const u = require('universalify').fromCallback
 const mkdirs = u(require('./mkdirs'))
@@ -338,8 +338,8 @@ module.exports = {
   ensureDirSync: mkdirsSync
 }
 
-}, function(modId) { var map = {"./mkdirs":1782354231151,"./mkdirs-sync":1782354231153}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231151, function(require, module, exports) {
+}, function(modId) { var map = {"./mkdirs":1782354231583,"./mkdirs-sync":1782354231585}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231583, function(require, module, exports) {
 
 
 const fs = require('graceful-fs')
@@ -404,8 +404,8 @@ function mkdirs (p, opts, callback, made) {
 
 module.exports = mkdirs
 
-}, function(modId) { var map = {"./win32":1782354231152}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231152, function(require, module, exports) {
+}, function(modId) { var map = {"./win32":1782354231584}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231584, function(require, module, exports) {
 
 
 const path = require('path')
@@ -433,7 +433,7 @@ module.exports = {
 }
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231153, function(require, module, exports) {
+__DEFINE__(1782354231585, function(require, module, exports) {
 
 
 const fs = require('graceful-fs')
@@ -489,8 +489,8 @@ function mkdirsSync (p, opts, made) {
 
 module.exports = mkdirsSync
 
-}, function(modId) { var map = {"./win32":1782354231152}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231154, function(require, module, exports) {
+}, function(modId) { var map = {"./win32":1782354231584}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231586, function(require, module, exports) {
 
 
 const fs = require('graceful-fs')
@@ -572,7 +572,7 @@ module.exports = {
 }
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231155, function(require, module, exports) {
+__DEFINE__(1782354231587, function(require, module, exports) {
 
 
 const fs = require('graceful-fs')
@@ -747,7 +747,7 @@ module.exports = {
 }
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231156, function(require, module, exports) {
+__DEFINE__(1782354231588, function(require, module, exports) {
 
 /* eslint-disable node/no-deprecated-api */
 module.exports = function (size) {
@@ -762,7 +762,7 @@ module.exports = function (size) {
 }
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231157, function(require, module, exports) {
+__DEFINE__(1782354231589, function(require, module, exports) {
 
 
 const u = require('universalify').fromCallback
@@ -770,8 +770,8 @@ module.exports = {
   copy: u(require('./copy'))
 }
 
-}, function(modId) { var map = {"./copy":1782354231158}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231158, function(require, module, exports) {
+}, function(modId) { var map = {"./copy":1782354231590}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231590, function(require, module, exports) {
 
 
 const fs = require('graceful-fs')
@@ -985,8 +985,8 @@ function copyLink (resolvedSrc, dest, cb) {
 
 module.exports = copy
 
-}, function(modId) { var map = {"../mkdirs":1782354231150,"../path-exists":1782354231159,"../util/utimes":1782354231154,"../util/stat":1782354231155}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231159, function(require, module, exports) {
+}, function(modId) { var map = {"../mkdirs":1782354231582,"../path-exists":1782354231591,"../util/utimes":1782354231586,"../util/stat":1782354231587}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231591, function(require, module, exports) {
 
 const u = require('universalify').fromPromise
 const fs = require('../fs')
@@ -1000,8 +1000,8 @@ module.exports = {
   pathExistsSync: fs.existsSync
 }
 
-}, function(modId) { var map = {"../fs":1782354231147}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231160, function(require, module, exports) {
+}, function(modId) { var map = {"../fs":1782354231579}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231592, function(require, module, exports) {
 
 
 const u = require('universalify').fromCallback
@@ -1051,8 +1051,8 @@ module.exports = {
   emptydir: emptyDir
 }
 
-}, function(modId) { var map = {"../mkdirs":1782354231150,"../remove":1782354231161}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231161, function(require, module, exports) {
+}, function(modId) { var map = {"../mkdirs":1782354231582,"../remove":1782354231593}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231593, function(require, module, exports) {
 
 
 const u = require('universalify').fromCallback
@@ -1063,8 +1063,8 @@ module.exports = {
   removeSync: rimraf.sync
 }
 
-}, function(modId) { var map = {"./rimraf":1782354231162}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231162, function(require, module, exports) {
+}, function(modId) { var map = {"./rimraf":1782354231594}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231594, function(require, module, exports) {
 
 
 const fs = require('graceful-fs')
@@ -1381,7 +1381,7 @@ module.exports = rimraf
 rimraf.sync = rimrafSync
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231163, function(require, module, exports) {
+__DEFINE__(1782354231595, function(require, module, exports) {
 
 
 const file = require('./file')
@@ -1406,8 +1406,8 @@ module.exports = {
   ensureSymlinkSync: symlink.createSymlinkSync
 }
 
-}, function(modId) { var map = {"./file":1782354231164,"./link":1782354231165,"./symlink":1782354231166}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231164, function(require, module, exports) {
+}, function(modId) { var map = {"./file":1782354231596,"./link":1782354231597,"./symlink":1782354231598}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231596, function(require, module, exports) {
 
 
 const u = require('universalify').fromCallback
@@ -1458,8 +1458,8 @@ module.exports = {
   createFileSync
 }
 
-}, function(modId) { var map = {"../mkdirs":1782354231150,"../path-exists":1782354231159}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231165, function(require, module, exports) {
+}, function(modId) { var map = {"../mkdirs":1782354231582,"../path-exists":1782354231591}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231597, function(require, module, exports) {
 
 
 const u = require('universalify').fromCallback
@@ -1522,8 +1522,8 @@ module.exports = {
   createLinkSync
 }
 
-}, function(modId) { var map = {"../mkdirs":1782354231150,"../path-exists":1782354231159}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231166, function(require, module, exports) {
+}, function(modId) { var map = {"../mkdirs":1782354231582,"../path-exists":1782354231591}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231598, function(require, module, exports) {
 
 
 const u = require('universalify').fromCallback
@@ -1588,8 +1588,8 @@ module.exports = {
   createSymlinkSync
 }
 
-}, function(modId) { var map = {"../mkdirs":1782354231150,"./symlink-paths":1782354231167,"./symlink-type":1782354231168,"../path-exists":1782354231159}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231167, function(require, module, exports) {
+}, function(modId) { var map = {"../mkdirs":1782354231582,"./symlink-paths":1782354231599,"./symlink-type":1782354231600,"../path-exists":1782354231591}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231599, function(require, module, exports) {
 
 
 const path = require('path')
@@ -1690,8 +1690,8 @@ module.exports = {
   symlinkPathsSync
 }
 
-}, function(modId) { var map = {"../path-exists":1782354231159}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231168, function(require, module, exports) {
+}, function(modId) { var map = {"../path-exists":1782354231591}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231600, function(require, module, exports) {
 
 
 const fs = require('graceful-fs')
@@ -1725,7 +1725,7 @@ module.exports = {
 }
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231169, function(require, module, exports) {
+__DEFINE__(1782354231601, function(require, module, exports) {
 
 
 const u = require('universalify').fromCallback
@@ -1743,8 +1743,8 @@ jsonFile.readJSONSync = jsonFile.readJsonSync
 
 module.exports = jsonFile
 
-}, function(modId) { var map = {"./jsonfile":1782354231170,"./output-json":1782354231171,"./output-json-sync":1782354231172}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231170, function(require, module, exports) {
+}, function(modId) { var map = {"./jsonfile":1782354231602,"./output-json":1782354231603,"./output-json-sync":1782354231604}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231602, function(require, module, exports) {
 
 
 const u = require('universalify').fromCallback
@@ -1758,8 +1758,8 @@ module.exports = {
   writeJsonSync: jsonFile.writeFileSync
 }
 
-}, function(modId) { var map = {"jsonfile":1782354231170}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231171, function(require, module, exports) {
+}, function(modId) { var map = {"jsonfile":1782354231602}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231603, function(require, module, exports) {
 
 
 const path = require('path')
@@ -1788,8 +1788,8 @@ function outputJson (file, data, options, callback) {
 
 module.exports = outputJson
 
-}, function(modId) { var map = {"../mkdirs":1782354231150,"../path-exists":1782354231159,"./jsonfile":1782354231170}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231172, function(require, module, exports) {
+}, function(modId) { var map = {"../mkdirs":1782354231582,"../path-exists":1782354231591,"./jsonfile":1782354231602}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231604, function(require, module, exports) {
 
 
 const fs = require('graceful-fs')
@@ -1809,16 +1809,16 @@ function outputJsonSync (file, data, options) {
 
 module.exports = outputJsonSync
 
-}, function(modId) { var map = {"../mkdirs":1782354231150,"./jsonfile":1782354231170}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231173, function(require, module, exports) {
+}, function(modId) { var map = {"../mkdirs":1782354231582,"./jsonfile":1782354231602}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231605, function(require, module, exports) {
 
 
 module.exports = {
   moveSync: require('./move-sync')
 }
 
-}, function(modId) { var map = {"./move-sync":1782354231174}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231174, function(require, module, exports) {
+}, function(modId) { var map = {"./move-sync":1782354231606}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231606, function(require, module, exports) {
 
 
 const fs = require('graceful-fs')
@@ -1867,8 +1867,8 @@ function moveAcrossDevice (src, dest, overwrite) {
 
 module.exports = moveSync
 
-}, function(modId) { var map = {"../copy-sync":1782354231148,"../remove":1782354231161,"../mkdirs":1782354231150,"../util/stat":1782354231155}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231175, function(require, module, exports) {
+}, function(modId) { var map = {"../copy-sync":1782354231580,"../remove":1782354231593,"../mkdirs":1782354231582,"../util/stat":1782354231587}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231607, function(require, module, exports) {
 
 
 const u = require('universalify').fromCallback
@@ -1876,8 +1876,8 @@ module.exports = {
   move: u(require('./move'))
 }
 
-}, function(modId) { var map = {"./move":1782354231176}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231176, function(require, module, exports) {
+}, function(modId) { var map = {"./move":1782354231608}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231608, function(require, module, exports) {
 
 
 const fs = require('graceful-fs')
@@ -1944,8 +1944,8 @@ function moveAcrossDevice (src, dest, overwrite, cb) {
 
 module.exports = move
 
-}, function(modId) { var map = {"../copy":1782354231157,"../remove":1782354231161,"../mkdirs":1782354231150,"../path-exists":1782354231159,"../util/stat":1782354231155}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1782354231177, function(require, module, exports) {
+}, function(modId) { var map = {"../copy":1782354231589,"../remove":1782354231593,"../mkdirs":1782354231582,"../path-exists":1782354231591,"../util/stat":1782354231587}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1782354231609, function(require, module, exports) {
 
 
 const u = require('universalify').fromCallback
@@ -1987,8 +1987,8 @@ module.exports = {
   outputFileSync
 }
 
-}, function(modId) { var map = {"../mkdirs":1782354231150,"../path-exists":1782354231159}; return __REQUIRE__(map[modId], modId); })
-return __REQUIRE__(1782354231146);
+}, function(modId) { var map = {"../mkdirs":1782354231582,"../path-exists":1782354231591}; return __REQUIRE__(map[modId], modId); })
+return __REQUIRE__(1782354231578);
 })()
 //miniprogram-npm-outsideDeps=["universalify","graceful-fs","path","os","assert"]
 //# sourceMappingURL=index.js.map

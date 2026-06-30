@@ -55,15 +55,42 @@ describe('Alipay table layout', () => {
 
     expect(axml).toContain('markdownx-table-content');
     expect(axml).toContain('onScroll="_tableScroll"');
+    expect(axml).toContain('data-scroll-key="table-{{i}}"');
+    expect(axml).toContain('data-default-right="{{u.defaultRightShadow(node)}}"');
+    expect(axml).toContain("u.leftShadowClass(shadows, 'table-', i, u.defaultRightShadow(node))");
+    expect(axml).toContain("u.rightShadowClass(shadows, 'table-', i, u.defaultRightShadow(node))");
     expect(axml).toContain('a:for="{{node.children}}"');
     expect(axml).toContain('a:for="{{row.children}}"');
-    expect(acss).toContain('.markdownx-table-content--left-shadow::before');
-    expect(acss).toContain('.markdownx-table-content--right-shadow::after');
+    // 边缘阴影现为公用样式（shared/elements.css，构建时内联进 MiniNodeRenderer 的
+    // wxss/acss，两端共用）。Alipay acss 不再单独维护这份样式。
+    const elements = readFileSync(
+      resolve(root, 'src/components/shared/elements.css'),
+      'utf8',
+    );
+    expect(elements).toContain('.markdownx-edge-shadow');
+    expect(elements).toContain('.markdownx-edge-shadow-left');
+    expect(elements).toContain('.markdownx-edge-shadow-right');
+    expect(elements).toMatch(/\.markdownx-edge-shadow\s*\{[\s\S]*?border-radius:\s*0/);
+    // 边缘阴影用 overlay <view>，不用伪元素：edge-shadow 规则块里没有 ::before/::after。
+    expect(elements).not.toMatch(/markdownx-edge-shadow[^{}]*::(?:before|after)/);
+    expect(acss).not.toContain('.markdownx-edge-shadow-left');
+    expect(acss).not.toContain('.markdownx-edge-shadow-right');
+
+    const sjs = readFileSync(
+      resolve(root, 'src/components/alipay/MiniNodeRenderer/index.sjs'),
+      'utf8',
+    );
+    expect(sjs).toContain('function leftShadowClass');
+    expect(sjs).toContain('function rightShadowClass');
+    expect(sjs).toContain('function defaultRightShadow');
+    expect(sjs).toContain('if (!state && defaultRight) return { left: false, right: true }');
 
     const renderer = readFileSync(
       resolve(root, 'src/components/alipay/MiniNodeRenderer/index.ts'),
       'utf8',
     );
-    expect(renderer).toContain('e?.detail?.scrollWidth');
+    expect(renderer).toContain('detail.scrollWidth');
+    expect(renderer).toContain('defaultRight && !state.left && state.right');
+    expect(renderer).toContain('shadows');
   });
 });

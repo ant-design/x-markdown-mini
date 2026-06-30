@@ -6,17 +6,18 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 // 字体源是「不随包发布」的模板（.tpl.css 被 copy-component-assets 跳过）。两个平台
 // 的 @font-face 内容完全相同（base64 data URI，无平台方言），所以同一份产物写两次：
 // fonts.wxss（微信）+ fonts.acss（支付宝）。style.{wxss,acss} 只保留布局规则。
+// 支付宝真机字体格式支持比模拟器窄，内联 woff 比 woff2 更稳。
 const source = readFileSync(join(root, 'src/plugins/Latex/fontface.tpl.css'), 'utf8');
 const fontDir = join(root, 'node_modules/katex/dist/fonts');
 const blocks = source.match(/@font-face\s*\{[\s\S]*?\n\}/g) ?? [];
 
 const embedded = blocks.map((block) => {
-  const match = block.match(/fonts\/(KaTeX_[A-Za-z0-9-]+\.woff2)/);
-  if (!match) throw new Error(`Missing WOFF2 source in font block: ${block}`);
+  const match = block.match(/fonts\/(KaTeX_[A-Za-z0-9-]+\.woff)/);
+  if (!match) throw new Error(`Missing WOFF source in font block: ${block}`);
   const base64 = readFileSync(join(fontDir, match[1])).toString('base64');
   return block.replace(
     /src:[\s\S]*?;/,
-    `src: url("data:font/woff2;base64,${base64}") format("woff2");`,
+    `src: url("data:font/woff;base64,${base64}") format("woff");`,
   );
 });
 

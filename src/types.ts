@@ -199,6 +199,8 @@ export type TableHeaderRenderer = (ctx: TableHeaderContext) => MiniNode | MiniNo
 export interface RenderContext {
   /** 是否启用块级动画 */
   animation?: boolean;
+  /** Internal Alipay marker for platform-specific extension render fallbacks. */
+  a?: 1;
   /** 文本是否可选择 */
   selectable?: boolean;
   /**

@@ -1,4 +1,3 @@
-@import "../../plugins/Latex/fonts.acss";
 @import "../../plugins/Latex/style.acss";
 
 /* 仅含支付宝端专属样式（块入场/逐字动画、链接按压态）。通用元素样式由
@@ -57,27 +56,16 @@ text {
   overflow: hidden;
   white-space: nowrap;
 }
-.markdownx-table-content {
+/* 边缘阴影（.markdownx-table-content / .markdownx-edge-shadow*）现为公用样式，见
+   src/components/shared/elements.css（构建时内联进本文件）。这里仅保留代码块滚动容器。 */
+.markdownx-code-scroll {
   position: relative;
   overflow: hidden;
+  border-radius: 0;
 }
-.markdownx-table-content--left-shadow::before,
-.markdownx-table-content--right-shadow::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  z-index: 2;
-  width: 24rpx;
-  pointer-events: none;
-}
-.markdownx-table-content--left-shadow::before {
-  left: 0;
-  background: linear-gradient(90deg, rgba(51, 51, 51, 0.16), rgba(51, 51, 51, 0));
-}
-.markdownx-table-content--right-shadow::after {
-  right: 0;
-  background: linear-gradient(270deg, rgba(51, 51, 51, 0.16), rgba(51, 51, 51, 0));
+.markdownx-code-body {
+  display: inline-block;
+  min-width: 100%;
 }
 .md-table {
   display: block;

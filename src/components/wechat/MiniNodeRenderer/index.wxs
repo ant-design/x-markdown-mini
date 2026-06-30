@@ -12,6 +12,13 @@ function isKatex(node) {
   var cls = (node.attrs || {})['class'] || '';
   return cls.indexOf('katex') > -1;
 }
+// 列表项必须把 marker 与 content 作为 flex 容器（.md-list-item）的直接子节点渲染——
+// WeChat 自定义组件宿主不是 flex 透明的，若 marker+content 共处一个嵌套渲染器宿主，
+// flex 只看到一个子节点 → "1."/"•" 会单独占一行（支付宝 slot 宿主透明，故那端正常）。
+function isListItem(node) {
+  var cls = (node.attrs || {})['class'] || '';
+  return cls.indexOf('md-list-item') > -1;
+}
 function toRichTextNode(node) {
   if (node.name === 'text') {
     return { type: 'text', text: (node.attrs || {}).value || '' };
@@ -63,13 +70,15 @@ function srcOf(node)   { return (node.attrs || {}).src || ''; }
 function langOf(node)  { return (node.attrs || {}).lang || ''; }
 function altOf(node)   { return (node.attrs || {}).alt || ''; }
 function valueOf(node) { return (node.attrs || {}).value || ''; }
-function tableShadowClass(shadows, key) {
+// 边缘阴影：返回 overlay <view> 的可见修饰类（公用样式 markdownx-edge-shadow--visible）。
+// shadows 按 data-table-key（=循环下标）索引，状态由 _measureTables / _tableScroll 计算。
+function leftShadowClass(shadows, key) {
   var state = shadows && shadows[key];
-  if (!state) return '';
-  var cls = '';
-  if (state.left) cls += ' md-table-content--left-shadow';
-  if (state.right) cls += ' md-table-content--right-shadow';
-  return cls;
+  return state && state.left ? 'markdownx-edge-shadow--visible' : '';
+}
+function rightShadowClass(shadows, key) {
+  var state = shadows && shadows[key];
+  return state && state.right ? 'markdownx-edge-shadow--visible' : '';
 }
 
 module.exports = {
@@ -82,6 +91,9 @@ module.exports = {
   isTable: isTable,
   isCopy: isCopy,
   isKatex: isKatex,
+  isListItem: isListItem,
+  leftShadowClass: leftShadowClass,
+  rightShadowClass: rightShadowClass,
   toRichTextNodes: toRichTextNodes,
   copyOf: copyOf,
   isRich: isRich,
@@ -92,5 +104,4 @@ module.exports = {
   langOf: langOf,
   altOf: altOf,
   valueOf: valueOf,
-  tableShadowClass: tableShadowClass,
 };
