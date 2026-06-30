@@ -12,16 +12,17 @@
 //     CSS 端（plugins/Latex/style.acss 的 .kxf-* 单类规则 + plugins/Latex/index.ts 把 kxf-* 类下沉到
 //     字形 <text>）据此赋字体——绕开「同名多字面」「跨组件后代选择器」「view→text 继承」三个真机坑。
 //
-// 所以支付宝走「HTTPS ttf + 唯一 family」；包内本地 ttf 只作兼容兜底。实测 beta.11 证明：
-// 字体文件即便随 npm 包发布到 node_modules/@ant-design/x-markdown-mini/dist/katex-fonts，支付宝
-// 真机也不会把它当成可靠的 loadFontFace 本地 URL。官方文档同样要求 source 使用 HTTPS 字体
-// 地址。微信仍优先走包内 ttf，失败时保留 CDN woff 兜底。`onReady` 在全部字面加载完成后回调
-// 一次，供组件强制重排（兜底，即便本地几乎即时，也确保已渲染的公式在字体就绪后重新绘制）。
+// 所以支付宝走「inline ttf data URI + 唯一 family」；HTTPS / 包内本地 ttf 只作兼容兜底。beta.11
+// 证明包内 node_modules 字体 URL 不可靠；beta.12 证明公开 CDN 在真机环境仍会受域名/下载策略影响。
+// 早前真机探针里真正稳定生效的是 loadFontFace 加载 inline ttf。微信仍优先走包内 ttf，失败时保留
+// CDN woff 兜底。`onReady` 在全部字面加载完成后回调一次，供组件强制重排（兜底，即便本地
+// 几乎即时，也确保已渲染的公式在字体就绪后重新绘制）。
 //
 // 检测沿用 `typeof my` / `typeof wx`（而非 globalThis），与 src/platforms/index.ts 一致：旧版支付宝
 // 基础库没有 globalThis，而 typeof 对未声明标识符不抛错。
 declare const my: any;
 declare const wx: any;
+declare const require: any;
 
 // 支付宝真机用 CDN ttf 作为首选：woff 会回调 loaded 但不参与 <text> 排版；ttf 才实际生效。
 // 微信保留原 CDN woff 兜底，避免改变既有可用路径。
@@ -80,6 +81,7 @@ let ready = false;
 // 字体加载可能由 <Markdown> 在节点渲染前触发，也可能由底层 <MiniNodeRenderer> 在拿到
 // KaTeX 节点后触发。必须保留全部等待者；只记第一个回调会让真机错过重排，停在系统字体。
 let readyCallbacks: (() => void)[] = [];
+let inlineFontData: Record<string, string> | null | undefined;
 
 function callSafe(cb: (() => void) | null | undefined): void {
   if (!cb) return;
@@ -90,10 +92,28 @@ function callSafe(cb: (() => void) | null | undefined): void {
   }
 }
 
+function loadInlineFontData(): Record<string, string> | null {
+  if (inlineFontData !== undefined) return inlineFontData;
+  try {
+    // This file is generated into dist/katex-font-data.js and dist/miniprogram_dist/katex-font-data.js.
+    // Keep require indirect so the bundler does not try to resolve it from src/.
+    const req = require;
+    const mod = req('../../katex-font-data.js');
+    inlineFontData = (mod && (mod.default || mod)) || null;
+  } catch (e) {
+    inlineFontData = null;
+  }
+  return inlineFontData;
+}
+
 function sourcesForFace(f: KatexFace, isAlipay: boolean): string[] {
   const localBases = isAlipay ? ALIPAY_LOCAL_BASES : WECHAT_LOCAL_BASES;
   const sources: string[] = [];
-  if (isAlipay) sources.push('url("' + CDN + '/' + f.alipayFile + '")');
+  if (isAlipay) {
+    const data = loadInlineFontData();
+    if (data && data[f.alipayFile]) sources.push('url("' + data[f.alipayFile] + '")');
+    sources.push('url("' + CDN + '/' + f.alipayFile + '")');
+  }
   for (let i = 0; i < localBases.length; i++) {
     sources.push('url("' + localBases[i] + '/' + f.alipayFile + '")');
   }

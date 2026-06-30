@@ -48,7 +48,10 @@ describe('platform presentation consistency', () => {
     }
     expect(loader).toContain("alipayFile: 'KaTeX_Main-Regular.ttf'");
     expect(loader).toContain("alipayFile: 'KaTeX_Math-Italic.ttf'");
-    expect(loader).toContain('if (isAlipay) sources.push');
+    expect(loader).toContain('function loadInlineFontData()');
+    expect(loader).toContain("req('../../katex-font-data.js')");
+    expect(loader).toContain("data && data[f.alipayFile]");
+    expect(loader).toContain('if (isAlipay) {');
     expect(loader).toContain("CDN + '/' + f.alipayFile");
     expect(loader).toContain("'/node_modules/' + PACKAGE_NAME + '/dist/katex-fonts'");
     expect(loader).toContain("'/node_modules/' + PACKAGE_NAME + '/katex-fonts'");
@@ -73,5 +76,12 @@ describe('platform presentation consistency', () => {
     expect(loader).toMatch(/if \(onReady\) readyCallbacks\.push\(onReady\);/);
     expect(loader).toMatch(/if \(ready\) \{\s*callSafe\(onReady\);/s);
     expect(loader).toMatch(/for \(let i = 0; i < callbacks\.length; i\+\+\) callSafe\(callbacks\[i\]\);/);
+  });
+
+  it('build script emits inline ttf font data modules for package roots', () => {
+    const buildScript = source('../../scripts/copy-component-assets.mjs');
+    expect(buildScript).toContain('writeKatexTtfDataModule(distRoot)');
+    expect(buildScript).toContain('writeKatexTtfDataModule(distMpRoot)');
+    expect(buildScript).toContain('data:font/ttf;base64,');
   });
 });
