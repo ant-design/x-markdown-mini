@@ -12,24 +12,28 @@
 //     CSS 端（plugins/Latex/style.acss 的 .kxf-* 单类规则 + plugins/Latex/index.ts 把 kxf-* 类下沉到
 //     字形 <text>）据此赋字体——绕开「同名多字面」「跨组件后代选择器」「view→text 继承」三个真机坑。
 //
-// 所以支付宝走「包内本地 ttf + 唯一 family」；字体随 npm 包发布到 katex-fonts/，用户只安装
-// x-markdown-mini 即可。微信也优先走包内 ttf，失败时保留 CDN woff 兜底。`onReady` 在全部字面
-// 加载完成后回调一次，供组件强制重排（兜底，即便本地几乎即时，也确保已渲染的公式在字体
-// 就绪后重新绘制）。
+// 所以支付宝走「HTTPS ttf + 唯一 family」；包内本地 ttf 只作兼容兜底。实测 beta.11 证明：
+// 字体文件即便随 npm 包发布到 node_modules/@ant-design/x-markdown-mini/dist/katex-fonts，支付宝
+// 真机也不会把它当成可靠的 loadFontFace 本地 URL。官方文档同样要求 source 使用 HTTPS 字体
+// 地址。微信仍优先走包内 ttf，失败时保留 CDN woff 兜底。`onReady` 在全部字面加载完成后回调
+// 一次，供组件强制重排（兜底，即便本地几乎即时，也确保已渲染的公式在字体就绪后重新绘制）。
 //
 // 检测沿用 `typeof my` / `typeof wx`（而非 globalThis），与 src/platforms/index.ts 一致：旧版支付宝
 // 基础库没有 globalThis，而 typeof 对未声明标识符不抛错。
 declare const my: any;
 declare const wx: any;
 
-// CDN 仅作微信兜底；默认路径优先使用 npm 包随附的 ttf，避免用户手动拷贝字体。
+// 支付宝真机用 CDN ttf 作为首选：woff 会回调 loaded 但不参与 <text> 排版；ttf 才实际生效。
+// 微信保留原 CDN woff 兜底，避免改变既有可用路径。
 const CDN = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts';
 const PACKAGE_NAME = '@ant-design/x-markdown-mini';
 const ALIPAY_LOCAL_BASES = [
+  '/node_modules/' + PACKAGE_NAME + '/dist/katex-fonts',
   '/node_modules/' + PACKAGE_NAME + '/katex-fonts',
   '/katex-fonts',
 ];
 const WECHAT_LOCAL_BASES = [
+  '/miniprogram_npm/' + PACKAGE_NAME + '/dist/miniprogram_dist/katex-fonts',
   '/miniprogram_npm/' + PACKAGE_NAME + '/katex-fonts',
   '/katex-fonts',
 ];
@@ -89,6 +93,7 @@ function callSafe(cb: (() => void) | null | undefined): void {
 function sourcesForFace(f: KatexFace, isAlipay: boolean): string[] {
   const localBases = isAlipay ? ALIPAY_LOCAL_BASES : WECHAT_LOCAL_BASES;
   const sources: string[] = [];
+  if (isAlipay) sources.push('url("' + CDN + '/' + f.alipayFile + '")');
   for (let i = 0; i < localBases.length; i++) {
     sources.push('url("' + localBases[i] + '/' + f.alipayFile + '")');
   }

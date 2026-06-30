@@ -48,7 +48,11 @@ describe('platform presentation consistency', () => {
     }
     expect(loader).toContain("alipayFile: 'KaTeX_Main-Regular.ttf'");
     expect(loader).toContain("alipayFile: 'KaTeX_Math-Italic.ttf'");
+    expect(loader).toContain('if (isAlipay) sources.push');
+    expect(loader).toContain("CDN + '/' + f.alipayFile");
+    expect(loader).toContain("'/node_modules/' + PACKAGE_NAME + '/dist/katex-fonts'");
     expect(loader).toContain("'/node_modules/' + PACKAGE_NAME + '/katex-fonts'");
+    expect(loader).toContain("'/miniprogram_npm/' + PACKAGE_NAME + '/dist/miniprogram_dist/katex-fonts'");
     expect(loader).toContain("'/miniprogram_npm/' + PACKAGE_NAME + '/katex-fonts'");
     expect(loader).toMatch(/sources\.push\('url\("' \+ localBases\[i\] \+ '\/' \+ f\.alipayFile \+ '"\)'\);/);
   });
