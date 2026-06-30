@@ -13,12 +13,14 @@
       a:for-item="ch"
       a:key="k"
       class="md-anim-char {{u.classOf(node)}}"
+      style="{{u.styleOf(node)}}"
       selectable="{{selectable}}"
     >{{ch.c}}</text>
   </view>
   <text
     a:elif="{{u.isText(node.name)}}"
     class="{{u.classOf(node)}}"
+    style="{{u.styleOf(node)}}"
     selectable="{{selectable}}"
   >{{u.valueOf(node)}}</text>
 
@@ -200,6 +202,7 @@
       a:for-index="ci"
       a:key="k"
       class="{{u.classOf(c)}}"
+      style="{{u.styleOf(c)}}"
     >{{u.valueOf(c)}}</text>
   </view>
 

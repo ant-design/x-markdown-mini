@@ -67,6 +67,8 @@ describe('platform presentation consistency', () => {
     // <view>，支付宝真机不会把 font-family 可靠继承进每个字符 <text>，公式会回退系统字体。
     const axml = source('../components/alipay/MiniNodeRenderer/index.axml');
     expect(axml).toContain('class="md-anim-char {{u.classOf(node)}}"');
+    expect(axml).toContain('style="{{u.styleOf(node)}}"');
+    expect(axml).toContain('style="{{u.styleOf(c)}}"');
   });
 
   it('keeps all KaTeX font-ready callbacks until fonts finish loading', () => {

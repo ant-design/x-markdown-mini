@@ -1,6 +1,6 @@
 {
   "name": "@ant-design/x-markdown-mini",
-  "version": "0.1.0-beta.14",
+  "version": "0.1.0-beta.15",
   "description": "多小程序场景下的高性能、强扩展、流式友好的 Markdown 渲染器",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

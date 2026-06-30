@@ -48,12 +48,41 @@ function fontClassFor(cls: string): string | null {
   return null;
 }
 
+function fontStyleFor(kxf: string): string {
+  switch (kxf) {
+    case 'kxf-main': return 'font-family:"KaTeX_Main","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-mainbold': return 'font-family:"KaTeX_MainBold","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-mainitalic': return 'font-family:"KaTeX_MainItalic","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-mathitalic': return 'font-family:"KaTeX_MathItalic","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-mathbolditalic': return 'font-family:"KaTeX_MathBoldItalic","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-ams': return 'font-family:"KaTeX_AMS","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-cal': return 'font-family:"KaTeX_Caligraphic","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-frak': return 'font-family:"KaTeX_Fraktur","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-frakbold': return 'font-family:"KaTeX_FrakturBold","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-script': return 'font-family:"KaTeX_Script","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-sf': return 'font-family:"KaTeX_SansSerif","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-sfbold': return 'font-family:"KaTeX_SansSerifBold","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-sfitalic': return 'font-family:"KaTeX_SansSerifItalic","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-tt': return 'font-family:"KaTeX_Typewriter","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-size1': return 'font-family:"KaTeX_Size1","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-size2': return 'font-family:"KaTeX_Size2","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-size3': return 'font-family:"KaTeX_Size3","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    case 'kxf-size4': return 'font-family:"KaTeX_Size4","PingFang SC","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:normal;';
+    default: return '';
+  }
+}
+
 // 把字体意图下沉到每个字形 <text>：沿途记住最近祖先的字体类，盖到叶子 text 的 class 上。
 function stampFontClasses(list: MiniNode[], inherited: string): void {
   for (const node of list) {
     if (node.name === 'text') {
       const prev = node.attrs && node.attrs.class ? String(node.attrs.class) + ' ' : '';
-      node.attrs = { ...node.attrs, class: prev + inherited };
+      const prevStyle = node.attrs && node.attrs.style ? String(node.attrs.style) : '';
+      node.attrs = {
+        ...node.attrs,
+        class: prev + inherited,
+        style: fontStyleFor(inherited) + prevStyle,
+      };
       continue;
     }
     if (node.name === 'br') continue;

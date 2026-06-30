@@ -272,14 +272,14 @@ describe('Latex — tokenizer', () => {
     expect(json).not.toContain('md-latex-fallback');
   });
 
-  it('stamps kxf-* font classes onto KaTeX glyph text leaves (真机 font assignment)', async () => {
+  it('stamps kxf-* font classes and inline font style onto KaTeX glyph text leaves (真机 font assignment)', async () => {
     // 真机字体赋值不能靠后代选择器 / view→text 继承（跨嵌套组件边界失效），改由插件把字体意图
     // 下沉成 kxf-* 类盖到每个字形 <text>，再用单类选择器赋字体。这里守卫「下沉」确实发生。
     const { default: Latex } = await import('../plugins/Latex/index.js');
     const md = new XMarkdownMini({ extensions: [Latex()] });
     const nodes = md.renderNodes({ content: '$x + 1$', platform: 'alipay' });
 
-    // 收集 katex 子树里的所有 text 叶子，断言每个都带某个 kxf-* 字体类。
+    // 收集 katex 子树里的所有 text 叶子，断言每个都带某个 kxf-* 字体类和 inline font-family。
     const texts: any[] = [];
     const walk = (list: any[]): void => {
       for (const n of list) {
@@ -292,11 +292,16 @@ describe('Latex — tokenizer', () => {
     for (const t of texts) {
       expect(String(t.attrs?.class ?? ''), `text "${t.attrs?.value}" needs a kxf-* class`)
         .toMatch(/\bkxf-[a-z0-9]+\b/);
+      expect(String(t.attrs?.style ?? ''), `text "${t.attrs?.value}" needs inline KaTeX font style`)
+        .toContain('font-family:"KaTeX_');
+      expect(String(t.attrs?.style ?? ''), `text "${t.attrs?.value}" should neutralize synthesized style`)
+        .toContain('font-style:normal;font-weight:normal;');
     }
     const json = JSON.stringify(nodes);
     // 变量 x → mathnormal → kxf-mathitalic；数字/算符 → 默认 kxf-main。
     expect(json).toContain('kxf-mathitalic');
     expect(json).toContain('kxf-main');
+    expect(json).toContain('font-family:\\"KaTeX_MathItalic');
   });
 
   it('block math renders to MiniNode with katex-display class', async () => {
