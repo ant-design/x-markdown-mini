@@ -44,8 +44,11 @@ jobs:
       - name: Build library
         run: npm run build
 
+      # `npm install` (not `npm ci`): the docs-site lockfile has no enforcing CI
+      # of its own and drifts from package.json (e.g. a dep added but lock not
+      # regenerated). install tolerates that; ci would hard-fail on any mismatch.
       - name: Install docs-site deps
-        run: npm ci
+        run: npm install --no-audit --no-fund --no-progress
         working-directory: docs-site
 
       - name: Build docs site
