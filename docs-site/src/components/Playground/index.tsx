@@ -11,6 +11,7 @@ import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
 import { renderMiniNodes } from '../../utils/nodesToReact';
 import { PhoneShell } from '../PhonePreview';
 import { useDocPlatform } from '../useDocPlatform';
+import ScanPanel from './ScanPanel';
 import './index.less';
 
 type DemoPlatform = 'alipay' | 'wechat';
@@ -448,6 +449,8 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
         >
           {reactNodes}
         </PhoneShell>
+
+        <ScanPanel platform={platform} />
 
         {/* {issues.length > 0 && (
           <div className="xmd-pg-degrade">

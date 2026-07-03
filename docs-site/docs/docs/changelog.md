@@ -31,7 +31,7 @@ const md = new XMarkdownMini({
 });
 ```
 
-## 0.1.0 _（未发布）_
+## 1.0.0
 
 - **Breaking**：`XMarkdownMiniOptions` 重整。`lexerOptions` / 顶层 `extensions` / `plugins` 三个字段合并为单一的 `options: { gfm?, breaks?, extensions? }`；同步移除 `Plugin` 类型导出。
   - 迁移：`{ extensions: [...] }` → `{ options: { extensions: [...] } }`；`{ plugins: [Latex(), CodeHighlight()] }` → `{ options: { extensions: [Latex(), CodeHighlight()] } }`；`{ lexerOptions: { gfm } }` → `{ options: { gfm } }`。

@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="400" viewBox="0 0 960 400" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif">
+  <style>
+    /* ---- light (default) ---- */
+    .bx-blue{fill:#dce8fb;stroke:#a6c3ee}
+    .bx-green{fill:#dcecd2;stroke:#a9c98f}
+    .bx-orange{fill:#fce7cf;stroke:#edc08a}
+    .bx-gray{fill:#eff0f1;stroke:#d5d7da}
+    .ct{fill:#f4f5f6;stroke:#d5d7da}
+    .inr{fill:#ffffff;stroke:#dcdfe3}
+    .ext{fill:#fdf6ea;stroke:#e3a53a}
+    .t-title{fill:#1f2937}
+    .t-sub{fill:#8a9099}
+    .t-green{fill:#38491f}
+    .t-orange-sub{fill:#a1794a}
+    .t-ext-title{fill:#a8620e}
+    .t-ext-sub{fill:#c8893f}
+    .t-stream{fill:#1a73e8}
+    .t-inr{fill:#4b5563}
+    .ct-title{fill:#1f2937}
+    .e-gray{stroke:#9aa4b2}   .m-gray{fill:#9aa4b2}
+    .e-blue{stroke:#1677ff}   .m-blue{fill:#1677ff}
+    .e-orange{stroke:#e3a53a} .m-orange{fill:#e3a53a}
+
+    /* ---- dark ---- */
+    @media (prefers-color-scheme: dark){
+      .bx-blue{fill:#17324e;stroke:#3a6ea5}
+      .bx-green{fill:#203a25;stroke:#4d8a50}
+      .bx-orange{fill:#48351b;stroke:#b07f2c}
+      .bx-gray{fill:#2a2b2d;stroke:#48494c}
+      .ct{fill:#212325;stroke:#3a3c3f}
+      .inr{fill:#2d2f31;stroke:#47494c}
+      .ext{fill:#3a2f19;stroke:#c99a3a}
+      .t-title{fill:#e8ecf1}
+      .t-sub{fill:#9aa2ac}
+      .t-green{fill:#bfe3bd}
+      .t-orange-sub{fill:#d3aa6c}
+      .t-ext-title{fill:#f0c877}
+      .t-ext-sub{fill:#d8b06a}
+      .t-stream{fill:#5b9bff}
+      .t-inr{fill:#c4c9cf}
+      .ct-title{fill:#e8ecf1}
+      .e-gray{stroke:#8a9099}   .m-gray{fill:#8a9099}
+    }
+
+    /* ---- flowing-dash animation ---- */
+    .flow{stroke-dasharray:7 6;animation:dash .9s linear infinite}
+    @keyframes dash{to{stroke-dashoffset:-13}}
+    @media (prefers-reduced-motion: reduce){ .flow{animation:none;stroke-dasharray:none} }
+  </style>
+
+  <defs>
+    <marker id="ag" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path class="m-gray" d="M0,0 L9,4.5 L0,9 Z"/></marker>
+    <marker id="ab" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path class="m-blue" d="M0,0 L9,4.5 L0,9 Z"/></marker>
+    <marker id="ao" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path class="m-orange" d="M0,0 L9,4.5 L0,9 Z"/></marker>
+  </defs>
+
+  <!-- ===== top pipeline edges (animated) ===== -->
+  <line class="e-gray flow" x1="144" y1="82" x2="184" y2="82" stroke-width="2" marker-end="url(#ag)"/>
+  <line class="e-gray flow" x1="340" y1="82" x2="380" y2="82" stroke-width="2" marker-end="url(#ag)"/>
+  <line class="e-gray flow" x1="506" y1="82" x2="542" y2="82" stroke-width="2" marker-end="url(#ag)"/>
+  <line class="e-blue flow" x1="760" y1="82" x2="802" y2="82" stroke-width="2" marker-end="url(#ab)"/>
+
+  <!-- ===== bottom edges (animated) ===== -->
+  <line class="e-gray flow" x1="340" y1="279" x2="380" y2="279" stroke-width="2" marker-end="url(#ag)"/>
+  <path class="e-blue flow" d="M520,236 L536,205 Q560,190 610,188" fill="none" stroke-width="2" marker-end="url(#ab)"/>
+  <path class="e-orange flow" d="M800,250 L780,215 Q750,192 712,188" fill="none" stroke-width="2" marker-end="url(#ao)"/>
+
+  <!-- ===== top row nodes ===== -->
+  <g>
+    <rect class="bx-blue" x="24" y="53" width="120" height="58" rx="8"/>
+    <text class="t-title" x="84" y="80" text-anchor="middle" font-size="14" font-weight="700">Markdown</text>
+    <text class="t-sub" x="84" y="98" text-anchor="middle" font-size="11">string</text>
+  </g>
+  <g>
+    <rect class="bx-blue" x="190" y="53" width="150" height="58" rx="8"/>
+    <text class="t-title" x="265" y="80" text-anchor="middle" font-size="14" font-weight="700">marked lexer</text>
+    <text class="t-sub" x="265" y="98" text-anchor="middle" font-size="11">lexer + extensions</text>
+  </g>
+  <g>
+    <rect class="bx-blue" x="386" y="53" width="120" height="58" rx="8"/>
+    <text class="t-title" x="446" y="80" text-anchor="middle" font-size="14" font-weight="700">Token[]</text>
+    <text class="t-sub" x="446" y="98" text-anchor="middle" font-size="11">marked tokens</text>
+  </g>
+
+  <!-- PlatformRenderer container -->
+  <rect class="ct" x="548" y="34" width="212" height="152" rx="10"/>
+  <text class="ct-title" x="654" y="55" text-anchor="middle" font-size="13" font-weight="700">PlatformRenderer</text>
+  <g>
+    <rect class="bx-green" x="568" y="72" width="172" height="44" rx="7"/>
+    <text class="t-green" x="654" y="99" text-anchor="middle" font-size="13" font-weight="600">wechat renderer</text>
+  </g>
+  <g>
+    <rect class="bx-green" x="568" y="124" width="172" height="44" rx="7"/>
+    <text class="t-green" x="654" y="151" text-anchor="middle" font-size="13" font-weight="600">alipay renderer</text>
+  </g>
+
+  <!-- MiniNode[] -->
+  <g>
+    <rect class="bx-orange" x="808" y="53" width="132" height="58" rx="8"/>
+    <text class="t-title" x="874" y="80" text-anchor="middle" font-size="14" font-weight="700">MiniNode[]</text>
+    <text class="t-orange-sub" x="874" y="98" text-anchor="middle" font-size="11">native nodes</text>
+  </g>
+
+  <!-- ===== bottom row ===== -->
+  <text class="t-stream" x="24" y="256" font-size="13" font-weight="700">streaming</text>
+
+  <g>
+    <rect class="bx-gray" x="190" y="250" width="150" height="58" rx="8"/>
+    <text class="t-title" x="265" y="277" text-anchor="middle" font-size="14" font-weight="700">chunk</text>
+    <text class="t-sub" x="265" y="295" text-anchor="middle" font-size="11">hasNextChunk</text>
+  </g>
+
+  <!-- StreamingProcessor container -->
+  <rect class="ct" x="386" y="236" width="250" height="104" rx="10"/>
+  <text class="ct-title" x="511" y="257" text-anchor="middle" font-size="13" font-weight="700">StreamingProcessor</text>
+  <g>
+    <rect class="inr" x="404" y="272" width="214" height="28" rx="6"/>
+    <text class="t-inr" x="511" y="290" text-anchor="middle" font-size="12">stable blocks cached</text>
+  </g>
+  <g>
+    <rect class="inr" x="404" y="304" width="214" height="28" rx="6"/>
+    <text class="t-inr" x="511" y="322" text-anchor="middle" font-size="12">tail re-parsed + fixup</text>
+  </g>
+
+  <!-- extensions -->
+  <rect class="ext" x="700" y="250" width="212" height="70" rx="10" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text class="t-ext-title" x="806" y="284" text-anchor="middle" font-size="14" font-weight="700">extensions</text>
+  <text class="t-ext-sub" x="806" y="303" text-anchor="middle" font-size="11.5">LaTeX / highlight / @mention</text>
+</svg>

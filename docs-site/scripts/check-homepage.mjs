@@ -12,13 +12,24 @@ const heroPhoneCn = read('src/demos/home/HeroPhonePreview.tsx');
 const heroPhoneEn = read('src/demos/home/HeroPhonePreview.en-US.tsx');
 const installPanel = read('src/demos/home/InstallPanel.tsx');
 const phonePreview = read('src/components/PhonePreview/index.tsx');
+// The homepage is composed from reusable React section components; the shared
+// markup (hero copy column, architecture pipeline, proof grid) lives here, not
+// in the per-locale HomePage entries. Fold them into both locale sources so the
+// class/label contract still holds after the string→component refactor.
+const sections = [
+  'src/demos/home/sections/Hero.tsx',
+  'src/demos/home/sections/Architecture.tsx',
+  'src/demos/home/sections/PipelineDiagram.tsx',
+]
+  .map(read)
+  .join('\n');
 const css = read('public/site.css');
 const heroLess = read('src/demos/home/HeroPhonePreview.less');
 const phoneLess = read('src/components/PhonePreview/index.less');
 const js = read('public/site.js');
 const dumiConfig = read('.dumirc.ts');
-const zhHomeSource = [indexCn, homeCn, heroPhoneCn, installPanel, phonePreview].join('\n');
-const enHomeSource = [indexEn, homeEn, heroPhoneEn, installPanel, phonePreview].join('\n');
+const zhHomeSource = [indexCn, homeCn, sections, heroPhoneCn, installPanel, phonePreview].join('\n');
+const enHomeSource = [indexEn, homeEn, sections, heroPhoneEn, installPanel, phonePreview].join('\n');
 const styleSource = [css, heroLess, phoneLess].join('\n');
 
 // Markup the rebuilt homepage must keep. site.js keys homepage detection and
