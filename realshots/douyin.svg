@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280" fill="none">
+  <rect width="720" height="1280" fill="#F3F4F6"/>
+  <rect x="36" y="40" width="648" height="1200" rx="32" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="4"/>
+  <rect x="72" y="120" width="576" height="80" rx="16" fill="#FAFAFA"/>
+  <text x="92" y="170" fill="#1F2937" font-size="34" font-family="Arial, sans-serif" font-weight="700">Douyin Real Device Shot</text>
+  <text x="92" y="230" fill="#6B7280" font-size="24" font-family="Arial, sans-serif">Replace this placeholder with a real screenshot.</text>
+  <rect x="92" y="280" width="536" height="860" rx="20" fill="#F9FAFB" stroke="#E5E7EB"/>
+  <text x="110" y="340" fill="#374151" font-size="22" font-family="Arial, sans-serif">Markdown rendering sample area</text>
+</svg>
