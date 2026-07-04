@@ -12,7 +12,7 @@
       a:for="{{u.charsOf(node)}}"
       a:for-item="ch"
       a:key="k"
-      class="md-anim-char {{u.classOf(node)}}"
+      class="md-anim-char {{u.segClassOf(node)}}"
       style="{{u.styleOf(node)}}"
       selectable="{{selectable}}"
     >{{ch.c}}</text>
