@@ -892,7 +892,7 @@
   // a version label to the URL serving that version's docs. The current build
   // is always the default; entries listed here become extra dropdown options.
   var GITHUB_URL = 'https://github.com/ant-design/x-markdown-mini';
-  var CURRENT_VERSION = '1.0.0';
+  var CURRENT_VERSION = '1.0.1';
   var VERSION_MIRRORS = {
     // '1.x': 'https://1x-x-markdown-mini.example.com',
   };
