@@ -10,8 +10,11 @@ User-facing API, build-output, and behavior changes are tracked here. Migration 
 
 ## 1.0.1
 
-`2026-07-04`
+`2026-07-05`
 
+- **Added**: extensions can override built-in element rendering. When an extension's `name` matches a built-in token type (e.g. `table`, `code`), its `miniRenderer` fully takes over that token's rendering. Previously only `code` supported this; now `table` can be overridden too. Providing only a `miniRenderer` (no `tokenizer`) keeps marked's built-in parsing; returning `null` falls back to the built-in rendering.
+- **Fixed**: `\[ … \]` display math was not recognized when it immediately followed a text line (no blank separator). `blockKatex` had no `start`, so the line was absorbed into the paragraph and its `\[`/`\]` degraded to escape tokens; a block `start` now interrupts the paragraph and recognizes the display math.
+- **Fixed**: the whole bundle blanked on iOS < 15.4 / older base libraries. The bundled `marked` lexer calls `Array.prototype.at` (`.at(-1)`), which those engines lack, throwing `x.at is not a function` — `tsup` only lowers syntax (not built-in methods) and `es-check` (syntax-only) couldn't catch it. Ships a guarded, non-enumerable `Array/String#at` polyfill loaded before any lexer code, plus a `check-bundle` gate against other un-polyfilled runtime methods.
 - **Fixed**: inline code `code` showed spurious gaps mid-word while streaming. The per-character / per-segment entrance animation splits the inline-code text into several leaf `<text>` nodes, and each leaf carried the `md-inline-code` pill's padding, margin and background — so the pills tiled with visible gaps (worst on Alipay, which splits per character).
   - The pill box (background / padding / radius) now paints only on the outer container; the split character leaves use a font-only `md-inline-code-txt` class instead (Alipay `<text>` does not inherit font-family, so the monospace font must stay on the leaf). Fixed on both WeChat and Alipay.
 
