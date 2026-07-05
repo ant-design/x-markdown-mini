@@ -124,13 +124,24 @@ function blockKatexTokenizer(this: any, src: string): Tokens.Generic | undefined
 // Block-level `start`: point marked at the next block-math opener so it breaks a
 // paragraph there. Without this, a `\[…\]` (or `$$\n…`) line that immediately
 // follows text is absorbed into the paragraph and its `\[`/`\]` degrade to
-// escape tokens instead of display math. `$$…$$` on a single line is inline, so
-// only `$$` FOLLOWED BY a newline (the block form) counts here.
+// escape tokens instead of display math.
+//
+// Like `inlineStart`, this VERIFIES `blockRule` actually matches at the
+// candidate before returning its index — otherwise a stray `$` at a line end
+// (e.g. a price, or an inline `$x$` closing a line) could ask marked to cut a
+// paragraph where no block formula follows. Candidate openers are `$` (the
+// `${1,2}\n` block form) and `\[`; scan forward until one that matches.
 function blockStart(src: string): number | undefined {
-  const dollar = src.search(/\${1,2}\n/);
-  const bracket = src.indexOf('\\[');
-  if (dollar === -1 && bracket === -1) return undefined;
-  return Math.min(dollar === -1 ? Infinity : dollar, bracket === -1 ? Infinity : bracket);
+  let from = 0;
+  while (from <= src.length) {
+    const dollar = src.indexOf('$', from);
+    const bracket = src.indexOf('\\[', from);
+    if (dollar === -1 && bracket === -1) return undefined;
+    const index = Math.min(dollar === -1 ? Infinity : dollar, bracket === -1 ? Infinity : bracket);
+    if (blockRule.test(src.slice(index))) return index;
+    from = index + 1;
+  }
+  return undefined;
 }
 
 function inlineStart(src: string): number | undefined {

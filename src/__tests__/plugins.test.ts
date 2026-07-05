@@ -281,6 +281,18 @@ describe('Latex — tokenizer', () => {
     expect(types).toContain('blockKatex');
   });
 
+  it('a `$` closing a line does not swallow inline math or split the paragraph', async () => {
+    // The block `start` must verify blockRule before asking marked to cut a
+    // paragraph — else a `$` ending a line (here an inline `$x=1$`) falsely
+    // triggers a cut and the inline math is lost. Regression guard.
+    const { default: Latex } = await import('../plugins/Latex/index.js');
+    const md = new XMarkdownMini({ extensions: [Latex()] });
+    const tokens = md.parse('公式 $x=1$\n下一行');
+    const paras = tokens.filter((t: any) => t.type === 'paragraph');
+    expect(paras).toHaveLength(1);
+    expect((paras[0] as any).tokens.map((t: any) => t.type)).toContain('inlineKatex');
+  });
+
   it('tokenizes \\[...\\] block math right after a text line (no blank separator)', async () => {
     // Regression: blockKatex had no `start`, so a \[...\] line following text was
     // swallowed by the paragraph and its \[ \] degraded to escape tokens instead
