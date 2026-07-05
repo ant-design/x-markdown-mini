@@ -1,6 +1,6 @@
 <div align="center"><a name="readme-top"></a>
 
-<img height="180" src="https://mdn.alipayobjects.com/huamei_yz9z7c/afts/img/jQfZRq8yiZcAAAAAgDAAAAgADlJoAQFr/original">
+<img height="120" src="https://mdn.alipayobjects.com/huamei_yz9z7c/afts/img/jQfZRq8yiZcAAAAAgDAAAAgADlJoAQFr/original">
 
 <h1>Ant Design X Markdown Mini</h1>
 
