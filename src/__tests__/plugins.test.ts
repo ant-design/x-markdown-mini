@@ -100,6 +100,36 @@ describe('CodeHighlight — extension miniRenderer override', () => {
   });
 });
 
+describe('table — extension miniRenderer override', () => {
+  it('extension miniRenderer for "table" replaces built-in table rendering', () => {
+    const tableExtension: XMarkdownExtension = {
+      extensions: [
+        {
+          name: 'table',
+          level: 'block',
+          miniRenderer(token) {
+            const t = token as any;
+            return [
+              { name: 'view', attrs: { class: 'my-custom-table', cols: (t.header ?? []).length } },
+            ];
+          },
+        },
+      ],
+    };
+
+    const md = new XMarkdownMini({ extensions: [tableExtension] });
+    const nodes = md.renderNodes({
+      content: '| a | b |\n| --- | --- |\n| 1 | 2 |',
+      platform: 'wechat',
+    });
+    const json = JSON.stringify(nodes);
+    expect(json).toContain('my-custom-table');
+    // built-in table markup must not also be emitted
+    expect(json).not.toContain('md-table');
+    expect(json).not.toContain('md-th');
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Latex — tokenizer
 // ---------------------------------------------------------------------------
@@ -249,6 +279,20 @@ describe('Latex — tokenizer', () => {
     const tokens = md.parse('$$\nx^2 + y^2 = z^2\n$$');
     const types = tokens.map((t: any) => t.type);
     expect(types).toContain('blockKatex');
+  });
+
+  it('tokenizes \\[...\\] block math right after a text line (no blank separator)', async () => {
+    // Regression: blockKatex had no `start`, so a \[...\] line following text was
+    // swallowed by the paragraph and its \[ \] degraded to escape tokens instead
+    // of display math. The block extension must interrupt the paragraph.
+    const { default: Latex } = await import('../plugins/Latex/index.js');
+    const md = new XMarkdownMini({ extensions: [Latex()] });
+    const tokens = md.parse('前面文字\n\\[ x = y + z \\]');
+    const types = tokens.map((t: any) => t.type);
+    expect(types).toContain('blockKatex');
+    const para = tokens.find((t: any) => t.type === 'paragraph') as any;
+    const paraTypes = para?.tokens?.map((t: any) => t.type) ?? [];
+    expect(paraTypes).not.toContain('escape');
   });
 
   it('inline math renders to MiniNode with katex class on WeChat', async () => {

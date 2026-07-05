@@ -121,6 +121,18 @@ function blockKatexTokenizer(this: any, src: string): Tokens.Generic | undefined
   } as unknown as Tokens.Generic;
 }
 
+// Block-level `start`: point marked at the next block-math opener so it breaks a
+// paragraph there. Without this, a `\[…\]` (or `$$\n…`) line that immediately
+// follows text is absorbed into the paragraph and its `\[`/`\]` degrade to
+// escape tokens instead of display math. `$$…$$` on a single line is inline, so
+// only `$$` FOLLOWED BY a newline (the block form) counts here.
+function blockStart(src: string): number | undefined {
+  const dollar = src.search(/\${1,2}\n/);
+  const bracket = src.indexOf('\\[');
+  if (dollar === -1 && bracket === -1) return undefined;
+  return Math.min(dollar === -1 ? Infinity : dollar, bracket === -1 ? Infinity : bracket);
+}
+
 function inlineStart(src: string): number | undefined {
   const dollarIndex = src.indexOf('$');
   const parenIndex = src.indexOf('\\(');
@@ -193,6 +205,7 @@ export default function Latex(options: LatexOptions = {}): XMarkdownExtension {
       {
         name: 'blockKatex',
         level: 'block',
+        start: blockStart,
         tokenizer: blockKatexTokenizer,
         miniRenderer: (token) =>
           renderKatex((token as unknown as { text: string }).text, true, options),

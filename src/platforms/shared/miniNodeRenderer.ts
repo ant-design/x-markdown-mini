@@ -226,6 +226,14 @@ function blockTok(
     }
     case 'table': {
       const t = tok as Tokens.Table;
+      // Extension override: an extension whose miniRenderer/renderer is named
+      // 'table' fully replaces the built-in table rendering (mirrors 'code').
+      // The extension returns the complete replacement node(s); a single node is
+      // returned as-is, multiples are wrapped in a block container.
+      const custom = renderCustomToken(tok, ctx);
+      if (custom.length) {
+        return custom.length === 1 ? custom[0] : block('div', custom, animate, adapter, tok);
+      }
       if (!supports(adapter, 'supportsTable')) {
         const rows = [
           t.header ?? [],
