@@ -4985,3 +4985,214 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
     animation: none;
   }
 }
+
+/* ============================================================================
+   Changelog — left-rail timeline (docs/changelog.md → ChangelogTimeline.tsx)
+   Whiteboard register: one continuous neutral rail, dots on the line (newest in
+   the single blue accent), ink/blue/neutral type chips only — no second hue.
+   ========================================================================== */
+.markdown .xmd-changelog {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 0 24px;
+}
+
+.markdown .xmd-cl-hero {
+  margin-bottom: 44px;
+}
+.markdown .xmd-cl-hero h1 {
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+  font-size: 30px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--xmd-text);
+}
+.markdown .xmd-cl-subtitle {
+  margin: 0;
+  max-width: 640px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--xmd-text-secondary);
+}
+
+/* the rail */
+.markdown .xmd-cl-list {
+  position: relative;
+  margin: 0;
+  padding: 0 0 0 28px;
+  list-style: none;
+}
+.markdown .xmd-cl-list::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: var(--xmd-border);
+}
+
+.markdown .xmd-cl-entry {
+  position: relative;
+  padding-bottom: 44px;
+}
+.markdown .xmd-cl-entry:last-child {
+  padding-bottom: 4px;
+}
+
+/* dot sits on the rail; a white host circle breaks the line cleanly at each node */
+.markdown .xmd-cl-marker {
+  position: absolute;
+  left: -28px;
+  top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--xmd-bg);
+}
+.markdown .xmd-cl-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--xmd-bg);
+  border: 2px solid var(--xmd-border-strong);
+  box-sizing: border-box;
+}
+.markdown .xmd-cl-entry:first-child .xmd-cl-dot {
+  background: var(--xmd-accent);
+  border-color: var(--xmd-accent);
+  box-shadow: 0 0 0 4px var(--xmd-accent-subtle);
+}
+
+/* version + date row */
+.markdown .xmd-cl-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.markdown .xmd-cl-version {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--xmd-text);
+  font-variant-numeric: tabular-nums;
+}
+.markdown .xmd-cl-latest {
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--xmd-accent);
+  background: var(--xmd-accent-subtle);
+}
+.markdown .xmd-cl-date {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--xmd-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* change entries */
+.markdown .xmd-cl-changes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.markdown .xmd-cl-change {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.markdown .xmd-cl-tag {
+  justify-self: start;
+  margin-top: 3px;
+  padding: 1px 8px;
+  min-width: 100%;
+  box-sizing: border-box;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  text-align: center;
+  white-space: nowrap;
+}
+.markdown .xmd-cl-tag--breaking {
+  background: var(--xmd-text);
+  color: #ffffff;
+}
+.markdown .xmd-cl-tag--feature {
+  background: var(--xmd-accent-subtle);
+  color: var(--xmd-accent);
+}
+.markdown .xmd-cl-tag--fix {
+  background: var(--xmd-bg-muted);
+  color: var(--xmd-text-secondary);
+  border: 1px solid var(--xmd-border);
+}
+.markdown .xmd-cl-tag--perf {
+  background: transparent;
+  color: var(--xmd-text-tertiary);
+  border: 1px solid var(--xmd-border);
+}
+
+.markdown .xmd-cl-text p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.72;
+  color: var(--xmd-text-secondary);
+}
+.markdown .xmd-cl-notes {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.markdown .xmd-cl-notes li {
+  position: relative;
+  margin-top: 5px;
+  padding-left: 16px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--xmd-text-tertiary);
+}
+.markdown .xmd-cl-notes li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.72em;
+  width: 6px;
+  height: 1px;
+  background: var(--xmd-border-strong);
+}
+
+@media (max-width: 640px) {
+  .markdown .xmd-cl-change {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .markdown .xmd-cl-tag {
+    min-width: 0;
+    margin-top: 0;
+  }
+  .markdown .xmd-cl-date {
+    display: none;
+  }
+}
