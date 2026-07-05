@@ -216,7 +216,15 @@
   gap: 3px;
 }
 
+.xmd-pg-platform-tab {
+  position: relative;
+  display: inline-flex;
+}
+
 .xmd-pg-platform-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   border: none;
   background: transparent;
   border-radius: 6px;
@@ -235,6 +243,17 @@
     background: #ffffff;
     color: #171717;
     box-shadow: 0 1px 2px rgba(23, 23, 23, 0.08);
+  }
+}
+
+/* Subtle scan glyph hinting the tab reveals a QR on hover / focus. */
+.xmd-pg-platform-scanhint {
+  opacity: 0.4;
+  transition: opacity 0.15s ease;
+
+  .xmd-pg-platform-btn:hover &,
+  .xmd-pg-platform-btn.is-active & {
+    opacity: 0.75;
   }
 }
 
@@ -261,51 +280,59 @@
   font-size: 11px;
 }
 
-/* ----- scan-to-device panel ----- */
-.xmd-scan {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  max-width: 340px;
-  margin-top: 4px;
-  padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
-}
-
-.xmd-scan-heading {
-  font-size: 12px;
-  font-weight: 600;
-  color: #737373;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.xmd-scan-codes {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  width: 100%;
-}
-
-.xmd-scan-code {
+/* ----- scan-to-device: QR revealed on hover / focus of a platform tab ----- */
+.xmd-scan-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  z-index: 20;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  margin: 0;
-  padding: 14px 12px;
+  width: max-content;
+  padding: 12px;
   background: #ffffff;
   border: 1px solid #e5e5e5;
-  border-radius: 10px;
-  text-align: center;
-  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+  border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(23, 23, 23, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -4px);
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+  pointer-events: none;
 
-  &.is-active {
-    border-color: #2563eb3d;
-    box-shadow: 0 14px 34px rgba(229, 229, 229, 0.9);
+  /* caret pointing up to the tab */
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    background: #ffffff;
+    border-left: 1px solid #e5e5e5;
+    border-top: 1px solid #e5e5e5;
+    transform: translate(-50%, 50%) rotate(45deg);
   }
+
+  /* transparent bridge over the gap so moving pointer tab→QR keeps it open */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: 10px;
+  }
+}
+
+.xmd-pg-platform-tab:hover .xmd-scan-pop,
+.xmd-pg-platform-tab:focus-within .xmd-scan-pop {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
 }
 
 .xmd-scan-qr {
@@ -325,48 +352,24 @@
   }
 }
 
-.xmd-scan-caption {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.xmd-scan-icon {
-  display: block;
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  object-fit: contain;
-}
-
-.xmd-scan-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #171717;
-}
-
 .xmd-scan-hint {
   margin: 0;
+  max-width: 128px;
   font-size: 11px;
   line-height: 1.4;
+  text-align: center;
   color: #a3a3a3;
 }
 
 /* WeChat placeholder (AppID under review). Locked, dimmed, and announced via
-   aria-disabled — never by color alone. */
-.xmd-scan-code.is-locked {
-  .xmd-scan-qr {
-    background: #fafafa;
-    border-style: dashed;
-    border-color: #e5e5e5;
-    color: #a3a3a3;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .xmd-scan-name {
-    color: #737373;
-  }
+   the popover's aria-label — never by color alone. */
+.xmd-scan-pop.is-locked .xmd-scan-qr {
+  background: #fafafa;
+  border-style: dashed;
+  border-color: #e5e5e5;
+  color: #a3a3a3;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .xmd-scan-placeholder {
@@ -388,7 +391,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .xmd-scan-code {
-    transition: none;
+  .xmd-scan-pop {
+    transition: opacity 0.16s ease, visibility 0.16s;
+    transform: translate(-50%, 0);
+  }
+
+  .xmd-pg-platform-tab:hover .xmd-scan-pop,
+  .xmd-pg-platform-tab:focus-within .xmd-scan-pop {
+    transform: translate(-50%, 0);
   }
 }
