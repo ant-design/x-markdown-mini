@@ -136,3 +136,35 @@
     align-items: flex-start;
   }
 }
+
+// Play/pause control for the auto-streaming preview (rendered in the phone
+// navbar via PhoneShell's navRight). Mirrors the homepage hero control.
+.xmd-autostream-play {
+  flex-shrink: 0;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: rgba(23, 23, 23, 0.55);
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: rgba(23, 23, 23, 0.06);
+    color: #171717;
+  }
+
+  &:active {
+    background: rgba(23, 23, 23, 0.1);
+  }
+
+  svg {
+    display: block;
+  }
+}

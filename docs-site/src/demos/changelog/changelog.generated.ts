@@ -17,8 +17,23 @@ export interface GeneratedRelease {
 export const ZH_RELEASES: GeneratedRelease[] = [
   {
     "version": "1.0.1",
-    "date": "2026-07-04",
+    "date": "2026-07-05",
     "items": [
+      {
+        "type": "feature",
+        "html": "扩展可覆盖内置元素的渲染。扩展的 <code>name</code> 命中内置 token 类型（如 <code>table</code>、<code>code</code>）时，其 <code>miniRenderer</code> 会完全接管该 token 的渲染。此前仅 <code>code</code> 支持，现 <code>table</code> 同样可覆盖；只提供 <code>miniRenderer</code>、不提供 <code>tokenizer</code> 时解析仍走内置分词器，返回 <code>null</code> 回退到内置渲染。",
+        "notes": []
+      },
+      {
+        "type": "fix",
+        "html": "<code>\\[ … \\]</code> 块级公式紧跟文本行（无空行分隔）时不被识别。<code>blockKatex</code> 缺少 <code>start</code>，该行被并入段落、<code>\\[</code> <code>\\]</code> 退化成转义字符；补上块级 <code>start</code> 后可正确中断段落，识别为块级公式。",
+        "notes": []
+      },
+      {
+        "type": "fix",
+        "html": "iOS &lt; 15.4 / 旧基础库上整包白屏。内联的 <code>marked</code> 词法器调用了 <code>Array.prototype.at</code>（<code>.at(-1)</code>），这些引擎不支持，运行时抛 <code>x.at is not a function</code>——<code>tsup</code> 只降语法不 polyfill 内建方法，<code>es-check</code> 只查语法也照不到。新增守卫式、不可枚举的 <code>Array/String#at</code> polyfill（在任何词法器代码前加载），并加 <code>check-bundle</code> 卡口防止其它未 polyfill 的运行时方法回归。",
+        "notes": []
+      },
       {
         "type": "fix",
         "html": "流式渲染时行内代码 <code>code</code> 中间出现多余空格。逐字 / 逐段入场动画会把行内代码文本拆成多个叶子 <code>&lt;text&gt;</code>，而每个叶子都带 <code>md-inline-code</code> 药丸的内外边距与底色，拼接后就出现了缝隙（支付宝逐字拆分最明显）。",
@@ -91,8 +106,23 @@ export const ZH_RELEASES: GeneratedRelease[] = [
 export const EN_RELEASES: GeneratedRelease[] = [
   {
     "version": "1.0.1",
-    "date": "2026-07-04",
+    "date": "2026-07-05",
     "items": [
+      {
+        "type": "feature",
+        "html": "extensions can override built-in element rendering. When an extension's <code>name</code> matches a built-in token type (e.g. <code>table</code>, <code>code</code>), its <code>miniRenderer</code> fully takes over that token's rendering. Previously only <code>code</code> supported this; now <code>table</code> can be overridden too. Providing only a <code>miniRenderer</code> (no <code>tokenizer</code>) keeps marked's built-in parsing; returning <code>null</code> falls back to the built-in rendering.",
+        "notes": []
+      },
+      {
+        "type": "fix",
+        "html": "<code>\\[ … \\]</code> display math was not recognized when it immediately followed a text line (no blank separator). <code>blockKatex</code> had no <code>start</code>, so the line was absorbed into the paragraph and its <code>\\[</code>/<code>\\]</code> degraded to escape tokens; a block <code>start</code> now interrupts the paragraph and recognizes the display math.",
+        "notes": []
+      },
+      {
+        "type": "fix",
+        "html": "the whole bundle blanked on iOS &lt; 15.4 / older base libraries. The bundled <code>marked</code> lexer calls <code>Array.prototype.at</code> (<code>.at(-1)</code>), which those engines lack, throwing <code>x.at is not a function</code> — <code>tsup</code> only lowers syntax (not built-in methods) and <code>es-check</code> (syntax-only) couldn't catch it. Ships a guarded, non-enumerable <code>Array/String#at</code> polyfill loaded before any lexer code, plus a <code>check-bundle</code> gate against other un-polyfilled runtime methods.",
+        "notes": []
+      },
       {
         "type": "fix",
         "html": "inline code <code>code</code> showed spurious gaps mid-word while streaming. The per-character / per-segment entrance animation splits the inline-code text into several leaf <code>&lt;text&gt;</code> nodes, and each leaf carried the <code>md-inline-code</code> pill's padding, margin and background — so the pills tiled with visible gaps (worst on Alipay, which splits per character).",

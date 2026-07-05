@@ -506,9 +506,32 @@ a.xmd-nav-more:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
   }
+  // The MiniNode tree carries its own marker (`.md-list-marker`) + a
+  // `.md-list-content` block per item, mirroring the component's acss. The
+  // preview must reset the browser's native <ul>/<li> disc (else a second
+  // marker appears) and lay each item out as a flex row (else the marker and
+  // content wrap onto separate lines). `display:flex` on the <li> also drops
+  // its native list marker for free.
   .md-list {
-    padding-left: 20px;
+    list-style: none;
+    padding-left: 4px;
     margin: 6px 0;
+  }
+  // nodesToHTML emits the `.md-list-marker` text node as *bare text* (it drops
+  // the class), so the marker is an anonymous flex item — space it from the
+  // content with the item's `gap`, not a marker margin.
+  .md-list-item {
+    display: flex;
+    align-items: flex-start;
+    list-style: none;
+    gap: 6px;
+    margin: 2px 0;
+    color: #525252;
+  }
+  .md-list-content {
+    flex: 1;
+    min-width: 0;
+    color: #171717;
   }
   .md-table {
     border-collapse: collapse;

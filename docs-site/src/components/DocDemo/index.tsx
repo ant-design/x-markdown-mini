@@ -7,6 +7,7 @@ import {
 } from '../PhonePreview';
 import { DemoCode, type DemoFile, type PlatformCode } from '../DemoCode';
 import { useDocPlatform } from '../useDocPlatform';
+import AutoStreamPhone from './AutoStreamPhone';
 import './index.less';
 
 const PLATFORM_LABEL: Record<PreviewPlatform, string> = {
@@ -24,6 +25,8 @@ export interface DocDemoItem extends PhoneRenderOptions {
   markdown?: string;
   sections?: PhoneSection[];
   animation?: boolean;
+  /** Auto-loop the `markdown` through the streaming typewriter pipeline. */
+  autoStream?: boolean;
   alipay?: PlatformCode;
   wechat?: PlatformCode;
   files?: DemoFile[];
@@ -140,20 +143,30 @@ export const DocDemo: React.FC<DocDemoProps> = ({ demos, codeMinHeight, codeMaxH
         {active.platformNotes?.[platform] ? (
           <span className="xmd-doc-demo-preview-note">{active.platformNotes[platform]}</span>
         ) : null}
-        <PhonePreview
-          platform={platform}
-          navTitle={active.navTitle}
-          markdown={active.sections ? undefined : active.markdown}
-          sections={
-            active.sections ??
-            (active.markdown ? [{ markdown: active.markdown, animation: active.animation }] : undefined)
-          }
-          extensions={active.extensions}
-          components={active.components}
-          gfm={active.gfm}
-          breaks={active.breaks}
-          streamingTail={active.streamingTail}
-        />
+        {active.autoStream && active.markdown ? (
+          <AutoStreamPhone
+            key={`stream-${active.key}-${platform}`}
+            content={active.markdown}
+            platform={platform}
+            navTitle={active.navTitle}
+            extensions={active.extensions}
+          />
+        ) : (
+          <PhonePreview
+            platform={platform}
+            navTitle={active.navTitle}
+            markdown={active.sections ? undefined : active.markdown}
+            sections={
+              active.sections ??
+              (active.markdown ? [{ markdown: active.markdown, animation: active.animation }] : undefined)
+            }
+            extensions={active.extensions}
+            components={active.components}
+            gfm={active.gfm}
+            breaks={active.breaks}
+            streamingTail={active.streamingTail}
+          />
+        )}
       </aside>
     </div>
   );

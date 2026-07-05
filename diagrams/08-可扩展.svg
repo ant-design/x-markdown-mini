@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif"><defs><style>@keyframes ge-flow{to{stroke-dashoffset:0}}</style></defs><rect x="0" y="0" width="840" height="220" fill="#ffffff"/><text x="24" y="30" font-size="18" font-weight="700" fill="#141414">可扩展：自定义语法 / 组件，直出节点</text><text x="24" y="52" font-size="12.5" fill="#8c8c8c">两种扩展都注册成插件，产出的 MiniNode 与内置节点走同一条渲染流水线</text>
+
+<!-- Box1: 自定义语法 / 组件 (input, blue) -->
+<rect x="24" y="86" width="190" height="92" rx="12" fill="#eef5ff" stroke="#91caff" stroke-width="1.4"/>
+<text x="119" y="110" text-anchor="middle" font-size="12" font-weight="700" fill="#0958d9">① 自定义语法 / 组件</text>
+<text x="119" y="135" text-anchor="middle" font-size="10.5" fill="#0958d9">公式 · 代码高亮 · @提及</text>
+<text x="119" y="157" text-anchor="middle" font-size="10.5" fill="#0958d9">&lt;ant-button&gt; 等标签</text>
+
+<!-- arrow 1 -> 2 -->
+<path d="M 214 132 L 231 132" fill="none" stroke="#1677ff" stroke-width="2.6" stroke-dasharray="8" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:16"/><path d="M 231 127 L 231 137 L 238 132 Z" fill="#1677ff"/>
+
+<!-- Box2: 注册为扩展插件 (hero, solid purple) -->
+<rect x="238" y="86" width="220" height="92" rx="12" fill="#722ed1" stroke="#531dab" stroke-width="1.3"/>
+<text x="348" y="110" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">② 注册为扩展插件</text>
+<text x="348" y="135" text-anchor="middle" font-size="10.5" fill="#e9d8fb">tokenizer 识别语法</text>
+<text x="348" y="157" text-anchor="middle" font-size="10.5" fill="#e9d8fb">miniRenderer 直出节点</text>
+
+<!-- arrow 2 -> 3, with "不绕 HTML" badge threaded on it -->
+<path d="M 458 132 L 473 132" fill="none" stroke="#722ed1" stroke-width="2.6" stroke-dasharray="8" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:16"/>
+<rect x="476" y="122" width="56" height="20" rx="10" fill="#f6ffed" stroke="#b7eb8f" stroke-width="1.2"/>
+<text x="504" y="136" text-anchor="middle" font-size="10" font-weight="600" fill="#389e0d">不绕 HTML</text>
+<path d="M 535 132 L 547 132" fill="none" stroke="#722ed1" stroke-width="2.6" stroke-dasharray="8" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:16"/><path d="M 547 127 L 547 137 L 556 132 Z" fill="#722ed1"/>
+
+<!-- Box3: MiniNode (light purple) -->
+<rect x="556" y="86" width="120" height="92" rx="12" fill="#f6eefc" stroke="#d3adf7" stroke-width="1.4"/>
+<text x="616" y="128" text-anchor="middle" font-size="12.5" font-weight="600" fill="#531dab">MiniNode</text>
+<text x="616" y="148" text-anchor="middle" font-size="10.5" fill="#531dab">节点</text>
+
+<!-- arrow 3 -> 4 -->
+<path d="M 676 132 L 693 132" fill="none" stroke="#722ed1" stroke-width="2.6" stroke-dasharray="8" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:16"/><path d="M 693 127 L 693 137 L 700 132 Z" fill="#722ed1"/>
+
+<!-- Box4: 同主链路渲染 (green) -->
+<rect x="700" y="86" width="116" height="92" rx="12" fill="#f0fbe8" stroke="#b7eb8f" stroke-width="1.4"/>
+<text x="758" y="128" text-anchor="middle" font-size="12" font-weight="600" fill="#237804">并入主链路</text>
+<text x="758" y="148" text-anchor="middle" font-size="12" font-weight="600" fill="#237804">一起渲染</text>
+
+<!-- footnote -->
+<text x="24" y="205" font-size="10.5" fill="#8c8c8c">均实例隔离、不污染全局 marked；同名用户扩展优先级高于内置合成。内置 LaTeX、代码高亮插件即以此实现。</text>
+</svg>

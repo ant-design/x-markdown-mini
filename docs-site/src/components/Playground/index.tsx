@@ -11,7 +11,7 @@ import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
 import { renderMiniNodes } from '../../utils/nodesToReact';
 import { PhoneShell } from '../PhonePreview';
 import { useDocPlatform } from '../useDocPlatform';
-import ScanPanel from './ScanPanel';
+import ScanPopover from './ScanPanel';
 import './index.less';
 
 type DemoPlatform = 'alipay' | 'wechat';
@@ -427,16 +427,33 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
       <section className="xmd-pg-preview-wrap" aria-label="预览">
         <div className="xmd-pg-platform-switch" role="tablist" aria-label="切换预览平台">
           {PLATFORMS.map((p) => (
-            <button
-              type="button"
-              key={p}
-              className={`xmd-pg-platform-btn ${p === platform ? 'is-active' : ''}`}
-              onClick={() => setPlatform(p)}
-              role="tab"
-              aria-selected={p === platform}
-            >
-              {PLATFORM_LABEL[p]}
-            </button>
+            <div className="xmd-pg-platform-tab" key={p}>
+              <button
+                type="button"
+                className={`xmd-pg-platform-btn ${p === platform ? 'is-active' : ''}`}
+                onClick={() => setPlatform(p)}
+                role="tab"
+                aria-selected={p === platform}
+              >
+                {PLATFORM_LABEL[p]}
+                <svg
+                  className="xmd-pg-platform-scanhint"
+                  viewBox="0 0 24 24"
+                  width="12"
+                  height="12"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M3 12h18" />
+                </svg>
+              </button>
+              {/* QR revealed on hover / keyboard focus of the tab (CSS-driven) */}
+              <ScanPopover platform={p} isEn={isEn} />
+            </div>
           ))}
         </div>
 
@@ -449,8 +466,6 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialMarkdown = STREAM
         >
           {reactNodes}
         </PhoneShell>
-
-        <ScanPanel platform={platform} />
 
         {/* {issues.length > 0 && (
           <div className="xmd-pg-degrade">

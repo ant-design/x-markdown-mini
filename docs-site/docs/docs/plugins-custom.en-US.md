@@ -79,3 +79,11 @@ export function Footnote(): XMarkdownExtension {
 - `miniRenderer` decides how a token becomes a `MiniNode`.
 - Tokens not handled by a plugin continue through the platform renderer.
 - A user extension with the same name takes precedence over the auto-synthesized custom-component tokenizer.
+
+## Overriding built-in rendering (e.g. table)
+
+When an extension's `name` matches a built-in token type (such as `table` or `code`), its `miniRenderer` fully takes over that token's rendering, replacing the built-in result. Providing only a `miniRenderer` (no `tokenizer`) keeps marked's built-in parsing and swaps just the "Token → MiniNode" step; returning `null` falls back to the built-in rendering.
+
+The demo below re-renders a table as a one-row-per-line list:
+
+<code src="../../src/demos/plugins/CustomTableDemo.tsx"></code>

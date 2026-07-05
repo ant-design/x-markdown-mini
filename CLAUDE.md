@@ -109,3 +109,49 @@ Two more workflows exist alongside `ci.yml`:
 ## TypeScript target vs runtime target
 
 `tsconfig.json` is `ES2020` for IDE/typecheck; tsup outputs `target: 'es2018'`. **ES2018 is the floor** — `check:bundle` runs `es-check es2018` against the dist. Don't introduce syntax newer than that in source code that ends up bundled (optional chaining `?.` and nullish coalescing `??` are ES2020 features that es-check 7 accepts when the bundler down-emits them, but anything beyond — e.g. logical assignment, top-level `await` — will fail the gate).
+
+## Pull request format (required)
+
+Every PR opened against this repo (part of the `ant-design/x` family) **must** use the body template below — fill every section, drop none. Base branches on `main`.
+
+```markdown
+### 🤔 This is a ...
+
+- [ ] 🆕 New feature
+- [ ] 🐞 Bug fix
+- [ ] 📝 Site / documentation improvement
+- [ ] 📽️ Demo improvement
+- [ ] 💄 Component style improvement
+- [ ] 🤖 TypeScript definition improvement
+- [ ] 📦 Bundle size optimization
+- [ ] ⚡️ Performance optimization
+- [ ] ⭐️ Feature enhancement
+- [ ] 🌐 Internationalization
+- [ ] 🛠 Refactoring
+- [ ] 🎨 Code style optimization
+- [ ] ✅ Test Case
+- [ ] 🔀 Branch merge
+- [ ] ⏩ Workflow
+- [ ] ⌨️ Accessibility improvement
+- [ ] ❓ Other (about what?)
+
+### 🔗 Related Issues
+
+<!-- close #xxxx, fix #xxxx, or describe the requirement source -->
+
+### 💡 Background and Solution
+
+<!-- the problem, the final API/usage, and screenshots/GIFs for UI changes -->
+
+### 📝 Change Log
+
+<!-- describe the impact on developers, not the solution approach -->
+
+| Language   | Changelog |
+| ---------- | --------- |
+| 🇺🇸 English |           |
+| 🇨🇳 Chinese |           |
+```
+
+- Tick the relevant `🤔 This is a ...` box(es) with `- [x]`.
+- **Change Log** rows are developer-facing (Keep a Changelog style) and mirror the entries added to `CHANGELOG.en-US.md` / `CHANGELOG.zh-CN.md`; if the change is not user-facing, write `--` in both rows. Always provide **both** English and Chinese lines.
