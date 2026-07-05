@@ -37,12 +37,7 @@ Uses [`marked`](https://github.com/markedjs/marked) as the base lexer, bundled a
 
 ## Compatibility
 
-Built and shipped for the two major mini-program runtimes, resolved through a single import path with automatic runtime detection (`platform: 'auto'`).
-
-| Platform | `<pre>` | `<table>` | `<blockquote>` | `<ol start>` | https-only images |
-| -------- | :-----: | :-------: | :------------: | :----------: | :---------------: |
-| WeChat   |   ✅    |    ✅     |       ✅       |      ✅      |                   |
-| Alipay   |   ✅    |    ✅     |       ✅       |              |        ✅         |
+Built and shipped for the two major mini-program runtimes, resolved through a single import path with automatic runtime detection (`platform: 'auto'`). Platform differences (e.g. Alipay auto-upgrades images to https, ordered-list markers render as text so numbering starts identically on both) are smoothed over by the library at render time — nothing for consumers to handle.
 
 See [docs/platforms.md](./docs/platforms.md) for the full capability matrix and fallback rules.
 

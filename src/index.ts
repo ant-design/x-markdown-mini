@@ -1,3 +1,6 @@
+// Side-effect import: patches Array/String#at before any bundled marked lexer
+// code runs (old mini-program engines lack it). Keep this first. See ./polyfills.
+import './polyfills.js';
 import type { Token } from 'marked';
 import { XMarkdownMini } from './XMarkdownMini.js';
 import type {
