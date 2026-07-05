@@ -104,7 +104,7 @@ A PR is green only if all of these pass:
 
 Two more workflows exist alongside `ci.yml`:
 - `.github/workflows/deploy-docs.yml` — on push to `main`, builds the library + `docs-site` (dumi) and force-pushes `docs-site/dist` to the `gh-pages` branch, which serves **x-markdown-mini.ant.design** (CNAME written by the deploy step). Uses `npm install` (not `npm ci`) for docs-site deps because that lockfile has no CI of its own and drifts.
-- `.github/workflows/release.yml` — on a `v*` tag: `npm ci` → `npm run build` → `npm test` → `npm publish --access public --provenance`. ⚠️ **This publishes from the repo root, not `./dist`** — i.e. the `dist/`-nested layout via `files: ["dist"]`, which is the opposite of the publish-from-dist model the local `npm run release` uses. Reconcile before relying on tag-driven releases (see improvement notes).
+- `.github/workflows/release.yml` — on a `v*` tag: `npm ci` → `npm run build` → `npm test` → verify the tag matches `dist/package.json` version → `npm publish ./dist --access public --provenance`. This is **publish-from-dist**, consistent with the local `npm run release` (both ship the `dist/` contents as the package root). Cut a release by bumping the version spots + finalizing `CHANGELOG.*.md` in a PR to `main`, then pushing the matching `vX.Y.Z` tag. See `RELEASE.md` for the full flow.
 
 ## TypeScript target vs runtime target
 
