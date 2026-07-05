@@ -21,7 +21,11 @@ describe('wechat MiniNodeRenderer typewriter assets', () => {
   });
 
   it('applies semantic classes to the character segments that paint decoration', () => {
-    expect(WXML).toContain('class="{{u.classOf(node)}} {{segment.animate ? \'md-anim-char\' : \'\'}}"');
+    // Segments use segClassOf (not classOf) so bold/italic/del decoration still
+    // reaches each char, but the inline-code pill box (md-inline-code) is swapped
+    // for the font-only md-inline-code-txt — otherwise every animated segment would
+    // paint its own grey pill and the code would show gaps mid-word while streaming.
+    expect(WXML).toContain('class="{{u.segClassOf(node)}} {{segment.animate ? \'md-anim-char\' : \'\'}}"');
   });
 
   it('does not turn inline text runs into inline-block via user-select', () => {

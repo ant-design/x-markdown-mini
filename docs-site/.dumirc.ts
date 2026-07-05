@@ -24,6 +24,7 @@ export default defineConfig({
     nav: [
       { title: '在线体验', link: '/playground' },
       { title: '文档', link: '/docs/introduce' },
+      { title: '更新日志', link: '/changelog' },
     ],
     socialLinks: {
       github: 'https://github.com/ant-design/x-markdown-mini',
@@ -61,6 +62,7 @@ export default defineConfig({
         nav: [
           { title: 'Playground', link: '/playground' },
           { title: 'Docs', link: '/docs/introduce' },
+          { title: 'Changelog', link: '/changelog' },
         ],
         sidebar: {
           '/docs': [

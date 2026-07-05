@@ -66,6 +66,16 @@ function charsOf(node) {
   return out;
 }
 
+// 逐字动画拆出的字符 <text> 用它取类名：把行内代码的「药丸盒」类换成纯字体类，
+// 避免每个字符各自画一颗药丸（中间出现空隙）。盒模型只留在外层 md-anim-text 容器上。
+function segClassOf(node) {
+  var cls = classOf(node);
+  if (cls.indexOf('md-inline-code') > -1) {
+    cls = cls.replace('md-inline-code', 'md-inline-code-txt');
+  }
+  return cls;
+}
+
 function styleOf(node) {
   var attrs = node.attrs || {};
   return attrs.style || '';
@@ -123,6 +133,7 @@ export default {
   isRich: isRich,
   isSlot: isSlot,
   classOf: classOf,
+  segClassOf: segClassOf,
   charsOf: charsOf,
   styleOf: styleOf,
   srcOf: srcOf,

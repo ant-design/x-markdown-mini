@@ -1,6 +1,6 @@
 {
   "name": "@ant-design/x-markdown-mini",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "多小程序场景下的高性能、强扩展、流式友好的 Markdown 渲染器",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -49,6 +49,7 @@
     "sync:examples": "node scripts/sync-example-sample.mjs && node examples/wechat/scripts/sync-npm-fixtures.mjs && node examples/alipay/scripts/patch-mp-html.mjs",
     "patch:examples": "node examples/wechat/scripts/sync-npm-fixtures.mjs && node examples/alipay/scripts/patch-mp-html.mjs",
     "lint": "eslint src --ext .ts",
+    "changelog": "node scripts/print-changelog.mjs",
     "docs": "npm run build && cd docs-site && npm run dev",
     "docs:build": "npm run build && cd docs-site && npm run build",
     "prepublishOnly": "npm run build"

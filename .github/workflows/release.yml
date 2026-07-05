@@ -31,7 +31,23 @@ jobs:
       - name: Test
         run: npm test -- --run
 
+      # The pushed tag (vX.Y.Z) must match the version prepare-publish baked into
+      # dist/package.json, or we'd publish a mislabeled release. Fail loudly.
+      - name: Verify tag matches dist version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG=$(node -p "require('./dist/package.json').version")
+          echo "tag=$TAG dist=$PKG"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "::error::tag v$TAG does not match dist/package.json version $PKG"
+            exit 1
+          fi
+
+      # Publish-from-dist: the package root is the dist/ CONTENTS (es/, plugins/,
+      # index.js, miniprogram_dist/ …, no dist/ segment), matching the local
+      # `npm run release`. Publishing from the repo root would ship the old
+      # dist/-nested layout via files:["dist"] — do NOT do that.
       - name: Publish
-        run: npm publish --access public --provenance
+        run: npm publish ./dist --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
