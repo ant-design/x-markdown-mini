@@ -119,14 +119,14 @@ writeFileSync(OUT + '05-perf-alipay.svg', alipay);
 // ---- 3. Bundle size (hero = x-markdown-mini group) ----
 const bundle = groupedBar({
   title: '包体积',
-  subtitle: '打进小程序的运行时 JS（KB，越低越好）· 主包上限 2 MB',
-  categories: ['x-markdown-mini', 'mp-html + marked', 'towxml'],
+  subtitle: 'markdown → 可渲染，打进小程序的运行时 JS（KB，越低越好）· rich-text / mp-html 已叠加所需 marked 解析器',
+  categories: ['x-markdown-mini', 'marked + rich-text', 'mp-html', 'towxml'],
   unit: 'KB',
   yTicks: 4,
   heroCat: 0,
   series: [
-    { name: '原始大小', color: '#1677ff', hero: true, data: [126, 60, 528] },
-    { name: 'gzip 后', color: '#91caff', data: [31, 22, 162] },
+    { name: '原始大小', color: '#1677ff', hero: true, data: [126, 50, 105, 528] },
+    { name: 'gzip 后', color: '#91caff', data: [31, 16, 34, 162] },
   ],
 });
 writeFileSync(OUT + '06-bundle.svg', bundle);
