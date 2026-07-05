@@ -2,8 +2,11 @@
   "name": "x-markdown-mini-docs",
   "private": true,
   "scripts": {
+    "changelog": "node scripts/build-changelog.mjs",
     "check:home": "node scripts/check-homepage.mjs",
+    "predev": "node scripts/build-changelog.mjs",
     "dev": "dumi dev",
+    "prebuild": "node scripts/build-changelog.mjs",
     "build": "dumi build",
     "preview": "dumi preview"
   },
