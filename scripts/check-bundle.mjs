@@ -10,6 +10,12 @@
 //      spread in dependencies even though it is valid ES2018.
 //   4. Bundle syntax stays within ES2018 (delegates to `es-check`).
 //   5. Published manifest preserves component registration side effects.
+//   6. Runtime-method compatibility: the `src/polyfills.ts` guard survived
+//      bundling into every core copy (it covers marked's `Array#at`, which
+//      es-check can't see because it's a method, not syntax), and no *other*
+//      un-polyfilled runtime method (e.g. `.replaceAll` / `.matchAll` from a
+//      future marked / katex / highlight.js) leaked into the core OR plugin
+//      bundles.
 //
 // Runs after `npm run build`. Exits non-zero on any violation.
 import { readFileSync, existsSync, statSync } from 'node:fs';
@@ -54,10 +60,13 @@ const BUDGETS = [
   // raw +~0.6 KB：patch-modern-regex 把 marked 的 \p{L}\p{N}\p{P}\p{S} 展开成
   //   ASCII+BMP 字符区间（修复微信真机 "Invalid property name in character class"
   //   导致整包 require 失败白屏），展开串比 \p{X} 长。
-  { file: 'index.mjs', rawMax: 122 * KB, gzipMax: 30 * KB },
-  { file: 'index.js', rawMax: 124 * KB, gzipMax: 31 * KB },
+  // raw +~0.3 KB：src/polyfills.ts 的 Array/String#at 守卫（修复 iOS<15.4 / 旧
+  //   基础库 marked `.at(-1)` 抛 "x.at is not a function" 整包白屏；es-check 只查
+  //   语法查不到运行时方法）。实测 mjs raw ~122.27 KB、index.js ~123.79 KB。
+  { file: 'index.mjs', rawMax: 123 * KB, gzipMax: 30 * KB },
+  { file: 'index.js', rawMax: 125 * KB, gzipMax: 31 * KB },
   // 微信专用主库副本（通过 package.json#miniprogram 进入）
-  { file: 'miniprogram_dist/index.js', rawMax: 124 * KB, gzipMax: 31 * KB },
+  { file: 'miniprogram_dist/index.js', rawMax: 125 * KB, gzipMax: 31 * KB },
   // 共享 helper（alipay 包根 + wechat 包根 各一份）。JS 接入复用时间戳
   // 动画协调器完整内联后约 7.59 KB，只让新增字符渐显，避免微信旧字符重复播放；
   // 入口必须自包含，不能留下未发布的 ./textAnimation.js require。
@@ -252,6 +261,56 @@ function runEsCheck(label, extraArgs, files) {
 }
 runEsCheck('ESM (.mjs)', ['--module'], COMPAT_ESM_FILES);
 runEsCheck('CJS (.js)', [], COMPAT_CJS_FILES);
+
+// --- 6. Runtime-method compatibility ---
+// tsup lowers syntax but never polyfills built-in *methods*. marked's `.at(-1)`
+// throws on iOS<15.4 / old 基础库 → blank bundle, and es-check (syntax-only)
+// can't catch it. src/polyfills.ts installs a guarded `Array/String#at`, so we
+// (a) assert that polyfill survived bundling into each core copy, and (b) fail
+// on any OTHER runtime method we have NOT polyfilled, so a marked upgrade that
+// introduces e.g. `.replaceAll` / `.matchAll` can't slip through silently.
+// `.at` is intentionally excluded from (b) — it's polyfilled, so its call sites
+// are allowed to remain in the bundle.
+console.log('\nRuntime-method compatibility:');
+const POLYFILL_MARK = /Object\.defineProperty\(\s*Array\.prototype\s*,\s*["']at["']/;
+const UNCOVERED_RUNTIME =
+  /\.(replaceAll|matchAll|flatMap|findLast|findLastIndex|toSorted|toReversed|toSpliced)\(|\bstructuredClone\(|\bObject\.hasOwn\(/;
+// Core copies must carry the src/polyfills.ts guard themselves. The plugin
+// bundles (katex / highlight.js) don't self-polyfill — they rely on core
+// patching the global prototype at runtime (using a plugin requires
+// constructing XMarkdownMini first, which loads the polyfill), so they only get
+// the uncovered-method scan to catch a future katex/hljs upgrade sneaking in a
+// method old engines lack.
+const RUNTIME_FILES = [
+  { file: 'index.js', requiresPolyfill: true },
+  { file: 'index.mjs', requiresPolyfill: true },
+  { file: 'miniprogram_dist/index.js', requiresPolyfill: true },
+  { file: 'plugins/Latex/index.js', requiresPolyfill: false },
+  { file: 'plugins/CodeHighlight/index.js', requiresPolyfill: false },
+  { file: 'miniprogram_dist/plugins/Latex/index.js', requiresPolyfill: false },
+  { file: 'miniprogram_dist/plugins/CodeHighlight/index.js', requiresPolyfill: false },
+];
+for (const { file, requiresPolyfill } of RUNTIME_FILES) {
+  const p = join(dist, file);
+  if (!existsSync(p)) continue;
+  const src = readFileSync(p, 'utf8');
+  if (requiresPolyfill && !POLYFILL_MARK.test(src)) {
+    errors.push(
+      `[compat] ${file} is missing the Array#at runtime polyfill — did src/polyfills.ts get tree-shaken out of the bundle?`,
+    );
+    console.log(`  FAIL  ${file} (no polyfill)`);
+    continue;
+  }
+  const m = src.match(UNCOVERED_RUNTIME);
+  if (m) {
+    errors.push(
+      `[compat] ${file} uses un-polyfilled runtime method "${m[0]}" — add it to src/polyfills.ts (or codemod it away) before it blanks old engines.`,
+    );
+    console.log(`  FAIL  ${file} (${m[0]})`);
+  } else {
+    console.log(`  OK    ${file}`);
+  }
+}
 
 // --- 5. component registration side effects ---
 // Mini-program component wrappers register themselves through a top-level
