@@ -100,7 +100,7 @@ Build pre/post-steps:
 A PR is green only if all of these pass:
 - Tests on Node 18/20/22 with **pass-rate ≥ 95%** (full failures don't immediately fail CI; the gate reads `test-results.json`).
 - Bundle: per-file size budgets (raw + gzip), ES2018 syntax via `es-check`, and zero named-group regex literals in the post-patch dist. Budgets in `scripts/check-bundle.mjs` are tuned to ~108 KB raw / ~26 KB gzip for the main library (covers marked + remend + per-instance `Marked` overhead). Bump them together with whatever change moved the size.
-- Bench (Node 20 only): every `*/x-markdown-mini/*` scenario must stay within 10% of `benchmark/baseline.json`. For an intentional perf change, run `npm run bench:update` and commit the new baseline in the same PR, explaining *why* in the commit message.
+- Bench is **not** a CI gate. The tinybench suite (`npm run bench` / `bench:check` / `bench:compare`) stays available for local perf checks, but comparing absolute hz against a committed baseline proved unreliable on GitHub-hosted runners (throughput varies ~2x run-to-run; per-scenario relative perf differs across arch/node), so it no longer runs in CI.
 
 Two more workflows exist alongside `ci.yml`:
 - `.github/workflows/deploy-docs.yml` — on push to `main`, builds the library + `docs-site` (dumi) and force-pushes `docs-site/dist` to the `gh-pages` branch, which serves **x-markdown-mini.ant.design** (CNAME written by the deploy step). Uses `npm install` (not `npm ci`) for docs-site deps because that lockfile has no CI of its own and drifts.
