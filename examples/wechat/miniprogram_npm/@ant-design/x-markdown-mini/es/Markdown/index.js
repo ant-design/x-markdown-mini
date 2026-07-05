@@ -8,10 +8,12 @@ var import_flattenInline = require("../../shared/flattenInline.js");
 var CDN = "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts";
 var PACKAGE_NAME = "@ant-design/x-markdown-mini";
 var ALIPAY_LOCAL_BASES = [
-  "/node_modules/" + PACKAGE_NAME + "/katex-fonts",
-  "/katex-fonts"
+  "/katex-fonts",
+  "/node_modules/" + PACKAGE_NAME + "/dist/katex-fonts",
+  "/node_modules/" + PACKAGE_NAME + "/katex-fonts"
 ];
 var WECHAT_LOCAL_BASES = [
+  "/miniprogram_npm/" + PACKAGE_NAME + "/dist/miniprogram_dist/katex-fonts",
   "/miniprogram_npm/" + PACKAGE_NAME + "/katex-fonts",
   "/katex-fonts"
 ];
@@ -40,6 +42,7 @@ var FACES = [
 var started = false;
 var ready = false;
 var readyCallbacks = [];
+var inlineFontData;
 function callSafe(cb) {
   if (!cb) return;
   try {
@@ -47,9 +50,45 @@ function callSafe(cb) {
   } catch (e) {
   }
 }
+function debugKatexFonts() {
+  return typeof my !== "undefined" && !!my.__xmdKatexProbe;
+}
+function sourceKind(source) {
+  if (source.indexOf("data:font/ttf") > -1) return "inline-ttf";
+  if (source.indexOf("cdn.jsdelivr.net") > -1) return "cdn";
+  if (source.indexOf("/node_modules/") > -1) return "node_modules";
+  if (source.indexOf("/katex-fonts/") > -1) return "root";
+  return "unknown";
+}
+function loadInlineFontData() {
+  if (inlineFontData !== void 0) return inlineFontData;
+  try {
+    const req = require;
+    const mod = req("../../katex-font-data.js");
+    inlineFontData = mod && (mod.default || mod) || null;
+  } catch (e) {
+    inlineFontData = null;
+  }
+  if (debugKatexFonts()) {
+    console.log("[xmd:katex-font-data]", {
+      ok: !!inlineFontData,
+      count: inlineFontData ? Object.keys(inlineFontData).length : 0
+    });
+  }
+  return inlineFontData;
+}
 function sourcesForFace(f, isAlipay) {
   const localBases = isAlipay ? ALIPAY_LOCAL_BASES : WECHAT_LOCAL_BASES;
   const sources = [];
+  if (isAlipay) {
+    for (let i = 0; i < localBases.length; i++) {
+      sources.push('url("' + localBases[i] + "/" + f.alipayFile + '")');
+    }
+    const data = loadInlineFontData();
+    if (data && data[f.alipayFile]) sources.push('url("' + data[f.alipayFile] + '")');
+    sources.push('url("' + CDN + "/" + f.alipayFile + '")');
+    return sources;
+  }
   for (let i = 0; i < localBases.length; i++) {
     sources.push('url("' + localBases[i] + "/" + f.alipayFile + '")');
   }
@@ -61,16 +100,32 @@ function loadFace(api, opts, done) {
   const tryNext = () => {
     const source = opts.sources[index++];
     if (!source) {
+      if (debugKatexFonts()) {
+        console.log("[xmd:katex-font]", opts.family, "failed-all");
+      }
       done();
       return;
+    }
+    if (debugKatexFonts()) {
+      console.log("[xmd:katex-font]", opts.family, "try", sourceKind(source));
     }
     api.loadFontFace({
       global: true,
       family: opts.family,
       source,
       desc: opts.desc,
-      success: done,
-      fail: tryNext
+      success: () => {
+        if (debugKatexFonts()) {
+          console.log("[xmd:katex-font]", opts.family, "ok", sourceKind(source));
+        }
+        done();
+      },
+      fail: (err) => {
+        if (debugKatexFonts()) {
+          console.log("[xmd:katex-font]", opts.family, "fail", sourceKind(source), err);
+        }
+        tryNext();
+      }
     });
   };
   tryNext();

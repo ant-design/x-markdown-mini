@@ -41,6 +41,33 @@ const results = JSON.parse(readFileSync(resultsPath, 'utf8'));
 const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'));
 
 const OWN_LIB_PATTERN = /^[^/]+\/x-markdown-mini\//;
+// Reference parsers benchmarked in the SAME run as our code. GitHub-hosted
+// runners vary wildly in absolute throughput (shared vCPUs, noisy neighbors),
+// so comparing our raw hz to a baseline recorded on another machine flags every
+// scenario as a "regression" when the runner is merely ~2x slower overall.
+// Instead, estimate this machine's speed relative to the baseline machine from
+// the reference libs (present in both runs) and normalize our numbers by that
+// factor before gating — turning the gate into "did we regress *relative to the
+// reference parsers*", which is what we actually care about and is
+// environment-invariant.
+const REF_LIB_PATTERN = /^[^/]+\/(?:marked|markdown-it|remark)\//;
+
+function median(nums) {
+  if (nums.length === 0) return null;
+  const sorted = [...nums].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+const refRatios = [];
+for (const [name, cur] of Object.entries(results.scenarios)) {
+  if (!REF_LIB_PATTERN.test(name)) continue;
+  const base = baseline.scenarios[name];
+  if (base && base.hz > 0 && cur.hz > 0) refRatios.push(cur.hz / base.hz);
+}
+// k > 1 → this machine is faster than the baseline machine; k < 1 → slower.
+// Fall back to 1 (raw comparison) if no reference scenarios exist.
+const speedFactor = median(refRatios) ?? 1;
 
 const violations = [];
 const ownRows = [];
@@ -52,13 +79,15 @@ for (const [name, cur] of Object.entries(results.scenarios)) {
   const base = baseline.scenarios[name];
   if (!base) {
     missingBaseline += 1;
-    ownRows.push({ name, base: null, cur, regression: null });
+    ownRows.push({ name, base: null, cur, normalizedHz: cur.hz / speedFactor, regression: null });
     continue;
   }
-  const regression = (base.hz - cur.hz) / base.hz;
-  ownRows.push({ name, base, cur, regression });
+  // Correct current hz for machine speed, then compare to the baseline.
+  const normalizedHz = cur.hz / speedFactor;
+  const regression = (base.hz - normalizedHz) / base.hz;
+  ownRows.push({ name, base, cur, normalizedHz, regression });
   if (regression > threshold) {
-    violations.push({ name, base, cur, regression });
+    violations.push({ name, base, cur, normalizedHz, regression });
   }
 }
 
@@ -74,6 +103,10 @@ console.log(
     `baseline ${baselinePath.replace(root + '/', '')} (node ${baseline.node}), ` +
     `current ${resultsPath.replace(root + '/', '')} (node ${results.node})`,
 );
+console.log(
+  `  machine-speed factor k=${speedFactor.toFixed(3)} (median over ${refRatios.length} reference-lib ` +
+    `scenarios); current hz normalized by 1/k before gating`,
+);
 console.log('');
 
 const pct = (n) => `${(n * 100).toFixed(2)}%`;
@@ -87,7 +120,7 @@ for (const row of ownRows.sort((a, b) => a.name.localeCompare(b.name))) {
   const mark = row.regression > threshold ? 'FAIL' : row.regression > 0 ? 'slow' : 'OK  ';
   const delta = row.regression >= 0 ? `-${pct(row.regression)}` : `+${pct(-row.regression)}`;
   console.log(
-    `  ${mark}  ${row.name.padEnd(56)}  ${fmtHz(row.cur.hz)}  vs  ${fmtHz(row.base.hz)}  ${delta}`,
+    `  ${mark}  ${row.name.padEnd(56)}  ${fmtHz(row.normalizedHz)}  vs  ${fmtHz(row.base.hz)}  ${delta}  (raw ${row.cur.hz.toFixed(0)})`,
   );
 }
 
@@ -106,9 +139,9 @@ if (extraneousBaseline > 0) {
 
 if (violations.length > 0) {
   console.error('');
-  console.error(`check-bench: ${violations.length} regression(s) exceed ${pct(threshold)}:`);
+  console.error(`check-bench: ${violations.length} regression(s) exceed ${pct(threshold)} (after k=${speedFactor.toFixed(3)} normalization):`);
   for (const v of violations) {
-    console.error(`  ${v.name}: ${v.cur.hz.toFixed(0)} hz vs baseline ${v.base.hz.toFixed(0)} hz (-${pct(v.regression)})`);
+    console.error(`  ${v.name}: ${v.normalizedHz.toFixed(0)} hz (norm) vs baseline ${v.base.hz.toFixed(0)} hz (-${pct(v.regression)})`);
   }
   process.exit(1);
 }
