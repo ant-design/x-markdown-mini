@@ -74,7 +74,7 @@ if (!existsSync(dist)) {
 
 writeFileSync(join(dist, 'package.json'), JSON.stringify(pub, null, 2) + '\n');
 
-for (const file of ['README.md', 'LICENSE', 'CHANGELOG.zh-CN.md', 'CHANGELOG.en-US.md']) {
+for (const file of ['README.md', 'README.en-US.md', 'LICENSE', 'CHANGELOG.zh-CN.md', 'CHANGELOG.en-US.md']) {
   const from = join(root, file);
   if (existsSync(from)) copyFileSync(from, join(dist, file));
 }
