@@ -36,19 +36,45 @@ body {
   letter-spacing: 0;
 }
 
-/* Page-wide background — lifts the original .xmd-hero-bg gradient + grid to a
-   fixed pseudo-element so the header, main, hero, and footer all sit on the
-   exact same paint. Two stacked fixed layers (::before is the gradient,
-   ::after is the grid with the same radial mask as the hero). */
+/* Page-wide background — lifts the original hero gradient + grid to a fixed
+   pseudo-element so the header, main, hero, and footer all sit on the exact
+   same paint. Two stacked fixed layers (::before is the aurora mesh gradient,
+   ::after is the 56px engineering grid with a radial mask).
+
+   Register note: PRODUCT.md's "no gradient / blue ≤10%" rule is intentionally
+   relaxed here. The homepage now carries a soft, high-end aurora — several
+   very-low-opacity accent light-spots (electric blue → indigo → cyan) that
+   drift extremely slowly. It reads "technical/premium" (Vercel/Linear/Stripe
+   register), never neon or toy-like. Text sits on near-white regions of the
+   mesh, so body contrast stays WCAG AA. Under reduced-motion the drift stops
+   but the gradient stays. */
 body::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -20% -10% -10%;
   z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(70% 50% at 50% 0%, rgba(0, 0, 0, 0.04), transparent 70%),
-    linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+    radial-gradient(40% 46% at 16% 6%, rgba(37, 99, 235, 0.20), transparent 62%),
+    radial-gradient(36% 42% at 84% 2%, rgba(99, 102, 241, 0.17), transparent 60%),
+    radial-gradient(48% 48% at 68% 30%, rgba(6, 182, 212, 0.13), transparent 64%),
+    radial-gradient(42% 46% at 6% 50%, rgba(37, 99, 235, 0.10), transparent 66%),
+    linear-gradient(180deg, #ffffff 0%, #fafcff 44%, #f9fafc 100%);
+  background-repeat: no-repeat;
+  will-change: transform;
+  animation: xmd-aurora-drift 34s ease-in-out infinite alternate;
+}
+
+@keyframes xmd-aurora-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-2.4%, 1.6%, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(2%, -1.2%, 0) scale(1.03);
+  }
 }
 
 body::after {
@@ -58,11 +84,17 @@ body::after {
   z-index: -1;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(0, 0, 0, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
+    linear-gradient(rgba(23, 23, 23, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 23, 23, 0.028) 1px, transparent 1px);
   background-size: 56px 56px;
-  -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, #000 30%, transparent 70%);
-          mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, #000 30%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 24%, #000 24%, transparent 74%);
+          mask-image: radial-gradient(ellipse 80% 60% at 50% 24%, #000 24%, transparent 74%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+  }
 }
 
 /* Belt-and-suspenders: force every dumi layout container to be transparent
@@ -2971,7 +3003,10 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
 
 .markdown .xmd-arch-proof {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* 2×2 rather than a 1×4 strip: the quarter-width strip was too narrow for a
+     Latin label like "100% CommonMark", which broke mid-word. Doubling the card
+     width keeps every title (and description) on a single, tidy line. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-top: 12px;
 }
@@ -2994,22 +3029,28 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
 
 .markdown .xmd-arch-proof-head {
   display: flex;
-  align-items: center;
-  gap: 7px;
+  align-items: flex-start;
+  gap: 6px;
 }
 
 .markdown .xmd-arch-proof-icon {
   width: 16px;
   height: 16px;
+  margin-top: 2px;
   flex-shrink: 0;
   color: var(--xmd-accent);
 }
 
+/* keep-all guards the Latin "100% CommonMark" from ever splitting mid-word;
+   the 2×2 grid gives it room to sit on one line. */
 .markdown .xmd-arch-proof strong {
+  min-width: 0;
   color: var(--xmd-text);
   font-size: 13px;
   font-weight: 720;
   line-height: 1.3;
+  word-break: keep-all;
+  overflow-wrap: normal;
 }
 
 .markdown .xmd-arch-proof span {
@@ -3346,7 +3387,10 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
 
 .markdown .xmd-arch-proof {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* 2×2 rather than a 1×4 strip: the quarter-width strip was too narrow for a
+     Latin label like "100% CommonMark", which broke mid-word. Doubling the card
+     width keeps every title (and description) on a single, tidy line. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-top: 12px;
 }
@@ -3378,6 +3422,128 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
   color: var(--xmd-text-tertiary);
   font-size: 12px;
   line-height: 1.45;
+}
+
+/* Animated pipeline. Tokens stream left-to-right through the connectors while
+   the accent reuse curve marches upward into the renderer — a literal picture
+   of "parse → stream → reuse the same transform". Motion is reserved for the
+   streaming story (design register) and fully stilled under reduced-motion,
+   which falls back to the shipped static diagram. */
+.markdown .xmd-arch-pulse {
+  fill: var(--xmd-accent);
+  animation: xmd-arch-token 2.4s linear infinite;
+  will-change: transform, opacity;
+}
+
+.markdown .xmd-arch-line {
+  stroke-dasharray: 5 7;
+  animation: xmd-arch-dash 1.15s linear infinite;
+}
+
+@keyframes xmd-arch-token {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  55% {
+    transform: translateX(var(--tx, 34px));
+    opacity: 1;
+  }
+  70% {
+    transform: translateX(var(--tx, 34px));
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(var(--tx, 34px));
+    opacity: 0;
+  }
+}
+
+@keyframes xmd-arch-dash {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .markdown .xmd-arch-pulse {
+    display: none;
+  }
+
+  .markdown .xmd-arch-line {
+    animation: none;
+    stroke-dasharray: none;
+  }
+}
+
+/* Color-coded pipeline stages (drawio palette): blue = data in-flight,
+   green = per-platform renderers, amber = optional extensions, orange = the
+   emitted node tree, grey = the grouped containers. Ink stays dark on every
+   pastel so the labels keep AA contrast. */
+.markdown .xmd-arch-box-in {
+  fill: #dae8fc;
+  stroke: #6c8ebf;
+}
+
+.markdown .xmd-arch-box-node {
+  fill: #ffe6cc;
+  stroke: #d79b00;
+}
+
+.markdown .xmd-arch-group {
+  fill: var(--xmd-bg-subtle);
+  stroke: var(--xmd-border-strong);
+  stroke-width: 1.3;
+}
+
+.markdown .xmd-arch-plat-chip {
+  fill: #d5e8d4;
+  stroke: #82b366;
+  stroke-width: 1.2;
+}
+
+.markdown .xmd-arch-sp-chip {
+  fill: oklch(99.8% 0 0);
+  stroke: var(--xmd-border-strong);
+  stroke-width: 1.1;
+}
+
+.markdown .xmd-arch-ext {
+  fill: #fff5d6;
+  stroke: #d6b656;
+  stroke-width: 1.3;
+  stroke-dasharray: 5 4;
+}
+
+.markdown .xmd-arch-ext-line {
+  fill: none;
+  stroke: #c99a1f;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+}
+
+.markdown .xmd-arch-group-title {
+  fill: var(--xmd-text);
+  font-family: var(--xmd-font-sans);
+  font-size: 14px;
+  font-weight: 730;
+}
+
+.markdown .xmd-arch-chip-label {
+  fill: var(--xmd-text);
+  font-family: var(--xmd-font-sans);
+  font-size: 13px;
+  font-weight: 640;
+}
+
+.markdown .xmd-arch-chip-note {
+  fill: var(--xmd-text-secondary, #52525b);
+  font-family: var(--xmd-font-sans);
+  font-size: 12px;
+  font-weight: 560;
 }
 
 .markdown .xmd-code-section {
@@ -4464,5 +4630,569 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
     height: 50px !important;
     margin-top: 10px !important;
     padding: 0 14px !important;
+  }
+}
+
+/* ============================================================================
+   Homepage React-section refresh — eyebrow, one-shot reveal, subtle accent life
+   ----------------------------------------------------------------------------
+   The homepage moved from dangerouslySetInnerHTML strings to real React section
+   components (src/demos/home/sections/). This block styles the pieces those
+   components introduce, staying inside the Engineering Whiteboard system:
+   one accent, flat-by-default, motion only as a one-shot entrance or on the
+   product's own pipeline. Everything degrades to static under reduced-motion.
+   ============================================================================ */
+
+/* ----- hero eyebrow (real element; replaces the old ::before pseudo) ----- */
+.markdown .xmd-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 18px;
+  padding: 6px 11px 6px 10px;
+  color: var(--xmd-accent);
+  background: var(--xmd-accent-subtle);
+  border: 1px solid var(--xmd-accent-focus);
+  border-radius: 999px;
+  font-family: var(--xmd-font-sans);
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* A small breathing accent dot — the one sanctioned "alive" flourish on the
+   otherwise-still hero. Slow, low-contrast, purely the accent. */
+.markdown .xmd-hero-eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--xmd-accent);
+  animation: xmd-eyebrow-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes xmd-eyebrow-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.82); }
+  50%      { opacity: 1;    transform: scale(1); }
+}
+
+/* ----- one-shot section reveal ----- */
+/* Default (client, motion allowed): start slightly down + transparent; the
+   useReveal hook toggles .is-in when the section enters the viewport once. */
+.markdown .xmd-reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  will-change: opacity, transform;
+}
+
+.markdown .xmd-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* SSR / no-JS safety net: if the hook never runs (e.g. JS disabled), a short
+   CSS fallback still reveals the content so it is never stuck invisible. */
+@media (scripting: none) {
+  .markdown .xmd-reveal,
+  .markdown .xmd-reveal .xmd-hero-eyebrow,
+  .markdown .xmd-reveal .xmd-hero-subtitle,
+  .markdown .xmd-reveal .xmd-hero-actions,
+  .markdown .xmd-reveal .xmd-hero-facts {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .markdown .xmd-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none;
+  }
+  .markdown .xmd-hero-eyebrow::before {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   HOMEPAGE DELIGHT LAYER — richer gradients + purposeful motion
+   ----------------------------------------------------------------------------
+   Loaded last so it wins the cascade over the earlier "refresh" blocks. Adds:
+   pointer-following hero glow, staggered word/line title reveal, a sheen sweep
+   on the install CTA, tactile fact cards, and a gently floating phone. Every
+   effect degrades to a still, high-contrast layout under prefers-reduced-motion.
+   ========================================================================== */
+
+/* ----- hero: aurora spotlight that follows the pointer ----- */
+.markdown .xmd-hero {
+  position: relative;
+  isolation: isolate;
+}
+
+/* A soft radial glow anchored to the cursor. site.js writes --xmd-mx/--xmd-my
+   as PIXELS relative to the hero's top-left; the box is inflated 360px on every
+   side and the gradient position is offset by that same 360px so the glow lands
+   exactly under the cursor. The 360px padding is larger than the glow's fully-
+   transparent radius (≈340px), so the soft edge always finishes inside the box
+   and never gets clipped into a rectangle — that was the "square boundary" bug.
+   When site.js hasn't set the vars (no-JS / touch / reduced-motion / pointer at
+   rest) the % defaults keep a gently off-centre resting glow. */
+.markdown .xmd-hero::before {
+  content: "";
+  position: absolute;
+  inset: -360px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    circle 460px at
+      calc(360px + var(--xmd-mx, 18%))
+      calc(360px + var(--xmd-my, 12%)),
+    rgba(37, 99, 235, 0.16),
+    rgba(99, 102, 241, 0.08) 38%,
+    rgba(99, 102, 241, 0.03) 58%,
+    transparent 74%
+  );
+  opacity: 0.9;
+  will-change: background;
+}
+
+/* ----- hero headline: staggered line/word reveal ----- */
+/* Hero.tsx wraps h1 in .xmd-hero-copy.xmd-reveal; the title itself gets a
+   secondary rise so it arrives just after the column, with a subtle accent
+   sweep across the ink. One-shot only (driven by the .is-in toggle). */
+/* The headline stays solid near-black at rest (guaranteed AA); a one-shot
+   accent highlight sweeps through the ink when the hero reveals. The gradient
+   is ~90% --xmd-text with a narrow electric-blue band, so the resting fill is
+   effectively the dark ink and contrast never drops. */
+.markdown .xmd-hero h1 {
+  background-image: linear-gradient(
+    100deg,
+    var(--xmd-text) 0%,
+    var(--xmd-text) 40%,
+    var(--xmd-accent) 50%,
+    var(--xmd-text) 60%,
+    var(--xmd-text) 100%
+  );
+  background-size: 240% 100%;
+  background-position: 100% 0;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  /* Safety: if background-clip:text is unsupported, keep visible dark ink. */
+  color: var(--xmd-text);
+}
+
+.markdown .xmd-reveal.is-in h1 {
+  animation: xmd-title-sheen 1.2s ease-out 0.28s 1 both;
+}
+
+@keyframes xmd-title-sheen {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+/* Copy column children rise in sequence once the column reveals. */
+.markdown .xmd-reveal .xmd-hero-eyebrow,
+.markdown .xmd-reveal .xmd-hero-subtitle,
+.markdown .xmd-reveal .xmd-hero-actions,
+.markdown .xmd-reveal .xmd-hero-facts {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.markdown .xmd-reveal.is-in .xmd-hero-eyebrow {
+  animation: xmd-rise 0.5s ease-out 0.05s both;
+}
+.markdown .xmd-reveal.is-in .xmd-hero-subtitle {
+  animation: xmd-rise 0.5s ease-out 0.16s both;
+}
+.markdown .xmd-reveal.is-in .xmd-hero-actions {
+  animation: xmd-rise 0.5s ease-out 0.26s both;
+}
+.markdown .xmd-reveal.is-in .xmd-hero-facts {
+  animation: xmd-rise 0.5s ease-out 0.36s both;
+}
+
+@keyframes xmd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ----- install CTA: accent sheen sweep + lift on hover ----- */
+.markdown .xmd-install-command {
+  position: relative;
+  overflow: hidden;
+}
+
+.markdown .xmd-install-command::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 45%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(37, 99, 235, 0.16) 45%,
+    rgba(37, 99, 235, 0.22) 50%,
+    transparent
+  );
+  transform: skewX(-18deg);
+  opacity: 0;
+}
+
+.markdown .xmd-install-command:hover {
+  transform: translateY(-1px);
+  border-color: var(--xmd-accent-focus);
+  box-shadow: 0 8px 22px -10px rgba(37, 99, 235, 0.4);
+}
+
+.markdown .xmd-install-command:hover::after {
+  opacity: 1;
+  animation: xmd-sheen 0.7s ease-out 1;
+}
+
+@keyframes xmd-sheen {
+  from {
+    left: -60%;
+  }
+  to {
+    left: 130%;
+  }
+}
+
+/* The playground link gets a matching, quieter lift. */
+.markdown .xmd-secondary-link {
+  position: relative;
+  overflow: hidden;
+}
+
+.markdown .xmd-secondary-link:hover {
+  transform: translateY(-1px);
+  border-color: var(--xmd-accent-focus);
+  box-shadow: 0 8px 22px -12px rgba(37, 99, 235, 0.3);
+}
+
+/* ----- fact cards: tactile hover with accent wash ----- */
+.markdown .xmd-hero-facts > div {
+  transition: border-color 0.18s ease, box-shadow 0.18s ease,
+    transform 0.18s ease, background 0.18s ease;
+}
+
+.markdown .xmd-hero-facts > div:hover {
+  transform: translateY(-2px);
+  border-color: var(--xmd-accent-focus);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--xmd-accent) 6%, white),
+    rgba(255, 255, 255, 0.86)
+  );
+  box-shadow: 0 12px 30px -18px rgba(37, 99, 235, 0.45);
+}
+
+.markdown .xmd-hero-facts > div:hover dt {
+  color: var(--xmd-accent);
+}
+
+/* ----- hero phone: soft float + breathing glow halo ----- */
+.markdown .xmd-hero-media {
+  animation: xmd-float 7s ease-in-out infinite;
+  will-change: transform;
+}
+
+.markdown .xmd-hero-media::before {
+  animation: xmd-halo-breathe 6.5s ease-in-out infinite;
+}
+
+@keyframes xmd-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes xmd-halo-breathe {
+  0%, 100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+/* ----- architecture SVG: give it a faint accent frame + soft lift ----- */
+.markdown .xmd-arch-svg {
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.markdown .xmd-arch-board:hover .xmd-arch-svg {
+  border-color: var(--xmd-accent-focus);
+  box-shadow: 0 24px 60px -34px rgba(37, 99, 235, 0.5);
+}
+
+/* Make the streaming pulse a touch livelier (larger travel, brighter accent). */
+.markdown .xmd-arch-pulse {
+  filter: drop-shadow(0 0 3px rgba(37, 99, 235, 0.55));
+}
+
+/* ----- reduced-motion: freeze every drift/sweep/float; keep gradients ----- */
+@media (prefers-reduced-motion: reduce) {
+  .markdown .xmd-hero::before {
+    transition: none;
+  }
+  .markdown .xmd-reveal.is-in h1,
+  .markdown .xmd-reveal.is-in .xmd-hero-eyebrow,
+  .markdown .xmd-reveal.is-in .xmd-hero-subtitle,
+  .markdown .xmd-reveal.is-in .xmd-hero-actions,
+  .markdown .xmd-reveal.is-in .xmd-hero-facts {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .markdown .xmd-hero h1 {
+    background-position: 0 0;
+  }
+  .markdown .xmd-install-command:hover::after {
+    animation: none;
+    opacity: 0;
+  }
+  .markdown .xmd-hero-media {
+    animation: none;
+  }
+  .markdown .xmd-hero-media::before {
+    animation: none;
+  }
+}
+
+/* ============================================================================
+   Changelog — left-rail timeline (docs/changelog.md → ChangelogTimeline.tsx)
+   Whiteboard register: one continuous neutral rail, dots on the line (newest in
+   the single blue accent), ink/blue/neutral type chips only — no second hue.
+   ========================================================================== */
+.markdown .xmd-changelog {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 0 24px;
+}
+
+.markdown .xmd-cl-hero {
+  margin-bottom: 44px;
+}
+.markdown .xmd-cl-hero h1 {
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+  font-size: 30px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--xmd-text);
+}
+.markdown .xmd-cl-subtitle {
+  margin: 0;
+  max-width: 640px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--xmd-text-secondary);
+}
+
+/* the rail */
+.markdown .xmd-cl-list {
+  position: relative;
+  margin: 0;
+  padding: 0 0 0 28px;
+  list-style: none;
+}
+.markdown .xmd-cl-list::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: var(--xmd-border);
+}
+
+.markdown .xmd-cl-entry {
+  position: relative;
+  padding-bottom: 44px;
+}
+.markdown .xmd-cl-entry:last-child {
+  padding-bottom: 4px;
+}
+
+/* dot sits on the rail; a white host circle breaks the line cleanly at each node */
+.markdown .xmd-cl-marker {
+  position: absolute;
+  left: -28px;
+  top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--xmd-bg);
+}
+.markdown .xmd-cl-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--xmd-bg);
+  border: 2px solid var(--xmd-border-strong);
+  box-sizing: border-box;
+}
+.markdown .xmd-cl-entry:first-child .xmd-cl-dot {
+  background: var(--xmd-accent);
+  border-color: var(--xmd-accent);
+  box-shadow: 0 0 0 4px var(--xmd-accent-subtle);
+}
+
+/* version + date row */
+.markdown .xmd-cl-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.markdown .xmd-cl-version {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--xmd-text);
+  font-variant-numeric: tabular-nums;
+}
+.markdown .xmd-cl-latest {
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--xmd-accent);
+  background: var(--xmd-accent-subtle);
+}
+.markdown .xmd-cl-date {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--xmd-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* change entries */
+.markdown .xmd-cl-changes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.markdown .xmd-cl-change {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.markdown .xmd-cl-tag {
+  justify-self: start;
+  margin-top: 3px;
+  padding: 1px 8px;
+  min-width: 100%;
+  box-sizing: border-box;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  text-align: center;
+  white-space: nowrap;
+}
+.markdown .xmd-cl-tag--breaking {
+  background: var(--xmd-text);
+  color: #ffffff;
+}
+.markdown .xmd-cl-tag--feature {
+  background: var(--xmd-accent-subtle);
+  color: var(--xmd-accent);
+}
+.markdown .xmd-cl-tag--fix {
+  background: var(--xmd-bg-muted);
+  color: var(--xmd-text-secondary);
+  border: 1px solid var(--xmd-border);
+}
+.markdown .xmd-cl-tag--perf {
+  background: transparent;
+  color: var(--xmd-text-tertiary);
+  border: 1px solid var(--xmd-border);
+}
+
+.markdown .xmd-cl-text p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.72;
+  color: var(--xmd-text-secondary);
+}
+.markdown .xmd-cl-notes {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.markdown .xmd-cl-notes li {
+  position: relative;
+  margin-top: 5px;
+  padding-left: 16px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--xmd-text-tertiary);
+}
+.markdown .xmd-cl-notes li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.72em;
+  width: 6px;
+  height: 1px;
+  background: var(--xmd-border-strong);
+}
+
+@media (max-width: 640px) {
+  .markdown .xmd-cl-change {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .markdown .xmd-cl-tag {
+    min-width: 0;
+    margin-top: 0;
+  }
+  .markdown .xmd-cl-date {
+    display: none;
   }
 }

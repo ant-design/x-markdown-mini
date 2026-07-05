@@ -66,7 +66,10 @@ describe('platform presentation consistency', () => {
     // 真机字体必须命中叶子 <text> 自身。逐字动画分支如果只把 kxf-* class 放到外层
     // <view>，支付宝真机不会把 font-family 可靠继承进每个字符 <text>，公式会回退系统字体。
     const axml = source('../components/alipay/MiniNodeRenderer/index.axml');
-    expect(axml).toContain('class="md-anim-char {{u.classOf(node)}}"');
+    // segClassOf keeps every font class (kxf-*, md-inline-code-txt, …) on the leaf so
+    // Alipay 真机 fonts still resolve; it only swaps the inline-code pill box class off
+    // the per-char leaves, which otherwise repeat the药丸 background/padding per character.
+    expect(axml).toContain('class="md-anim-char {{u.segClassOf(node)}}"');
     expect(axml).toContain('style="{{u.styleOf(node)}}"');
     expect(axml).toContain('style="{{u.styleOf(c)}}"');
   });

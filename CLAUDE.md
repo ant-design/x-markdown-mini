@@ -5,17 +5,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run build          # tsup → patch-modern-regex → copy-miniprogram-dist → copy-component-assets → prepare-publish
+npm run build          # generate-katex-fonts → clean → tsup → patch-modern-regex → copy-miniprogram-dist → copy-component-assets → prepare-publish
 npm run release        # build + `npm publish ./dist` (publishes the dist/ CONTENTS as the package root)
 npm test               # vitest run --coverage  (one-shot, not watch)
 npm run test:ci        # same + JSON reporter → test-results.json (CI gate consumes this)
 npm run lint           # eslint src --ext .ts
-npm run bench          # tinybench → benchmark/results.json
-npm run bench:check    # bench + fail if any x-markdown-mini scenario regressed >10% vs baseline.json
+npm run bench          # tsx benchmark/run.ts (tinybench) → benchmark/results.json
+npm run bench:check    # bench + fail if any x-markdown-mini scenario regressed >10% vs baseline.json (--threshold 0.10)
 npm run bench:update   # bench + promote results.json → baseline.json (commit alongside perf change)
+npm run bench:compare  # tsx benchmark/compare.ts — ad-hoc results.json vs baseline.json diff, no gate
 npm run check:bundle   # size budgets + ES2018 syntax (es-check) + no named-group regex leak — needs prior build
 npm run check:test-rate -- --min 95  # gate on pass rate from test-results.json
+npm run check:examples # verify examples/{alipay,wechat} dist mirrors are in sync
+npm run sync:examples  # regenerate example sample + wechat npm fixtures + alipay mp-html patch
 npm run docs           # build + dumi dev server (docs-site/), live preview of mini-program shells
+npm run docs:build     # build + dumi static build → docs-site/dist (what deploy-docs.yml ships)
+npm run clean[:all]    # rm dist/ (—:all also clears caches); build runs clean before tsup
 ```
 
 Single test: `npx vitest run src/__tests__/tokensToWechat.test.ts` (path) or `npx vitest run -t "<a href>"` (name filter).
@@ -69,9 +74,9 @@ See `docs/experiments/2026-05-pipeline-architecture.md` for the empirical A/B/C 
 
 This is the supported way to add LaTeX, code-block highlighting (lazy-loaded), or app-specific syntax without forking transformers.
 
-## Build outputs (tsup config has 4 entries)
+## Build outputs (tsup config has 6 entries)
 
-The repo ships one library twice plus four component bundles. The duplication is structural — don't try to "deduplicate":
+The repo ships one library twice, four component bundles, and two plugin bundles (`Latex`, `CodeHighlight`) per package root. The duplication is structural — don't try to "deduplicate":
 
 > **Publish-from-dist:** the package is published by `npm publish ./dist` (the `release` script), so the **published tarball's root is the `dist/` contents** — `es/`, `plugins/`, `shared/`, `index.js`, `miniprogram_dist/` all sit at the package root with **no `dist/` segment**. `scripts/prepare-publish.mjs` (last build step) writes a root-relative `dist/package.json` (`main: index.js`, `exports['./es/*']: './es/*'`, no `files`/`scripts`/`devDependencies`) and copies `README.md`/`LICENSE` in. The local build still emits to `dist/` unchanged, so every `dist/…` path below and all size/bundle gates are unaffected — only the *publish root* changed. This makes Alipay (which ignores `package.json#exports` and reads the package root literally) resolve the same no-`dist/` imports as WeChat and npm.
 
@@ -79,10 +84,12 @@ The repo ships one library twice plus four component bundles. The duplication is
 - `dist/miniprogram_dist/index.js` — WeChat-only CJS copy. WeChat reads `package.json#miniprogram` to find this subtree as a package root. **This file is not built by tsup directly** — `scripts/copy-miniprogram-dist.mjs` copies `dist/index.js` over after the tsup build to avoid bundling marked + remend twice.
 - `dist/{,miniprogram_dist/}shared/flattenInline.js` — `flattenInlineNodes` shipped twice, once per package root. The wechat copy is also produced by `copy-miniprogram-dist.mjs`.
 - `dist/{es,miniprogram_dist/es}/{Markdown,MiniNodeRenderer}/index.js` — component wrappers. Built with `bundle: true` but a custom esbuild plugin (`externalRuntimePlugin` in `tsup.config.ts`) marks `../../../index.js` and `../../shared/flattenInline.js` as external and rewrites them to `../../…` so the wrappers only carry component logic and `require` the core from the same package root.
+- `dist/{,miniprogram_dist/}plugins/{Latex,CodeHighlight}/index.js` — optional plugin bundles (subpath exports `@ant-design/x-markdown-mini/plugins/Latex` etc.). Each `noExternal`-bundles its own heavy dep (`katex`, `highlight.js`) but externalises the core library via `externalRuntimePluginForPlugins`, so `marked`+`remend` aren't bundled twice. tsup entry #6 emits the wechat copy directly (no `copy-miniprogram-dist` step for plugins).
 
 Source layout for components (`src/components/<platform>/<Comp>/`) ships co-located template assets (`.axml`/`.acss`/`.sjs` for alipay, `.wxml`/`.wxss`/`.wxs` for wechat) plus an `index.json` and the wrapper `index.ts`.
 
-Build post-steps:
+Build pre/post-steps:
+- `scripts/generate-katex-fonts.mjs` (**first** build step, pre-tsup) reads `src/plugins/Latex/fontface.tpl.css` + the 20 `KaTeX_*.woff` files from `node_modules/katex/dist/fonts`, base64-inlines each as a `data:font/woff` `@font-face`, and writes identical `src/plugins/Latex/fonts.{wxss,acss}` (generated — do not hand-edit). woff (not woff2) because Alipay真机 font support is narrower than the simulator; both platforms get the same inlined blob. See memory `alipay-katex-fonts-broken-on-device`.
 - `scripts/patch-modern-regex.mjs` rewrites every `(?<name>…)` regex literal in `dist/index.js` and `dist/index.mjs` into `new RegExp("…")`. Required because Alipay's compile-time JS parser rejects named-capture-group regex literals even though the runtime supports them. `marked` ships such literals; without this patch Alipay's IDE refuses to compile. Runs **before** `copy-miniprogram-dist.mjs` so the wechat copy inherits the patched form.
 - `scripts/copy-miniprogram-dist.mjs` (post-patch) copies `dist/index.js` + `dist/shared/flattenInline.js` into `dist/miniprogram_dist/` so the wechat package root mirrors the alipay one without a second tsup build.
 - `scripts/copy-component-assets.mjs` copies `.axml/.acss/.sjs/.wxml/.wxss/.wxs/.json` from `src/components/{alipay,wechat}/` into the right `dist/` subtree, and syncs `dist/` (or `dist/miniprogram_dist/`) into `examples/{alipay,wechat}/dist/` so the example mini-programs are openable in their respective IDEs without symlinks.
@@ -93,7 +100,11 @@ Build post-steps:
 A PR is green only if all of these pass:
 - Tests on Node 18/20/22 with **pass-rate ≥ 95%** (full failures don't immediately fail CI; the gate reads `test-results.json`).
 - Bundle: per-file size budgets (raw + gzip), ES2018 syntax via `es-check`, and zero named-group regex literals in the post-patch dist. Budgets in `scripts/check-bundle.mjs` are tuned to ~108 KB raw / ~26 KB gzip for the main library (covers marked + remend + per-instance `Marked` overhead). Bump them together with whatever change moved the size.
-- Bench (Node 20 only): every `*/x-markdown-mini/*` scenario must stay within 10% of `benchmark/baseline.json`. For an intentional perf change, run `npm run bench:update` and commit the new baseline in the same PR, explaining *why* in the commit message.
+- Bench is **not** a CI gate. The tinybench suite (`npm run bench` / `bench:check` / `bench:compare`) stays available for local perf checks, but comparing absolute hz against a committed baseline proved unreliable on GitHub-hosted runners (throughput varies ~2x run-to-run; per-scenario relative perf differs across arch/node), so it no longer runs in CI.
+
+Two more workflows exist alongside `ci.yml`:
+- `.github/workflows/deploy-docs.yml` — on push to `main`, builds the library + `docs-site` (dumi) and force-pushes `docs-site/dist` to the `gh-pages` branch, which serves **x-markdown-mini.ant.design** (CNAME written by the deploy step). Uses `npm install` (not `npm ci`) for docs-site deps because that lockfile has no CI of its own and drifts.
+- `.github/workflows/release.yml` — on a `v*` tag: `npm ci` → `npm run build` → `npm test` → verify the tag matches `dist/package.json` version → `npm publish ./dist --access public --provenance`. This is **publish-from-dist**, consistent with the local `npm run release` (both ship the `dist/` contents as the package root). Cut a release by bumping the version spots + finalizing `CHANGELOG.*.md` in a PR to `main`, then pushing the matching `vX.Y.Z` tag. See `RELEASE.md` for the full flow.
 
 ## TypeScript target vs runtime target
 

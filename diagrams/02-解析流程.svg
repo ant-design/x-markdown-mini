@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="330" viewBox="0 0 840 330" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif"><defs><style>@keyframes ge-flow{to{stroke-dashoffset:0}}</style></defs><rect x="0" y="0" width="840" height="330" fill="#ffffff"/><text x="24" y="30" font-size="18" font-weight="700" fill="#141414">Markdown 解析流程（一次性 parse / render）</text><text x="24" y="50" font-size="12.5" fill="#8c8c8c">三段式：① 词法解析 → ② 直接转换 → ③ 渲染分发，无中间 IR 层、无平台无关 transformer</text>
+
+<!-- ===== Block 1: 词法解析 ===== -->
+<rect x="24" y="66" width="234" height="246" rx="16" fill="#eef5ff" stroke="#91caff" stroke-width="1.4"/>
+<text x="141" y="92" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0958d9">① 词法解析 · marked</text>
+<!-- markdown 字符串 (input pill) -->
+<rect x="44" y="108" width="194" height="44" rx="22" fill="#ffffff" stroke="#69a6ff" stroke-width="1.3"/>
+<text x="141" y="134" text-anchor="middle" font-size="12.5" fill="#0958d9">markdown 字符串</text>
+<path d="M 141 152 L 141 166" fill="none" stroke="#1677ff" stroke-width="2.2" stroke-dasharray="7" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:14"/><path d="M 137 166 L 145 166 L 141 174 Z" fill="#1677ff"/>
+<!-- marked.lexer -->
+<rect x="44" y="176" width="194" height="44" rx="8" fill="#ffffff" stroke="#69a6ff" stroke-width="1.3"/>
+<text x="141" y="202" text-anchor="middle" font-size="12.5" fill="#0958d9">marked.lexer 词法分析</text>
+<path d="M 141 220 L 141 234" fill="none" stroke="#1677ff" stroke-width="2.2" stroke-dasharray="7" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:14"/><path d="M 137 234 L 145 234 L 141 242 Z" fill="#1677ff"/>
+<!-- Token[] -->
+<rect x="44" y="244" width="194" height="44" rx="8" fill="#ffffff" stroke="#69a6ff" stroke-width="1.3"/>
+<text x="141" y="270" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0958d9">Token[]（marked 语法树）</text>
+
+<!-- ===== Block 2: 直接转换 ===== -->
+<rect x="300" y="66" width="228" height="246" rx="16" fill="#f6eefc" stroke="#d3adf7" stroke-width="1.4"/>
+<text x="414" y="92" text-anchor="middle" font-size="13.5" font-weight="700" fill="#531dab">② 直接转换 · 单一 transformer</text>
+<!-- renderTokensToMiniNodes (hero, solid) -->
+<rect x="316" y="110" width="196" height="60" rx="9" fill="#722ed1" stroke="#531dab" stroke-width="1.3"/>
+<text x="414" y="135" text-anchor="middle" font-size="12.5" font-weight="700" fill="#ffffff">renderTokensToMiniNodes</text>
+<text x="414" y="153" text-anchor="middle" font-size="10.5" fill="#e9d8fb">(tokens, adapter, ctx)</text>
+<path d="M 414 170 L 414 184" fill="none" stroke="#722ed1" stroke-width="2.2" stroke-dasharray="7" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:14"/><path d="M 410 184 L 418 184 L 414 192 Z" fill="#722ed1"/>
+<!-- MiniNode[] -->
+<rect x="316" y="194" width="196" height="44" rx="8" fill="#ffffff" stroke="#b37feb" stroke-width="1.3"/>
+<text x="414" y="220" text-anchor="middle" font-size="12.5" font-weight="600" fill="#531dab">MiniNode[] 节点树（hast 形状）</text>
+<!-- adapter note -->
+<rect x="316" y="256" width="196" height="46" rx="8" fill="#fffbe6" stroke="#ffd666" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="414" y="274" text-anchor="middle" font-size="9.5" fill="#874d00">平台适配 adapter（~6 行差异）</text>
+<text x="414" y="290" text-anchor="middle" font-size="9.5" fill="#874d00">wechat a[data-href] · alipay https图片/丢 ol start</text>
+
+<!-- ===== Block 3: 渲染分发 ===== -->
+<rect x="570" y="66" width="246" height="246" rx="16" fill="#f0fbe8" stroke="#b7eb8f" stroke-width="1.4"/>
+<text x="693" y="92" text-anchor="middle" font-size="13.5" font-weight="700" fill="#237804">③ 渲染分发 · 组件</text>
+<!-- MiniNodeRenderer dispatch -->
+<rect x="590" y="132" width="206" height="52" rx="8" fill="#ffffff" stroke="#95de64" stroke-width="1.3"/>
+<text x="693" y="153" text-anchor="middle" font-size="12.5" font-weight="600" fill="#237804">MiniNodeRenderer</text>
+<text x="693" y="170" text-anchor="middle" font-size="11.5" fill="#389e0d">按 node.name 分发</text>
+<path d="M 693 184 L 693 200" fill="none" stroke="#52c41a" stroke-width="2.2" stroke-dasharray="7" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:14"/><path d="M 689 200 L 697 200 L 693 208 Z" fill="#52c41a"/>
+<!-- native output (solid green) -->
+<rect x="590" y="212" width="206" height="52" rx="8" fill="#52c41a" stroke="#389e0d" stroke-width="1.3"/>
+<text x="693" y="234" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">原生 text / view</text>
+<text x="693" y="251" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">image / scroll-view</text>
+
+<!-- ===== inter-block horizontal flow arrows ===== -->
+<text x="279" y="182" text-anchor="middle" font-size="10" fill="#8c8c8c">Token[]</text>
+<path d="M 258 192 L 292 192" fill="none" stroke="#1677ff" stroke-width="2.6" stroke-dasharray="8" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:16"/><path d="M 292 187 L 292 197 L 300 192 Z" fill="#1677ff"/>
+<text x="549" y="182" text-anchor="middle" font-size="10" fill="#8c8c8c">MiniNode[]</text>
+<path d="M 528 192 L 562 192" fill="none" stroke="#1677ff" stroke-width="2.6" stroke-dasharray="8" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:16"/><path d="M 562 187 L 562 197 L 570 192 Z" fill="#1677ff"/>
+</svg>

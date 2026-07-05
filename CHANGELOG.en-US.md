@@ -1,37 +1,23 @@
 ---
 title: Changelog
-order: 3
-nav:
-  title: Docs
-  order: 4
-group:
-  title: Reference
-  order: 4
 ---
 
 # Changelog
 
 User-facing API, build-output, and behavior changes are tracked here. Migration notes stay under the affected version so upgrades can be checked version by version.
 
-## Introduce
+> The site's `/changelog` timeline is generated from this file (`docs-site/scripts/build-changelog.mjs` parses the `## version` / `` `date` `` / `- **type**: …` structure). Add a new block at the top when releasing; `npm run changelog` helps assemble entries from merged PRs. Types are **Breaking** / **Added** / **Fixed** / **Improved**.
 
-```bash
-npm install @ant-design/x-markdown-mini@latest
-```
+## 1.0.1
 
-## Code sample
+`2026-07-04`
 
-```ts
-import { XMarkdownMini } from '@ant-design/x-markdown-mini';
-import CodeHighlight from '@ant-design/x-markdown-mini/plugins/CodeHighlight';
-import Latex from '@ant-design/x-markdown-mini/plugins/Latex';
+- **Fixed**: inline code `code` showed spurious gaps mid-word while streaming. The per-character / per-segment entrance animation splits the inline-code text into several leaf `<text>` nodes, and each leaf carried the `md-inline-code` pill's padding, margin and background — so the pills tiled with visible gaps (worst on Alipay, which splits per character).
+  - The pill box (background / padding / radius) now paints only on the outer container; the split character leaves use a font-only `md-inline-code-txt` class instead (Alipay `<text>` does not inherit font-family, so the monospace font must stay on the leaf). Fixed on both WeChat and Alipay.
 
-const md = new XMarkdownMini({
-  extensions: [Latex(), CodeHighlight()],
-});
-```
+## 1.0.0
 
-## 0.1.0 _(unreleased)_
+`2026-07-03`
 
 - **Breaking**: `XMarkdownMiniOptions` collapsed. `lexerOptions` / top-level `extensions` / `plugins` are gone, replaced by a single `options: { gfm?, breaks?, extensions? }` bag. The `Plugin` type is removed.
   - Migration: `{ extensions: [...] }` → `{ options: { extensions: [...] } }`; `{ plugins: [Latex(), CodeHighlight()] }` → `{ options: { extensions: [Latex(), CodeHighlight()] } }`; `{ lexerOptions: { gfm } }` → `{ options: { gfm } }`.

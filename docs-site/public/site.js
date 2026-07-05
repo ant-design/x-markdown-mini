@@ -892,7 +892,7 @@
   // a version label to the URL serving that version's docs. The current build
   // is always the default; entries listed here become extra dropdown options.
   var GITHUB_URL = 'https://github.com/ant-design/x-markdown-mini';
-  var CURRENT_VERSION = '0.1.0';
+  var CURRENT_VERSION = '1.0.1';
   var VERSION_MIRRORS = {
     // '1.x': 'https://1x-x-markdown-mini.example.com',
   };
@@ -1370,6 +1370,7 @@
       if (typeof window.__xmdSyncSidebarLocale === 'function') window.__xmdSyncSidebarLocale();
       if (typeof window.__xmdNormalizeSidebarActive === 'function') window.__xmdNormalizeSidebarActive();
       if (typeof window.__xmdEnhanceTables === 'function') window.__xmdEnhanceTables();
+      if (typeof window.__xmdBindHeroGlow === 'function') window.__xmdBindHeroGlow();
       requestUpdate();
     }).observe(document.body, { childList: true, subtree: true });
     update();
@@ -1379,5 +1380,82 @@
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
+  }
+})();
+
+/* ---------------------------------------------------------------------------
+ * Hero pointer glow — the aurora spotlight (.xmd-hero::before) follows the
+ * cursor by writing --xmd-mx / --xmd-my (percentages) onto the hero element.
+ * Skipped for coarse pointers (touch) and prefers-reduced-motion; in those
+ * cases the CSS defaults keep the glow gently off-centre and static. Coalesced
+ * with requestAnimationFrame so pointermove never thrashes layout.
+ * ------------------------------------------------------------------------- */
+(function () {
+  if (typeof window === 'undefined') return;
+
+  function motionOK() {
+    if (typeof window.matchMedia !== 'function') return true;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    // Only track a precise pointer; touch devices get the static default glow.
+    return window.matchMedia('(pointer: fine)').matches;
+  }
+
+  var boundHero = null;
+  var raf = 0;
+  var pendingX = 0;
+  var pendingY = 0;
+
+  function apply() {
+    raf = 0;
+    if (!boundHero) return;
+    // Pixels relative to the hero's top-left. The CSS ::before box is inflated
+    // 360px on every side and offsets the gradient by the same 360px, so the
+    // glow's soft edge always finishes inside the box (no rectangular clip).
+    boundHero.style.setProperty('--xmd-mx', Math.round(pendingX) + 'px');
+    boundHero.style.setProperty('--xmd-my', Math.round(pendingY) + 'px');
+  }
+
+  function onMove(e) {
+    if (!boundHero) return;
+    var rect = boundHero.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    pendingX = e.clientX - rect.left;
+    pendingY = e.clientY - rect.top;
+    if (!raf) raf = requestAnimationFrame(apply);
+  }
+
+  function onLeave() {
+    // Drop the overrides so the CSS % defaults take over — a gentle off-centre
+    // resting glow rather than a snap.
+    if (raf) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
+    if (boundHero) {
+      boundHero.style.removeProperty('--xmd-mx');
+      boundHero.style.removeProperty('--xmd-my');
+    }
+  }
+
+  function bind() {
+    var hero = document.querySelector('.xmd-hero');
+    if (hero === boundHero) return;
+    if (boundHero) {
+      boundHero.removeEventListener('pointermove', onMove);
+      boundHero.removeEventListener('pointerleave', onLeave);
+      boundHero = null;
+    }
+    if (!hero || !motionOK()) return;
+    boundHero = hero;
+    hero.addEventListener('pointermove', onMove, { passive: true });
+    hero.addEventListener('pointerleave', onLeave, { passive: true });
+  }
+
+  window.__xmdBindHeroGlow = bind;
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind);
+  } else {
+    bind();
   }
 })();

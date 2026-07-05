@@ -7,7 +7,7 @@
     "postinstall": "node ./scripts/sync-npm-fixtures.mjs"
   },
   "dependencies": {
-    "@ant-design/x-markdown-mini": "1.0.0",
+    "@ant-design/x-markdown-mini": "1.0.1",
     "mini-html-parser2": "^0.3.0",
     "mp-html": "^2.5.2",
     "towxml": "^3.0.6"

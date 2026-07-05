@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif"><defs><style>@keyframes ge-flow{to{stroke-dashoffset:0}}</style></defs><rect x="0" y="0" width="800" height="500" fill="#ffffff"/><text x="24" y="30" font-size="18" font-weight="700" fill="#141414">流式解析细节 · StreamingProcessor（每来一段 chunk）</text><text x="24" y="50" font-size="12.5" fill="#8c8c8c">稳定块命中缓存直接复用，仅结尾段重解析 + remend 补全，循环等待下一段</text>
+
+<!-- s1: 新 chunk 追加到缓冲 (input pill) -->
+<rect x="290" y="64" width="220" height="44" rx="22" fill="#ffffff" stroke="#69a6ff" stroke-width="1.3"/>
+<text x="400" y="90" text-anchor="middle" font-size="12.5" fill="#0958d9">新 chunk 追加到缓冲</text>
+<path d="M 400 108 L 400 118" fill="none" stroke="#1677ff" stroke-width="2.4" stroke-dasharray="8" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:16"/><path d="M 396 118 L 404 118 L 400 126 Z" fill="#1677ff"/>
+
+<!-- s2: 扫描稳定分界 -->
+<rect x="280" y="126" width="240" height="48" rx="8" fill="#ffffff" stroke="#69a6ff" stroke-width="1.3"/>
+<text x="400" y="145" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0958d9">扫描稳定分界</text>
+<text x="400" y="162" text-anchor="middle" font-size="11" fill="#0958d9">代码块外 + 空行收尾</text>
+
+<!-- split: stable (green, left) -->
+<path d="M 340 174 L 340 194 L 185 194 L 185 206" fill="none" stroke="#52c41a" stroke-width="2.4" stroke-dasharray="8" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:16"/><path d="M 181 206 L 189 206 L 185 214 Z" fill="#52c41a"/>
+<text x="262" y="190" text-anchor="middle" font-size="11" fill="#389e0d">稳定部分</text>
+<!-- split: tail (orange, right) -->
+<path d="M 460 174 L 460 194 L 635 194 L 635 206" fill="none" stroke="#fa8c16" stroke-width="2.4" stroke-dasharray="8" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:16"/><path d="M 631 206 L 639 206 L 635 214 Z" fill="#fa8c16"/>
+<text x="556" y="190" text-anchor="middle" font-size="11" fill="#ad4e00">结尾</text>
+
+<!-- s3a: 稳定块缓存 (green) -->
+<rect x="60" y="214" width="250" height="72" rx="10" fill="#f0fbe8" stroke="#95de64" stroke-width="1.4"/>
+<text x="185" y="245" text-anchor="middle" font-size="12.5" font-weight="700" fill="#237804">已提交稳定块 · 命中缓存</text>
+<text x="185" y="264" text-anchor="middle" font-size="11.5" fill="#389e0d">直接复用，不再解析</text>
+
+<!-- s3b: 结尾 remend (orange) -->
+<rect x="490" y="214" width="290" height="72" rx="10" fill="#fff7e6" stroke="#ffa940" stroke-width="1.4"/>
+<text x="635" y="238" text-anchor="middle" font-size="12.5" font-weight="700" fill="#ad4e00">未完成结尾 · remend 补全</text>
+<text x="635" y="256" text-anchor="middle" font-size="11" fill="#d46b08">**加粗 → **加粗**</text>
+<text x="635" y="273" text-anchor="middle" font-size="11" fill="#d46b08">只重解析结尾段</text>
+
+<!-- merge arrows -->
+<path d="M 185 286 L 185 306 L 340 306 L 340 328" fill="none" stroke="#52c41a" stroke-width="2.4" stroke-dasharray="8" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:16"/><path d="M 336 328 L 344 328 L 340 336 Z" fill="#52c41a"/>
+<path d="M 635 286 L 635 306 L 460 306 L 460 328" fill="none" stroke="#fa8c16" stroke-width="2.4" stroke-dasharray="8" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:16"/><path d="M 456 328 L 464 328 L 460 336 Z" fill="#fa8c16"/>
+
+<!-- s4: 合并 (hero, solid purple) -->
+<rect x="280" y="336" width="240" height="48" rx="8" fill="#722ed1" stroke="#531dab" stroke-width="1.3"/>
+<text x="400" y="365" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">合并：缓存节点 + 新结尾节点</text>
+<path d="M 400 384 L 400 418" fill="none" stroke="#722ed1" stroke-width="2.4" stroke-dasharray="8" style="animation:600ms linear 0s infinite ge-flow;stroke-dashoffset:16"/><path d="M 396 418 L 404 418 L 400 426 Z" fill="#722ed1"/>
+
+<!-- s5: onPatch (output, solid green) -->
+<rect x="280" y="426" width="240" height="48" rx="24" fill="#52c41a" stroke="#389e0d" stroke-width="1.3"/>
+<text x="400" y="455" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">onPatch 回调 → 视图更新</text>
+
+<!-- loop back: 等待下一段 -->
+<path d="M 280 450 L 30 450 L 30 86 L 282 86" fill="none" stroke="#8c8c8c" stroke-width="2" stroke-dasharray="6" style="animation:750ms linear 0s infinite ge-flow;stroke-dashoffset:12"/><path d="M 282 82 L 282 90 L 290 86 Z" fill="#8c8c8c"/>
+<text x="30" y="262" text-anchor="middle" font-size="11" fill="#8c8c8c" transform="rotate(-90 30 262)">等待下一段 chunk</text>
+</svg>

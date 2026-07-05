@@ -1,0 +1,66 @@
+name: Deploy Docs
+
+# Builds the dumi docs-site and publishes it to the `gh-pages` branch, which
+# serves the custom domain x-markdown-mini.ant.design (the CNAME is written by
+# the deploy step below — it is the single source of truth for that branch).
+#
+# One-time repo setup (needs admin): Settings → Pages → Source = "Deploy from a
+# branch" → Branch = `gh-pages` / `(root)`. GitHub then reads the CNAME file and
+# provisions the TLS cert. DNS for the subdomain must point a CNAME record at
+# `ant-design.github.io` (configured on the ant.design zone by an org owner).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Allow the action to force-push the built site to the gh-pages branch.
+permissions:
+  contents: write
+
+# Never let two deploys race the gh-pages branch; keep only the latest.
+concurrency:
+  group: deploy-docs
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build & publish to gh-pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      # The docs-site depends on the library via `file:..`, whose entry points
+      # resolve to dist/. Root install + build must run before the docs build.
+      - name: Install root deps
+        run: npm ci
+
+      - name: Build library
+        run: npm run build
+
+      # `npm install` (not `npm ci`): the docs-site lockfile has no enforcing CI
+      # of its own and drifts from package.json (e.g. a dep added but lock not
+      # regenerated). install tolerates that; ci would hard-fail on any mismatch.
+      - name: Install docs-site deps
+        run: npm install --no-audit --no-fund --no-progress
+        working-directory: docs-site
+
+      - name: Build docs site
+        run: npm run build
+        working-directory: docs-site
+
+      # Publishes docs-site/dist to gh-pages. `cname` writes the CNAME file and
+      # the action drops a `.nojekyll` marker so dumi's `_`-prefixed assets are
+      # served (Jekyll would otherwise strip them).
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs-site/dist
+          cname: x-markdown-mini.ant.design
