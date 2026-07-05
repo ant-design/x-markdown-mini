@@ -273,6 +273,7 @@
     { title: '代码高亮', link: '/docs/plugins-code-highlight', group: '插件', desc: 'CodeHighlight 插件与 highlight.js 语言配置', keywords: '插件 代码高亮 CodeHighlight highlight.js' },
     { title: '公式', link: '/docs/plugins-latex', group: '插件', desc: 'Latex 插件、KaTeX 语法与样式引入', keywords: '插件 公式 Latex KaTeX 数学' },
     { title: '自定义插件', link: '/docs/plugins-custom', group: '插件', desc: '以脚注为例编写 XMarkdownExtension', keywords: '插件 自定义 extension footnote 脚注 tokenizer miniRenderer' },
+    { title: '更新日志', link: '/changelog', group: '其他', desc: '各版本的 API、构建产物与行为变化', keywords: 'changelog 更新日志 版本 release 迁移' },
   ];
 
   function getSearchModal() {
@@ -764,7 +765,7 @@
         {
           iconHtml: antIcon('history'),
           title: t.changelog,
-          url: isZh ? '/docs/changelog' : '/docs/changelog-en',
+          url: isZh ? '/changelog' : '/changelog-en',
           internal: true,
         },
         {
@@ -907,10 +908,12 @@
       ? [
           { label: 'Playground', href: '/playground-en' },
           { label: 'Docs', href: '/docs/introduce-en' },
+          { label: 'Changelog', href: '/changelog-en' },
         ]
       : [
           { label: '在线演示', href: '/playground' },
           { label: '文档', href: '/docs/introduce' },
+          { label: '更新日志', href: '/changelog' },
         ];
   }
 
