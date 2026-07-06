@@ -8,7 +8,7 @@
 
 [![NPM version][npm-image]][npm-url] [![NPM downloads][download-image]][download-url] [![][bundlephobia-image]][bundlephobia-url] [![antd][antd-image]][antd-url]
 
-[更新日志](./CHANGELOG.zh-CN.md) · [报告 Bug][github-issues-bug-report] · [提交需求][github-issues-feature-request] · [English](./README.en-US.md) · 中文
+[更新日志](./changelog/CHANGELOG.zh-CN.md) · [报告 Bug][github-issues-bug-report] · [提交需求][github-issues-feature-request] · [English](./README.en-US.md) · 中文
 
 [npm-image]: https://img.shields.io/npm/v/@ant-design/x-markdown-mini.svg?style=flat-square
 [npm-url]: https://www.npmjs.com/package/@ant-design/x-markdown-mini

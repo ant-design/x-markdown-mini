@@ -90,6 +90,16 @@ A PR is green only if all of these pass:
 - Bundle: per-file size budgets (raw + gzip), ES2018 syntax via `es-check`, and zero named-group regex literals in the post-patch dist. Budgets in `scripts/check-bundle.mjs` are tuned to ~108 KB raw / ~26 KB gzip for the main library (covers marked + remend + per-instance `Marked` overhead). Bump them together with whatever change moved the size.
 - Bench (Node 20 only): every `*/x-markdown-mini/*` scenario must stay within 10% of `benchmark/baseline.json`. For an intentional perf change, run `npm run bench:update` and commit the new baseline in the same PR, explaining *why* in the commit message.
 
+One more workflow: `.github/workflows/deploy-docs.yml` — on push to `main`, builds the library + `docs-site` and force-pushes `docs-site/dist` to `gh-pages` (serves x-markdown-mini.ant.design).
+
+## Releasing
+
+npm publish is **local**, not CI — there is no tag-triggered publish (npm auth stays in your local `npm login`). Two decoupled triggers: merging a release PR to `main` refreshes the docs site (`deploy-docs.yml`); publishing to npm is a separate local step.
+
+1. Release PR → `main`: prepend `changelog/CHANGELOG.{zh-CN,en-US}.md` (draft via `npm run changelog`) and bump the version in **4 test-gated spots** — `package.json`, `docs-site/public/site.js` (`CURRENT_VERSION`), `examples/alipay/package.json`, `examples/wechat/package.json`.
+2. Publish locally (one-time `npm login`): `npm run release` (= `npm run build && npm publish ./dist`). Publish-from-dist — the `dist/` **contents** are the package root; never a bare `npm publish` from the repo root (that ships the old `dist/`-nested layout via `files: ["dist"]`).
+3. Optional: `git tag vX.Y.Z && git push origin vX.Y.Z` for the record — triggers no publish.
+
 ## TypeScript target vs runtime target
 
 `tsconfig.json` is `ES2020` for IDE/typecheck; tsup outputs `target: 'es2018'`. **ES2018 is the floor** — `check:bundle` runs `es-check es2018` against the dist. Don't introduce syntax newer than that in source code that ends up bundled (optional chaining `?.` and nullish coalescing `??` are ES2020 features that es-check 7 accepts when the bundler down-emits them, but anything beyond — e.g. logical assignment, top-level `await` — will fail the gate).

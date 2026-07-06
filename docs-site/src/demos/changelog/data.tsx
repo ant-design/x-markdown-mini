@@ -2,7 +2,7 @@ import { ZH_RELEASES, EN_RELEASES } from './changelog.generated';
 import type { GeneratedRelease } from './changelog.generated';
 
 // Site chrome for the changelog page. The version ENTRIES are the single source
-// of truth in the repo-root CHANGELOG.{zh-CN,en-US}.md, parsed into
+// of truth in changelog/CHANGELOG.{zh-CN,en-US}.md, parsed into
 // changelog.generated.ts by docs-site/scripts/build-changelog.mjs (predev/
 // prebuild). Only the page title / subtitle / chip labels live here.
 export type ChangeType = 'breaking' | 'feature' | 'fix' | 'perf';

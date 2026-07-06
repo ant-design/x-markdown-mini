@@ -1,15 +1,15 @@
 // Lightweight changelog assembler — a slimmed-down take on ant-design/x's
 // print-changelog. Reads merged commits since the last tag (or --from <ref>),
 // pulls each PR's title/author via the `gh` CLI, classifies by conventional
-// prefix, and prints markdown lines ready to paste into CHANGELOG.*.md.
+// prefix, and prints markdown lines ready to paste into changelog/CHANGELOG.*.md.
 //
 // Usage:
 //   node scripts/print-changelog.mjs            # since the latest tag
 //   node scripts/print-changelog.mjs --from v1.0.0
 //   npm run changelog -- --from v1.0.0
 //
-// Titles are English (from the PR); paste into CHANGELOG.en-US.md as-is and
-// translate for CHANGELOG.zh-CN.md. This is a dev aid, not a CI step — it needs
+// Titles are English (from the PR); paste into changelog/CHANGELOG.en-US.md as-is
+// and translate for changelog/CHANGELOG.zh-CN.md. This is a dev aid, not a CI step — it needs
 // an authenticated `gh`; without it, it falls back to raw commit subjects.
 import { execFileSync } from 'node:child_process';
 
@@ -99,6 +99,6 @@ for (const subject of looseSubjects) {
 }
 
 console.log(`\n# Changelog draft — commits in ${range}${hasGh ? '' : ' (no gh: raw subjects)'}\n`);
-console.log('Paste into CHANGELOG.en-US.md, translate for CHANGELOG.zh-CN.md.\n');
+console.log('Paste into changelog/CHANGELOG.en-US.md, translate for changelog/CHANGELOG.zh-CN.md.\n');
 console.log(lines.join('\n'));
 console.log('');

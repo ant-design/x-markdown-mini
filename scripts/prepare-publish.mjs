@@ -74,9 +74,19 @@ if (!existsSync(dist)) {
 
 writeFileSync(join(dist, 'package.json'), JSON.stringify(pub, null, 2) + '\n');
 
-for (const file of ['README.md', 'README.en-US.md', 'LICENSE', 'CHANGELOG.zh-CN.md', 'CHANGELOG.en-US.md']) {
-  const from = join(root, file);
-  if (existsSync(from)) copyFileSync(from, join(dist, file));
+// The changelog files live under changelog/ in the repo but still ship at the
+// published package root (dist root) for npm/GitHub discoverability, so their
+// source path differs from their destination basename.
+const rootFiles = [
+  { from: 'README.md', to: 'README.md' },
+  { from: 'README.en-US.md', to: 'README.en-US.md' },
+  { from: 'LICENSE', to: 'LICENSE' },
+  { from: 'changelog/CHANGELOG.zh-CN.md', to: 'CHANGELOG.zh-CN.md' },
+  { from: 'changelog/CHANGELOG.en-US.md', to: 'CHANGELOG.en-US.md' },
+];
+for (const { from, to } of rootFiles) {
+  const src = join(root, from);
+  if (existsSync(src)) copyFileSync(src, join(dist, to));
 }
 
 console.log(
