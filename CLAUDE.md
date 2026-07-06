@@ -102,9 +102,23 @@ A PR is green only if all of these pass:
 - Bundle: per-file size budgets (raw + gzip), ES2018 syntax via `es-check`, and zero named-group regex literals in the post-patch dist. Budgets in `scripts/check-bundle.mjs` are tuned to ~108 KB raw / ~26 KB gzip for the main library (covers marked + remend + per-instance `Marked` overhead). Bump them together with whatever change moved the size.
 - Bench is **not** a CI gate. The tinybench suite (`npm run bench` / `bench:check` / `bench:compare`) stays available for local perf checks, but comparing absolute hz against a committed baseline proved unreliable on GitHub-hosted runners (throughput varies ~2x run-to-run; per-scenario relative perf differs across arch/node), so it no longer runs in CI.
 
-Two more workflows exist alongside `ci.yml`:
+One more workflow exists alongside `ci.yml`:
 - `.github/workflows/deploy-docs.yml` — on push to `main`, builds the library + `docs-site` (dumi) and force-pushes `docs-site/dist` to the `gh-pages` branch, which serves **x-markdown-mini.ant.design** (CNAME written by the deploy step). Uses `npm install` (not `npm ci`) for docs-site deps because that lockfile has no CI of its own and drifts.
-- `.github/workflows/release.yml` — on a `v*` tag: `npm ci` → `npm run build` → `npm test` → verify the tag matches `dist/package.json` version → `npm publish ./dist --access public --provenance`. This is **publish-from-dist**, consistent with the local `npm run release` (both ship the `dist/` contents as the package root). Cut a release by bumping the version spots + finalizing `CHANGELOG.*.md` in a PR to `main`, then pushing the matching `vX.Y.Z` tag. See `RELEASE.md` for the full flow.
+
+## Releasing
+
+Publishing to npm and refreshing the docs site are **two decoupled triggers**. There is **no tag-triggered CI publish** — npm auth would have to live in a repo secret, so publishing is done **locally**, where you're `npm login`'d.
+
+1. **Release PR → `main`** (this refreshes the docs site, not npm):
+   - Prepend entries to `changelog/CHANGELOG.zh-CN.md` + `changelog/CHANGELOG.en-US.md` (draft via `npm run changelog`). Types: 破坏性/新增/修复/优化 (Breaking/Added/Fixed/Improved). This is the single source the docs-site timeline is generated from.
+   - Bump the version in **4 test-gated spots** (missing one fails `npm test`): `package.json`, `docs-site/public/site.js` (`CURRENT_VERSION`), `examples/alipay/package.json`, `examples/wechat/package.json` (the `@ant-design/x-markdown-mini` dep).
+   - Merge → `deploy-docs.yml` republishes the site (~2–4 min).
+2. **Publish to npm** — local, after a one-time `npm login`:
+   ```bash
+   npm run release   # = npm run build && npm publish ./dist  (publish-from-dist)
+   ```
+   The published package root is the `dist/` **contents** (see the publish-from-dist note above). **Never** run a bare `npm publish` from the repo root — that ships the old `dist/`-nested layout via `files: ["dist"]`.
+3. *(Optional)* tag for the record: `git tag vX.Y.Z && git push origin vX.Y.Z`. This triggers **no** publish; it's just a marker (and the boundary for the next `npm run changelog`).
 
 ## TypeScript target vs runtime target
 
@@ -154,4 +168,4 @@ Every PR opened against this repo (part of the `ant-design/x` family) **must** u
 ```
 
 - Tick the relevant `🤔 This is a ...` box(es) with `- [x]`.
-- **Change Log** rows are developer-facing (Keep a Changelog style) and mirror the entries added to `CHANGELOG.en-US.md` / `CHANGELOG.zh-CN.md`; if the change is not user-facing, write `--` in both rows. Always provide **both** English and Chinese lines.
+- **Change Log** rows are developer-facing (Keep a Changelog style) and mirror the entries added to `changelog/CHANGELOG.en-US.md` / `changelog/CHANGELOG.zh-CN.md`; if the change is not user-facing, write `--` in both rows. Always provide **both** English and Chinese lines.

@@ -8,7 +8,7 @@ Streaming-friendly, lightweight, cross-platform Markdown renderer for mini-progr
 
 [![NPM version][npm-image]][npm-url] [![NPM downloads][download-image]][download-url] [![][bundlephobia-image]][bundlephobia-url] [![antd][antd-image]][antd-url]
 
-[Changelog](./CHANGELOG.en-US.md) · [Report a Bug][github-issues-bug-report] · [Request a Feature][github-issues-feature-request] · English · [中文](./README.md)
+[Changelog](./changelog/CHANGELOG.en-US.md) · [Report a Bug][github-issues-bug-report] · [Request a Feature][github-issues-feature-request] · English · [中文](./README.md)
 
 [npm-image]: https://img.shields.io/npm/v/@ant-design/x-markdown-mini.svg?style=flat-square
 [npm-url]: https://www.npmjs.com/package/@ant-design/x-markdown-mini
