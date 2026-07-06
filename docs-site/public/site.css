@@ -5117,41 +5117,35 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
 }
 .markdown .xmd-cl-change {
   display: grid;
-  grid-template-columns: 68px 1fr;
+  grid-template-columns: 92px 1fr;
   gap: 14px;
   align-items: start;
 }
+/* Uniform emoji-led pill: the leading emoji (see TYPE_EMOJI in
+   ChangelogTimeline.tsx) carries the semantic color, so every type shares one
+   flat chip — no second hue, on-brand with the whiteboard palette. */
 .markdown .xmd-cl-tag {
-  justify-self: start;
-  margin-top: 3px;
-  padding: 1px 8px;
-  min-width: 100%;
+  justify-self: stretch;
+  margin-top: 2px;
+  padding: 2px 9px;
   box-sizing: border-box;
-  border-radius: 5px;
-  font-size: 11px;
+  border-radius: 999px;
+  font-size: 11.5px;
   font-weight: 600;
   line-height: 1.7;
-  letter-spacing: 0.02em;
-  text-align: center;
+  letter-spacing: 0.01em;
   white-space: nowrap;
-}
-.markdown .xmd-cl-tag--breaking {
-  background: var(--xmd-text);
-  color: #ffffff;
-}
-.markdown .xmd-cl-tag--feature {
-  background: var(--xmd-accent-subtle);
-  color: var(--xmd-accent);
-}
-.markdown .xmd-cl-tag--fix {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   background: var(--xmd-bg-muted);
   color: var(--xmd-text-secondary);
   border: 1px solid var(--xmd-border);
 }
-.markdown .xmd-cl-tag--perf {
-  background: transparent;
-  color: var(--xmd-text-tertiary);
-  border: 1px solid var(--xmd-border);
+.markdown .xmd-cl-tag-emoji {
+  font-size: 12.5px;
+  line-height: 1;
 }
 
 .markdown .xmd-cl-text p {
@@ -5189,7 +5183,7 @@ body:not([data-xmd-search-open]) .dumi-default-header.xmd-mini {
     gap: 6px;
   }
   .markdown .xmd-cl-tag {
-    min-width: 0;
+    justify-self: start;
     margin-top: 0;
   }
   .markdown .xmd-cl-date {
