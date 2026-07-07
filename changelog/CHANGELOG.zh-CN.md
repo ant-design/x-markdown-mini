@@ -8,6 +8,16 @@ title: 更新日志
 
 > 官网 `/changelog` 时间轴由本文件生成（`docs-site/scripts/build-changelog.mjs` 解析 `## 版本`／`` `日期` ``／`- **类型**：…` 结构）。发版时在顶部新增一段即可，`npm run changelog` 可辅助从已合并 PR 拼条目。类型取 **破坏性** / **新增** / **修复** / **优化**。
 
+## 1.0.2
+
+`2026-07-07`
+
+- **修复**：支付宝真机上 KaTeX 公式回退成系统字体。真机 `my.loadFontFace` 只认「已加入下载合法域名白名单的 https 网络字体」，包内本地 ttf 路径与 base64 data URI 仅在模拟器生效（此前它们能在本仓库自带 examples 里工作，是因为 examples 把字体同步到了工程根目录）。现改为从白名单 CDN 加载 KaTeX 字体（`mdn.alipayobjects.com`，20 个 ttf）。**使用方需将该字体 CDN 域名加入小程序「下载合法域名」白名单。** 微信仍保留可解析的本地 `miniprogram_npm` ttf（优先）+ 共享 CDN（兜底）。
+- **修复**：流式渲染公式时整页反复闪动。此前 `MiniNodeRenderer` 每收到一个 chunk 都会重新注册字体就绪回调，字体缓存后回调又同步触发，导致整棵渲染树反复「卸载-重挂」。现每个组件实例至多重排一次，且仅在「有公式 + 字体尚未就绪 + 非流式进行中」时触发。
+- **修复**：流式时有序列表序号（如 `1.`）换行。逐字入场动画把 marker 拆成多个 `<text>`，在仅 28rpx 宽的 marker 列里 `1` 和 `.` 分行。marker 现整体渲染为单个 `<text>`，与微信一致。
+- **修复**：尊重 `package.json#exports` 的构建工具（如 Minifish 2.0）无法解析、加载不出 `<markdown>` 组件。新增 `./es/Markdown/index` 与 `./es/MiniNodeRenderer/index` 无扩展名子路径导出映射（Node 的 `*` 通配不会自动补扩展名）。
+- **优化**：移除内联 base64 字体数据模块（`katex-font-data.js`）与支付宝包根 ttf；字体 loader 抽为每个包根仅发一份的 `shared/loadKatexFonts.js`（不再内联进每个组件 wrapper）。包体减小。
+
 ## 1.0.1
 
 `2026-07-05`

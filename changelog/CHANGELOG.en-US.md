@@ -8,6 +8,16 @@ User-facing API, build-output, and behavior changes are tracked here. Migration 
 
 > The site's `/changelog` timeline is generated from this file (`docs-site/scripts/build-changelog.mjs` parses the `## version` / `` `date` `` / `- **type**: …` structure). Add a new block at the top when releasing; `npm run changelog` helps assemble entries from merged PRs. Types are **Breaking** / **Added** / **Fixed** / **Improved**.
 
+## 1.0.2
+
+`2026-07-07`
+
+- **Fixed**: KaTeX formulas fell back to the system font on the Alipay real device. On device `my.loadFontFace` only accepts an https network font whose domain is on the download allowlist; package-local ttf paths and base64 data URIs work only in the simulator (they appeared to work in this repo's own examples only because the examples sync the fonts to the project root). KaTeX fonts now load from a whitelisted CDN (`mdn.alipayobjects.com`, 20 ttf). **Consumers must add the font CDN domain to their mini-program download allowlist.** WeChat keeps its resolvable local `miniprogram_npm` ttf (first) + shared CDN (fallback).
+- **Fixed**: whole-page flicker while streaming formulas. `MiniNodeRenderer` re-registered a font-ready callback on every chunk, and the callback fired synchronously once fonts were cached, unmounting/remounting the entire render tree each chunk. Each component instance now reflows at most once, and only when there is a formula, fonts aren't ready yet, and streaming is not in progress.
+- **Fixed**: ordered-list markers (e.g. `1.`) wrapped across lines while streaming. The per-character entrance animation split the marker into separate `<text>` boxes, so `1` and `.` broke onto different lines inside the 28rpx-wide marker column. Markers now render as a single `<text>`, matching WeChat.
+- **Fixed**: bundlers that honor `package.json#exports` (e.g. Minifish 2.0) couldn't resolve and failed to load the `<markdown>` component. Added `./es/Markdown/index` and `./es/MiniNodeRenderer/index` no-extension subpath export maps (Node's `*` glob does not auto-append extensions).
+- **Improved**: removed the inlined base64 font data module (`katex-font-data.js`) and the Alipay-root ttf; the font loader is now shipped once per package root (`shared/loadKatexFonts.js`) instead of inlined into every component wrapper. Smaller package.
+
 ## 1.0.1
 
 `2026-07-05`
