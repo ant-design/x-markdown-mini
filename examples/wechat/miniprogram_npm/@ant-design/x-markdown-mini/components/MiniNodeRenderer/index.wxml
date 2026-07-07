@@ -13,7 +13,7 @@
       wx:for="{{node.animationSegments}}"
       wx:for-item="segment"
       wx:key="k"
-      class="{{u.classOf(node)}} {{segment.animate ? 'md-anim-char' : ''}}"
+      class="{{u.segClassOf(node)}} {{segment.animate ? 'md-anim-char' : ''}}"
       style="{{segment.style || ''}}"
     >{{segment.value}}</text></text>
   <text
@@ -34,7 +34,7 @@
       wx:for="{{node.animationSegments}}"
       wx:for-item="segment"
       wx:key="k"
-      class="{{u.classOf(node)}} {{segment.animate ? 'md-anim-char' : ''}}"
+      class="{{u.segClassOf(node)}} {{segment.animate ? 'md-anim-char' : ''}}"
       style="{{segment.style || ''}}"
     >{{segment.value}}</text></text>
   <text

@@ -65,6 +65,16 @@ function classOf(node) {
   return cls;
 }
 
+// 逐字/逐段动画拆出的叶子 <text> 用它取类名：把行内代码的「药丸盒」类换成纯字体类，
+// 避免每个片段各自画一颗药丸（中间出现空隙）。盒模型只留在外层容器的 classOf 上。
+function segClassOf(node) {
+  var cls = classOf(node);
+  if (cls.indexOf('md-inline-code') > -1) {
+    cls = cls.replace('md-inline-code', 'md-inline-code-txt');
+  }
+  return cls;
+}
+
 function styleOf(node) { return (node.attrs || {}).style || ''; }
 function srcOf(node)   { return (node.attrs || {}).src || ''; }
 function langOf(node)  { return (node.attrs || {}).lang || ''; }
@@ -99,6 +109,7 @@ module.exports = {
   isRich: isRich,
   isSlot: isSlot,
   classOf: classOf,
+  segClassOf: segClassOf,
   styleOf: styleOf,
   srcOf: srcOf,
   langOf: langOf,
