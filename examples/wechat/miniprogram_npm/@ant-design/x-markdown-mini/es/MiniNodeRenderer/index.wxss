@@ -87,10 +87,18 @@
   text-decoration: underline;
 }
 
-/* 行内代码：留出内外间距，避免药丸贴住前后文字 */
-.md-inline-code {
+/* 行内代码：留出内外间距，避免药丸贴住前后文字。
+   字体（md-inline-code-txt）与药丸盒（背景/内外边距/圆角）拆成两类：
+   流式逐字/逐段动画会把一个行内代码文本节点拆成多个叶子 <text>，若每个叶子都带
+   盒模型就会各自变成一颗药丸、中间出现空隙——所以盒模型只画在外层容器（整段的
+   <text>/<view>），拆出来的字符叶子只带 md-inline-code-txt 字体类（支付宝 <text>
+   不继承 font-family，字体必须留在叶子上）。 */
+.md-inline-code,
+.md-inline-code-txt {
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
   font-size: 26rpx;
+}
+.md-inline-code {
   background: #f3f3f3;
   padding: 2rpx 8rpx;
   margin: 0 4rpx;

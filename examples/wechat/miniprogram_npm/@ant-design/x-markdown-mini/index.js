@@ -69,6 +69,30 @@ __export(src_exports, {
 });
 module.exports = __toCommonJS(src_exports);
 
+// src/polyfills.ts
+function at(index) {
+  const len = this.length;
+  let relative = Math.trunc(index) || 0;
+  if (relative < 0) relative += len;
+  return relative < 0 || relative >= len ? void 0 : this[relative];
+}
+if (!Array.prototype.at) {
+  Object.defineProperty(Array.prototype, "at", {
+    value: at,
+    writable: true,
+    configurable: true,
+    enumerable: false
+  });
+}
+if (!String.prototype.at) {
+  Object.defineProperty(String.prototype, "at", {
+    value: at,
+    writable: true,
+    configurable: true,
+    enumerable: false
+  });
+}
+
 // node_modules/.pnpm/marked@18.0.5/node_modules/marked/lib/marked.esm.js
 function M() {
   return { async: false, breaks: false, extensions: null, gfm: true, hooks: null, pedantic: false, renderer: null, silent: false, tokenizer: null, walkTokens: null };
@@ -1637,6 +1661,10 @@ function blockTok(tok, adapter, animate, enc, ctx) {
     }
     case "table": {
       const t = tok;
+      const custom = renderCustomToken(tok, ctx);
+      if (custom.length) {
+        return custom.length === 1 ? custom[0] : block("div", custom, animate, adapter, tok);
+      }
       if (!supports(adapter, "supportsTable")) {
         const rows = [
           (_l = t.header) != null ? _l : [],

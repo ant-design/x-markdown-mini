@@ -48,6 +48,10 @@ function getTableShadowState(scrollLeft, scrollWidth, viewportWidth) {
 
 // src/components/wechat/MiniNodeRenderer/index.ts
 var import_flattenInline = require("../../shared/flattenInline.js");
+var import_loadKatexFonts = require("../../shared/loadKatexFonts.js");
+function hasKatexNodes(nodes) {
+  return !!nodes && nodes.some((node) => !!node && (String((node.attrs || {}).class || "").indexOf("katex") > -1 || hasKatexNodes(node.children)));
+}
 function copyToClipboard(text) {
   if (!text) return;
   wx.setClipboardData({
@@ -82,13 +86,15 @@ Component({
   _tableMeasureTimer: null,
   _mounted: false,
   observers: {
-    nodes() {
+    nodes(nodes) {
+      if (hasKatexNodes(nodes)) (0, import_loadKatexFonts.ensureKatexFonts)();
       this._scheduleTableMeasure();
     }
   },
   lifetimes: {
     attached() {
       this._mounted = true;
+      if (hasKatexNodes(this.data.nodes)) (0, import_loadKatexFonts.ensureKatexFonts)();
       this._scheduleTableMeasure();
     },
     detached() {

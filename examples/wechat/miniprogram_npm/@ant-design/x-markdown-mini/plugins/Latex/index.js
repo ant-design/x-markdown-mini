@@ -14783,6 +14783,18 @@ function blockKatexTokenizer(src) {
     displayMode: true
   };
 }
+function blockStart(src) {
+  let from = 0;
+  while (from <= src.length) {
+    const dollar = src.indexOf("$", from);
+    const bracket = src.indexOf("\\[", from);
+    if (dollar === -1 && bracket === -1) return void 0;
+    const index = Math.min(dollar === -1 ? Infinity : dollar, bracket === -1 ? Infinity : bracket);
+    if (blockRule.test(src.slice(index))) return index;
+    from = index + 1;
+  }
+  return void 0;
+}
 function inlineStart(src) {
   const dollarIndex = src.indexOf("$");
   const parenIndex = src.indexOf("\\(");
@@ -14846,6 +14858,7 @@ function Latex(options = {}) {
       {
         name: "blockKatex",
         level: "block",
+        start: blockStart,
         tokenizer: blockKatexTokenizer,
         miniRenderer: (token) => renderKatex(token.text, true, options)
       }
