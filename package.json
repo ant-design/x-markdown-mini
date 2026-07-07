@@ -12,6 +12,8 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
+    "./es/Markdown/index": "./dist/es/Markdown/index.js",
+    "./es/MiniNodeRenderer/index": "./dist/es/MiniNodeRenderer/index.js",
     "./es/*": "./dist/es/*",
     "./shared/*": "./dist/shared/*",
     "./components/*": "./dist/components/*",

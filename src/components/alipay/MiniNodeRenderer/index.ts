@@ -2,7 +2,11 @@ export {};
 
 import { getTableShadowState } from '../../shared/tableScroll.js';
 import { resolveLinkHref } from '../../shared/flattenInline.js';
-import { loadKatexFonts } from '../../shared/loadKatexFonts.js';
+import {
+  areKatexFontsReady,
+  ensureKatexFonts,
+  onKatexFontsReady,
+} from '../../shared/loadKatexFonts.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
 declare const my: any;
@@ -56,18 +60,22 @@ Component({
   cw: {} as Record<string, number>,
   timer: null as ReturnType<typeof setTimeout> | null,
   mounted: false,
+  // 每实例最多重排一次；animation 近似「流式进行中」，用于 C1：流式期间不显式重排，空闲态补一次。
+  _katexReflowed: false,
+  _katexReflowArmed: false,
+  _isStreaming: false,
   didMount(this: any) {
     this.mounted = true;
-    if (hk(this.props.nodes)) loadKatexFonts(() => {
-      if (this.mounted) this._katexFontReflow();
-    });
+    this._isStreaming = !!this.props.animation;
+    if (hk(this.props.nodes)) ensureKatexFonts();
+    this._maybeKatexReflow();
     this._scheduleMeasure();
   },
   didUpdate(this: any, prevProps: MiniNodeRendererProps) {
     if (prevProps.nodes !== this.props.nodes) {
-      if (hk(this.props.nodes)) loadKatexFonts(() => {
-        if (this.mounted) this._katexFontReflow();
-      });
+      this._isStreaming = !!this.props.animation;
+      if (hk(this.props.nodes)) ensureKatexFonts();
+      this._maybeKatexReflow();
       this._scheduleMeasure();
     }
   },
@@ -77,6 +85,21 @@ Component({
     this.timer = null;
   },
   methods: {
+    // 每实例至多重排一次：无公式 / 字体已就绪 / 流式进行中，均跳过——消除「每个 chunk 全页闪」。
+    _maybeKatexReflow(this: any) {
+      if (this._katexReflowed || this._katexReflowArmed) return;
+      if (!hk(this.props.nodes)) return;
+      if (areKatexFontsReady()) { this._katexReflowed = true; return; }
+      if (this._isStreaming) return;
+      this._katexReflowArmed = true;
+      onKatexFontsReady(() => {
+        this._katexReflowArmed = false;
+        if (!this.mounted || this._katexReflowed || this._isStreaming) return;
+        this._katexReflowed = true;
+        this._katexFontReflow();
+      });
+    },
+
     // 字体就绪后强制重排：卸载再重挂节点子树，让公式 <text> 用已注册的字体重绘。
     _katexFontReflow(this: any) {
       if (!this.mounted) return;

@@ -26,6 +26,12 @@ const externalRuntimePlugin = {
       path: '../../shared/flattenInline.js',
       external: true,
     }));
+    // loadKatexFonts 现含 20 条 CDN 映射 + 全部字面 + 就绪 API，体量已不小；像 flattenInline
+    // 一样 external 成每个包根一份的 shared 模块，避免内联进 4×2 个组件 wrapper 造成体积膨胀。
+    build.onResolve({ filter: /^\.\.\/\.\.\/shared\/loadKatexFonts\.js$/ }, () => ({
+      path: '../../shared/loadKatexFonts.js',
+      external: true,
+    }));
     // 组件内部按需 require 插件（CodeHighlight / Latex），把 KaTeX/highlight.js 留在
     // 各自的 plugin bundle 里，绝不打进组件 wrapper。源码写 `../../../plugins/<N>/index.js`
     // （src 里 3 上能解析到 src/plugins/<N>）；输出端组件在 dist/{es,components}/<Comp>/，
@@ -75,7 +81,12 @@ export default defineConfig([
   },
   // 2) shared helpers（仅主 dist；miniprogram_dist 副本由 copy-miniprogram-dist.mjs 生成）
   {
-    entry: { 'shared/flattenInline': 'src/components/shared/flattenInline.ts' },
+    entry: {
+      'shared/flattenInline': 'src/components/shared/flattenInline.ts',
+      // loadKatexFonts external 成独立 shared 模块（见 externalRuntimePlugin），组件 wrapper
+      // 只 require 它、不内联——净减每个组件包体，且加到 WeChat MiniNodeRenderer 也几乎零成本。
+      'shared/loadKatexFonts': 'src/components/shared/loadKatexFonts.ts',
+    },
     outDir: 'dist',
     format: ['cjs'],
     // Bundle the text-animation re-exports into this single published helper;

@@ -2,9 +2,18 @@ export {};
 
 import { getTableShadowState } from '../../shared/tableScroll.js';
 import { resolveLinkHref } from '../../shared/flattenInline.js';
+import { ensureKatexFonts } from '../../shared/loadKatexFonts.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
 declare const wx: any;
+
+// JS 接入页直接用 <mini-node-renderer>（不经 <Markdown>），KaTeX rich-text 靠全局 loadFontFace
+// 解析字形，故字体注册必须也在这里触发——否则微信 JS 接入的公式会整片回退系统字体。
+function hasKatexNodes(nodes: any[] | undefined): boolean {
+  return !!nodes && nodes.some((node: any) =>
+    !!node && (String((node.attrs || {}).class || '').indexOf('katex') > -1 ||
+    hasKatexNodes(node.children)));
+}
 
 function copyToClipboard(text: string): void {
   if (!text) return;
@@ -41,13 +50,15 @@ Component({
   _tableMeasureTimer: null as ReturnType<typeof setTimeout> | null,
   _mounted: false,
   observers: {
-    nodes(this: any) {
+    nodes(this: any, nodes: any[]) {
+      if (hasKatexNodes(nodes)) ensureKatexFonts();
       this._scheduleTableMeasure();
     },
   },
   lifetimes: {
     attached(this: any) {
       this._mounted = true;
+      if (hasKatexNodes(this.data.nodes)) ensureKatexFonts();
       this._scheduleTableMeasure();
     },
     detached(this: any) {

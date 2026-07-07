@@ -1,50 +1,69 @@
-// KaTeX 字体的「真机」注册（2026-06-29，经支付宝真机字体自检探针多轮实证）。
+// KaTeX 字体的「真机」注册（2026-07 修订，经支付宝真机字体自检探针 + Minifish 消费侧实证）。
 //
-// 真机硬结论：
-//  1. CSS `@font-face`（base64 / CDN / 任意作用域）在「未配下载合法域名白名单」的 appId 上一律
-//     不生效——CSS 字体的网络下载受 downloadFile/request 合法域名白名单管控；模拟器不校验，故只在
-//     模拟器生效。（markdown-x-mini 用 CSS @font-face + CDN 能真机生效，是因为它是已上线应用、配了
-//     字体 CDN 的合法域名。）
-//  2. JS API `loadFontFace` 在真机预览下会对 woff 返回 loaded，但在当前支付宝真机渲染引擎里
-//     不参与 <text> 排版；ttf 才是可实际应用到文本的格式。用包内本地 ttf 可避免网络白名单
-//     和 CDN 到达后不自动重排的问题。
-//  3. 支付宝真机 `loadFontFace` 同名 family 只认首个字面，故每字面注册成「唯一 family」（alipayFamily），
+// 真机硬结论（最新）：
+//  1. 支付宝真机 `my.loadFontFace` 只认「已加白名单的 https 网络字体（需 CORS）」——包内本地
+//     路径（`/katex-fonts/*.ttf`）与 `data:` base64 URI 都只在模拟器 webview 生效，真机一律失败。
+//     早期 beta 观察到「本地 ttf 真机可用」，实为 x-markdown-mini 自带 examples 把 dist/katex-fonts
+//     同步到工程根、`/katex-fonts` 恰好可解析；真实消费方（如 Minifish 2.0）的打包产物不暴露该
+//     路径，本地 source 全失败 → 字形回退系统字（PingFang SC）。因此支付宝改走「可靠 CDN ttf 优先」。
+//  2. 字体 CDN 必须开启 CORS（`Access-Control-Allow-Origin: *` 或 `${appId}.hybrid.alipay-eco.com`），
+//     且消费方要把 CDN 域名加进小程序「下载合法域名白名单」。这里用 mdn.alipayobjects.com 托管的
+//     20 个 KaTeX ttf（逐字节校验、200 + CORS `*`），afts 每文件独立 ID、无公共 base，故用映射表。
+//  3. 支付宝 `loadFontFace` 同名 family 只认首个字面，故每字面注册成「唯一 family」（alipayFamily），
 //     CSS 端（plugins/Latex/style.acss 的 .kxf-* 单类规则 + plugins/Latex/index.ts 把 kxf-* 类下沉到
 //     字形 <text>）据此赋字体——绕开「同名多字面」「跨组件后代选择器」「view→text 继承」三个真机坑。
 //
-// 所以支付宝走「应用根目录本地 ttf + 唯一 family」优先；inline / HTTPS / 包内 node_modules ttf
-// 只作兼容兜底。beta.11 证明包内 node_modules 字体 URL 不可靠；beta.12 证明公开 CDN 在真机环境
-// 仍会受域名/下载策略影响；beta.13 进一步暴露了一个更麻烦的点：某些 source 会回调 success，
-// 但字体仍不实际参与 <text> 排版，导致后续真正可用的本地 source 被短路。因此支付宝必须把已由
-// 真机探针验证过的 `/katex-fonts/*.ttf` 放在第一位。微信仍优先走包内 ttf，失败时保留 CDN woff
-// 兜底。`onReady` 在全部字面加载完成后回调一次，供组件强制重排（兜底，即便本地几乎即时，
-// 也确保已渲染的公式在字体就绪后重新绘制）。
+// 微信与支付宝不同：KaTeX 经单个 <rich-text> 渲染（webview），字体由 loadFontFace 全局注册后内部
+// 解析。微信的本地 ttf 位于 `/miniprogram_npm/@ant-design/x-markdown-mini/katex-fonts`——这是 构建npm
+// 真实产出的可解析运行时路径（不受支付宝那类打包限制），故微信保留「本地 ttf 优先 + 共享 CDN 兜底」。
+//
+// onKatexFontsReady 至多回调一次、且仅当注册时字体尚未就绪：这样流式每个 chunk 不再触发「卸载-重挂」
+// 强制重排，消除整页反复闪；字体已缓存（二次渲染）时直接跳过，零重绘。
 //
 // 检测沿用 `typeof my` / `typeof wx`（而非 globalThis），与 src/platforms/index.ts 一致：旧版支付宝
 // 基础库没有 globalThis，而 typeof 对未声明标识符不抛错。
 declare const my: any;
 declare const wx: any;
-declare const require: any;
 
-// 支付宝真机用 CDN ttf 作为首选：woff 会回调 loaded 但不参与 <text> 排版；ttf 才实际生效。
-// 微信保留原 CDN woff 兜底，避免改变既有可用路径。
-const CDN = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts';
 const PACKAGE_NAME = '@ant-design/x-markdown-mini';
-const ALIPAY_LOCAL_BASES = [
-  '/katex-fonts',
-  '/node_modules/' + PACKAGE_NAME + '/dist/katex-fonts',
-  '/node_modules/' + PACKAGE_NAME + '/katex-fonts',
-];
+
+// 微信本地 ttf 兜底路径（构建npm 会把包内 katex-fonts 落到 miniprogram_npm 下，真机可解析）。
 const WECHAT_LOCAL_BASES = [
   '/miniprogram_npm/' + PACKAGE_NAME + '/dist/miniprogram_dist/katex-fonts',
   '/miniprogram_npm/' + PACKAGE_NAME + '/katex-fonts',
   '/katex-fonts',
 ];
 
+// 公式字体 CDN（20 个 KaTeX ttf，mdn.alipayobjects.com 托管：已验证 200 + CORS `*` + 与源逐字节一致）。
+// key = FACES 里的 alipayFile（ttf 文件名）。afts 每文件独立 ID，无公共 base，不能拼 base + '/' + file。
+// ⚠️ 升级 KaTeX 字体版本时需重新上传并刷新整张表；建议 CI 对每个 URL 做 HEAD 断言 200 + CORS。
+export const KATEX_FONT_CDN: Record<string, string> = {
+  'KaTeX_Main-Regular.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/L-a2RqXz_KQAAAAAQ0AAAAgADlJoAQFr/KaTeX_Main-Regular.ttf',
+  'KaTeX_Math-Italic.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/vG_gSZcjJTcAAAAAQfAAAAgADlJoAQFr/KaTeX_Math-Italic.ttf',
+  'KaTeX_Main-Bold.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/yYAFSbELpiIAAAAAQyAAAAgADlJoAQFr/KaTeX_Main-Bold.ttf',
+  'KaTeX_Main-Italic.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/6vKqS7mpABUAAAAAQhAAAAgADlJoAQFr/KaTeX_Main-Italic.ttf',
+  'KaTeX_Math-BoldItalic.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/fugLS4TQ_TIAAAAAQeAAAAgADlJoAQFr/KaTeX_Math-BoldItalic.ttf',
+  'KaTeX_Main-BoldItalic.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/XgjrS7wWTbAAAAAAQgAAAAgADlJoAQFr/KaTeX_Main-BoldItalic.ttf',
+  'KaTeX_Size1-Regular.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/8TDlSpILzAkAAAAAQMAAAAgADlJoAQFr/KaTeX_Size1-Regular.ttf',
+  'KaTeX_Size2-Regular.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/Z4PkT68y0dUAAAAAQLAAAAgADlJoAQFr/KaTeX_Size2-Regular.ttf',
+  'KaTeX_Size3-Regular.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/7gtaRYkVdFQAAAAAQHAAAAgADlJoAQFr/KaTeX_Size3-Regular.ttf',
+  'KaTeX_Size4-Regular.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/aW8uRJzwokwAAAAAQKAAAAgADlJoAQFr/KaTeX_Size4-Regular.ttf',
+  'KaTeX_AMS-Regular.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/Wt0vQKdiQoIAAAAAQ-AAAAgADlJoAQFr/KaTeX_AMS-Regular.ttf',
+  'KaTeX_SansSerif-Regular.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/ZLV_TIlyACIAAAAAQTAAAAgADlJoAQFr/KaTeX_SansSerif-Regular.ttf',
+  'KaTeX_SansSerif-Bold.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/ra9YQp9FKE8AAAAAQYAAAAgADlJoAQFr/KaTeX_SansSerif-Bold.ttf',
+  'KaTeX_SansSerif-Italic.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/CpvzTqKXKZ8AAAAAQWAAAAgADlJoAQFr/KaTeX_SansSerif-Italic.ttf',
+  'KaTeX_Caligraphic-Regular.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/tZ8fTYt9JKsAAAAAQMAAAAgADlJoAQFr/KaTeX_Caligraphic-Regular.ttf',
+  'KaTeX_Caligraphic-Bold.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/k9MMRZaHkWUAAAAAQMAAAAgADlJoAQFr/KaTeX_Caligraphic-Bold.ttf',
+  'KaTeX_Fraktur-Regular.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/4htAQpf8VrQAAAAAQTAAAAgADlJoAQFr/KaTeX_Fraktur-Regular.ttf',
+  'KaTeX_Fraktur-Bold.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/fCFXTrrddScAAAAAQTAAAAgADlJoAQFr/KaTeX_Fraktur-Bold.ttf',
+  'KaTeX_Script-Regular.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/NH6oSrgkGvMAAAAAQQAAAAgADlJoAQFr/KaTeX_Script-Regular.ttf',
+  'KaTeX_Typewriter-Regular.ttf': 'https://mdn.alipayobjects.com/huamei_yz9z7c/afts/file/qoBkQ6SH5IIAAAAAQbAAAAgADlJoAQFr/KaTeX_Typewriter-Regular.ttf',
+};
+
 interface KatexFace {
   file: string;
   alipayFile: string;
-  /** 原始 KaTeX family 名（WeChat 用：rich-text + style.wxss 按 family+style/weight 选字面）。 */
+  /** 原始 KaTeX family 名（WeChat 用：rich-text + loadFontFace 按 family+style/weight 选字面）。 */
   family: string;
   weight: 'normal' | 'bold';
   style: 'normal' | 'italic';
@@ -80,10 +99,9 @@ const FACES: KatexFace[] = [
 // 进程内只注册一次：同一页面多个组件实例不重复发起 loadFontFace。
 let started = false;
 let ready = false;
-// 字体加载可能由 <Markdown> 在节点渲染前触发，也可能由底层 <MiniNodeRenderer> 在拿到
-// KaTeX 节点后触发。必须保留全部等待者；只记第一个回调会让真机错过重排，停在系统字体。
+// 字体加载可能由 <Markdown> 在节点渲染前触发，也可能由底层 <MiniNodeRenderer> 在拿到 KaTeX 节点
+// 后触发。保留全部等待者；全部字面加载完成后一次性 flush，之后新调用直接跳过（见 onKatexFontsReady）。
 let readyCallbacks: (() => void)[] = [];
-let inlineFontData: Record<string, string> | null | undefined;
 
 function callSafe(cb: (() => void) | null | undefined): void {
   if (!cb) return;
@@ -99,49 +117,25 @@ function debugKatexFonts(): boolean {
 }
 
 function sourceKind(source: string): string {
-  if (source.indexOf('data:font/ttf') > -1) return 'inline-ttf';
-  if (source.indexOf('cdn.jsdelivr.net') > -1) return 'cdn';
-  if (source.indexOf('/node_modules/') > -1) return 'node_modules';
+  if (source.indexOf('mdn.alipayobjects.com') > -1) return 'cdn';
+  if (source.indexOf('/miniprogram_npm/') > -1) return 'miniprogram_npm';
   if (source.indexOf('/katex-fonts/') > -1) return 'root';
   return 'unknown';
 }
 
-function loadInlineFontData(): Record<string, string> | null {
-  if (inlineFontData !== undefined) return inlineFontData;
-  try {
-    // This file is generated into dist/katex-font-data.js and dist/miniprogram_dist/katex-font-data.js.
-    // Keep require indirect so the bundler does not try to resolve it from src/.
-    const req = require;
-    const mod = req('../../katex-font-data.js');
-    inlineFontData = (mod && (mod.default || mod)) || null;
-  } catch (e) {
-    inlineFontData = null;
-  }
-  if (debugKatexFonts()) {
-    console.log('[xmd:katex-font-data]', {
-      ok: !!inlineFontData,
-      count: inlineFontData ? Object.keys(inlineFontData).length : 0,
-    });
-  }
-  return inlineFontData;
-}
-
 function sourcesForFace(f: KatexFace, isAlipay: boolean): string[] {
-  const localBases = isAlipay ? ALIPAY_LOCAL_BASES : WECHAT_LOCAL_BASES;
   const sources: string[] = [];
+  const cdn = KATEX_FONT_CDN[f.alipayFile];
   if (isAlipay) {
-    for (let i = 0; i < localBases.length; i++) {
-      sources.push('url("' + localBases[i] + '/' + f.alipayFile + '")');
-    }
-    const data = loadInlineFontData();
-    if (data && data[f.alipayFile]) sources.push('url("' + data[f.alipayFile] + '")');
-    sources.push('url("' + CDN + '/' + f.alipayFile + '")');
+    // 支付宝真机唯一可用：白名单 https CDN ttf。本地/base64 只在模拟器生效，已移除。
+    if (cdn) sources.push('url("' + cdn + '")');
     return sources;
   }
-  for (let i = 0; i < localBases.length; i++) {
-    sources.push('url("' + localBases[i] + '/' + f.alipayFile + '")');
+  // 微信：本地 miniprogram_npm ttf 优先（真机可解析、无需域名白名单），共享 CDN 作兜底。
+  for (let i = 0; i < WECHAT_LOCAL_BASES.length; i++) {
+    sources.push('url("' + WECHAT_LOCAL_BASES[i] + '/' + f.alipayFile + '")');
   }
-  if (!isAlipay) sources.push('url("' + CDN + '/' + f.file + '")');
+  if (cdn) sources.push('url("' + cdn + '")');
   return sources;
 }
 
@@ -181,55 +175,74 @@ function loadFace(api: any, opts: { family: string; desc: { style: string; weigh
   tryNext();
 }
 
-/**
- * 把 KaTeX 字体以 global 作用域注册到当前小程序运行时。仅在开启 latex / 出现 katex 时调用。
- * 失败静默降级——.kxf-* 的 font-family 链里有 "PingFang SC" 等系统兜底字体。
- *
- * @param onReady 全部字面加载完成后回调一次（已就绪时同步回调）。组件用它强制重排，确保已渲染
- *                的公式在字体到位后重新绘制。无 loadFontFace 的环境（浏览器/docs）立即回调。
- */
-export function loadKatexFonts(onReady?: () => void): void {
+function resolveApi(): { api: any; isAlipay: boolean } | null {
   // 支付宝真机缺 globalThis，故用 typeof 直接探测 my / wx。
-  const isAlipay = typeof my !== 'undefined' && typeof my.loadFontFace === 'function';
-  const api: any = isAlipay
-    ? my
-    : typeof wx !== 'undefined' && typeof wx.loadFontFace === 'function'
-      ? wx
-      : null;
-  // 浏览器/无 loadFontFace：字体由 CSS 处理，直接回调让组件正常渲染。
-  if (!api) {
-    callSafe(onReady);
-    return;
+  if (typeof my !== 'undefined' && typeof my.loadFontFace === 'function') {
+    return { api: my, isAlipay: true };
   }
-  if (ready) {
-    callSafe(onReady);
-    return;
+  if (typeof wx !== 'undefined' && typeof wx.loadFontFace === 'function') {
+    return { api: wx, isAlipay: false };
   }
-  if (onReady) readyCallbacks.push(onReady);
-  if (started) return;
-  started = true;
+  return null;
+}
 
+function flushReadyCallbacks(): void {
+  const callbacks = readyCallbacks;
+  readyCallbacks = [];
+  for (let i = 0; i < callbacks.length; i++) callSafe(callbacks[i]);
+}
+
+function startLoading(api: any, isAlipay: boolean): void {
   let done = 0;
   const total = FACES.length;
   const tick = (): void => {
     done++;
     if (done >= total && !ready) {
       ready = true;
-      const callbacks = readyCallbacks;
-      readyCallbacks = [];
-      for (let i = 0; i < callbacks.length; i++) callSafe(callbacks[i]);
+      flushReadyCallbacks();
     }
   };
-
   for (let i = 0; i < FACES.length; i++) {
     const f = FACES[i];
     loadFace(api, {
       // 支付宝：唯一 family + 统一 normal/normal（CSS 的 .kxf-* 也请求 normal/normal，确定性命中，
       // 斜/粗由字体文件本身提供）；微信：原始 family + 真实 style/weight（rich-text 内部按此选字面）。
       family: isAlipay ? f.alipayFamily : f.family,
-      // 包内本地 ttf 零网络、零白名单；微信保留 CDN woff 兜底。
       sources: sourcesForFace(f, isAlipay),
       desc: isAlipay ? { style: 'normal', weight: 'normal' } : { style: f.style, weight: f.weight },
     }, tick);
   }
+}
+
+/** 字体是否已全部就绪。组件用它判断首屏是否已正确、是否需要重排。 */
+export function areKatexFontsReady(): boolean {
+  return ready;
+}
+
+/**
+ * 确保 KaTeX 字体以 global 作用域注册（幂等，进程内只发起一次）。仅在开启 latex / 出现 katex 时调用。
+ * 失败静默降级——.kxf-* 的 font-family 链里有 "PingFang SC" 等系统兜底字体。
+ * 无 loadFontFace 的环境（浏览器/docs）直接置就绪，字体由 CSS 处理。
+ */
+export function ensureKatexFonts(): void {
+  if (ready || started) return;
+  const resolved = resolveApi();
+  if (!resolved) {
+    // 浏览器/无 loadFontFace：字体由 CSS 处理，直接置就绪并回调既有等待者。
+    ready = true;
+    flushReadyCallbacks();
+    return;
+  }
+  started = true;
+  startLoading(resolved.api, resolved.isAlipay);
+}
+
+/**
+ * 注册「字体就绪」回调：至多回调一次，且仅当注册时字体尚未就绪（确有重绘必要）。已就绪则直接返回、
+ * 不回调、不重绘——这样流式每个 chunk 不再触发强制重排，字体已缓存的二次渲染也零重绘。
+ */
+export function onKatexFontsReady(cb: () => void): void {
+  ensureKatexFonts();
+  if (ready) return;
+  readyCallbacks.push(cb);
 }

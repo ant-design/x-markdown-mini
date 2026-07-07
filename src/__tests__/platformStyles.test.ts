@@ -21,10 +21,10 @@ describe('platform presentation consistency', () => {
   });
 
   it('assigns Alipay KaTeX fonts via single-class kxf-* rules + unique families', () => {
-    // 真机根因：(1) loadFontFace 同名 family 只认首字面 → 每字面唯一 family；(2) woff 虽回调
-    // loaded 但不参与 <text> 排版，支付宝 runtime 必须加载 ttf；(3) KaTeX 经嵌套
-    // <mini-node-renderer> 渲染，跨组件边界的后代选择器 / view→text 继承都不可靠 → 字体意图由
-    // plugins/Latex/index.ts 下沉成 kxf-* 类盖到字形 <text>，再用单类选择器赋字体（命中 text 自身）。
+    // 真机根因：(1) loadFontFace 同名 family 只认首字面 → 每字面唯一 family；(2) 本地路径 / base64
+    // data URI 只在模拟器生效，真机只认白名单 https CDN ttf；(3) KaTeX 经嵌套 <mini-node-renderer>
+    // 渲染，跨组件边界的后代选择器 / view→text 继承都不可靠 → 字体意图由 plugins/Latex/index.ts
+    // 下沉成 kxf-* 类盖到字形 <text>，再用单类选择器赋字体（命中 text 自身）。
     const acss = source('../plugins/Latex/style.acss');
     const loader = source('../components/shared/loadKatexFonts.ts');
     // 必须是「单类」选择器（.kxf-x {），不能是会跨组件边界失效的后代选择器（.katex … text）。
@@ -48,18 +48,18 @@ describe('platform presentation consistency', () => {
     }
     expect(loader).toContain("alipayFile: 'KaTeX_Main-Regular.ttf'");
     expect(loader).toContain("alipayFile: 'KaTeX_Math-Italic.ttf'");
-    expect(loader).toMatch(/const ALIPAY_LOCAL_BASES = \[\s*'\/katex-fonts'/);
-    expect(loader).toMatch(/if \(isAlipay\) \{\s*for \(let i = 0; i < localBases\.length; i\+\+\)/);
-    expect(loader).toContain('function loadInlineFontData()');
-    expect(loader).toContain("req('../../katex-font-data.js')");
-    expect(loader).toContain("data && data[f.alipayFile]");
-    expect(loader).toContain('if (isAlipay) {');
-    expect(loader).toContain("CDN + '/' + f.alipayFile");
-    expect(loader).toContain("'/node_modules/' + PACKAGE_NAME + '/dist/katex-fonts'");
-    expect(loader).toContain("'/node_modules/' + PACKAGE_NAME + '/katex-fonts'");
-    expect(loader).toContain("'/miniprogram_npm/' + PACKAGE_NAME + '/dist/miniprogram_dist/katex-fonts'");
+    // 支付宝走白名单 CDN ttf：映射表覆盖每个 alipayFile，且真机分支只 push CDN url（无本地/base64）。
+    expect(loader).toContain('export const KATEX_FONT_CDN');
+    expect(loader).toContain("'KaTeX_Main-Regular.ttf': 'https://mdn.alipayobjects.com");
+    expect(loader).toContain("'KaTeX_Size4-Regular.ttf': 'https://mdn.alipayobjects.com");
+    expect(loader).toMatch(/if \(isAlipay\) \{\s*[\s\S]*?if \(cdn\) sources\.push\('url\("' \+ cdn \+ '"\)'\);\s*return sources;/);
+    // 真机不再依赖包内本地路径 / base64 data URI（模拟器专属，已移除）。
+    expect(loader).not.toContain('ALIPAY_LOCAL_BASES');
+    expect(loader).not.toContain('loadInlineFontData');
+    expect(loader).not.toContain('katex-font-data.js');
+    expect(loader).not.toContain('/node_modules/');
+    // 微信仍保留可解析的本地 miniprogram_npm ttf（构建npm 真实产出）作 CDN 之外的兜底。
     expect(loader).toContain("'/miniprogram_npm/' + PACKAGE_NAME + '/katex-fonts'");
-    expect(loader).toMatch(/sources\.push\('url\("' \+ localBases\[i\] \+ '\/' \+ f\.alipayFile \+ '"\)'\);/);
   });
 
   it('keeps Alipay typewriter text classes on the real text leaf', () => {
@@ -74,21 +74,29 @@ describe('platform presentation consistency', () => {
     expect(axml).toContain('style="{{u.styleOf(c)}}"');
   });
 
-  it('keeps all KaTeX font-ready callbacks until fonts finish loading', () => {
+  it('notifies font-ready at most once and only when not-yet-ready', () => {
     // <Markdown> may start font loading before nodes exist; <MiniNodeRenderer> registers
-    // after it receives KaTeX nodes. Real devices need both callbacks preserved so a
-    // late renderer can still force a redraw after loadFontFace completes.
+    // after it receives KaTeX nodes. onKatexFontsReady queues waiters until loadFontFace
+    // completes, flushes them ONCE, and — critically — does NOT fire when already ready.
+    // 后者是消除「流式每个 chunk 全页闪」的关键：已就绪的调用方不再触发强制重排。
     const loader = source('../components/shared/loadKatexFonts.ts');
+    expect(loader).toContain('export function areKatexFontsReady()');
+    expect(loader).toContain('export function ensureKatexFonts()');
+    expect(loader).toContain('export function onKatexFontsReady(');
     expect(loader).toContain('readyCallbacks');
-    expect(loader).toMatch(/if \(onReady\) readyCallbacks\.push\(onReady\);/);
-    expect(loader).toMatch(/if \(ready\) \{\s*callSafe\(onReady\);/s);
+    // 只在尚未就绪时入队；已就绪直接 return（不回调、不重绘）。
+    expect(loader).toMatch(/if \(ready\) return;\s*readyCallbacks\.push\(cb\);/s);
+    // 全部字面完成后一次性 flush。
     expect(loader).toMatch(/for \(let i = 0; i < callbacks\.length; i\+\+\) callSafe\(callbacks\[i\]\);/);
   });
 
-  it('build script emits inline ttf font data modules for package roots', () => {
+  it('build script publishes WeChat-only ttf and no base64 data module', () => {
+    // 支付宝真机走 CDN ttf，包内本地 ttf / base64 data URI 均不生效 → 不再向 Alipay 包根发 ttf、
+    // 不再生成 katex-font-data.js。微信的 miniprogram_dist 仍发布本地 ttf 作 CDN 之外的兜底。
     const buildScript = source('../../scripts/copy-component-assets.mjs');
-    expect(buildScript).toContain('writeKatexTtfDataModule(distRoot)');
-    expect(buildScript).toContain('writeKatexTtfDataModule(distMpRoot)');
-    expect(buildScript).toContain('data:font/ttf;base64,');
+    expect(buildScript).toContain('copyKatexTtfFonts(distMpRoot)');
+    expect(buildScript).not.toContain('copyKatexTtfFonts(distRoot)');
+    expect(buildScript).not.toContain('writeKatexTtfDataModule');
+    expect(buildScript).not.toContain('data:font/ttf;base64,');
   });
 });

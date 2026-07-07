@@ -6,7 +6,11 @@ import type {
   MarkedExtension,
 } from '../../../index.js';
 import { flattenInlineNodes } from '../../shared/flattenInline.js';
-import { loadKatexFonts } from '../../shared/loadKatexFonts.js';
+import {
+  areKatexFontsReady,
+  ensureKatexFonts,
+  onKatexFontsReady,
+} from '../../shared/loadKatexFonts.js';
 
 declare const Component: (opts: Record<string, unknown>) => void;
 // 运行时按需加载插件：插件扩展带 tokenizer/miniRenderer 等函数，无法通过属性绑定/
@@ -70,6 +74,13 @@ function sameList(a: string[] | null, b: string[] | null): boolean {
   return true;
 }
 
+// 节点树里是否含 KaTeX（class 带 "katex"）——无公式则不折腾字体重排。
+function hasKatexNodes(nodes: any[] | undefined): boolean {
+  return !!nodes && nodes.some((node: any) =>
+    !!node && (String((node.attrs || {}).class || '').indexOf('katex') > -1 ||
+    hasKatexNodes(node.children)));
+}
+
 Component({
   props: defaultProps,
   data: {
@@ -82,6 +93,11 @@ Component({
   },
   md: null as XMarkdownMini | null,
   mounted: false,
+  // 每实例最多重排一次；_katexReflowArmed 防止流式空闲期重复注册回调；_isStreaming 用于 C1：
+  // 流式进行中不做显式重排（下一个 chunk 会自然用已就绪字体重绘），只在空闲/完成态补一次。
+  _katexReflowed: false,
+  _katexReflowArmed: false,
+  _isStreaming: false,
 
   didMount(this: any) {
     this.mounted = true;
@@ -123,10 +139,13 @@ Component({
   methods: {
     _build(this: any, props: MarkdownProps) {
       const components = props.components ?? [];
-      // 仅在开启 latex 时注册 KaTeX 字体（支付宝走包内本地 woff）；字体就绪后强制重排一次。
-      if (props.latex) loadKatexFonts(() => {
-        if (this.mounted) this._katexFontReflow();
-      });
+      // 仅在开启 latex 时注册 KaTeX 字体（支付宝走白名单 CDN ttf）。重排交给 _maybeKatexReflow：
+      // 每实例至多一次、且仅当字体尚未就绪 + 非流式进行中，避免每个 chunk 全页闪。
+      if (props.latex) {
+        this._katexReflowed = false;
+        this._katexReflowArmed = false;
+        ensureKatexFonts();
+      }
       const extensions = bakeExtensions(!!props.latex, !!props.highlight);
       this.md?.reset();
       this.md = new XMarkdownMini({ escapeText: false, components, extensions });
@@ -138,6 +157,12 @@ Component({
       const animation = streamConfig === true || (
         !!streamConfig && typeof streamConfig === 'object' &&
         streamConfig.enableAnimation !== false
+      );
+      // 流式进行中（还有后续 chunk）时不做显式重排；空闲/完成态（hasNextChunk===false 或
+      // streaming===false）再补一次，配合 _maybeKatexReflow 的 C1 守卫消除那一次闪。
+      this._isStreaming = streamConfig === true || (
+        !!streamConfig && typeof streamConfig === 'object' &&
+        streamConfig.hasNextChunk !== false
       );
       this.setData({ animation });
       this.md.renderNodes({
@@ -153,8 +178,27 @@ Component({
           props.onRenderProgress?.(payload),
         onRenderComplete: () => props.onRenderComplete?.(),
         onPatch: (nodes: MiniNode[]) => {
-          if (this.mounted) this.setData({ nodes: flattenInlineNodes(nodes) });
+          if (this.mounted) {
+            this.setData({ nodes: flattenInlineNodes(nodes) });
+            this._maybeKatexReflow();
+          }
         },
+      });
+    },
+
+    // 每实例至多重排一次：无公式 / 字体已就绪（首屏即正确）/ 流式进行中，均直接跳过——这是消除
+    // 「每个 chunk 全页闪」的核心。仅当「有公式 + 字体尚未就绪 + 已进入空闲态」时注册一次就绪回调。
+    _maybeKatexReflow(this: any) {
+      if (this._katexReflowed || this._katexReflowArmed) return;
+      if (!hasKatexNodes(this.data.nodes)) return;
+      if (areKatexFontsReady()) { this._katexReflowed = true; return; }
+      if (this._isStreaming) return;
+      this._katexReflowArmed = true;
+      onKatexFontsReady(() => {
+        this._katexReflowArmed = false;
+        if (!this.mounted || this._katexReflowed || this._isStreaming) return;
+        this._katexReflowed = true;
+        this._katexFontReflow();
       });
     },
 
