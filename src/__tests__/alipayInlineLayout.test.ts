@@ -34,4 +34,20 @@ describe('Alipay inline links', () => {
     expect(sharedElements).toMatch(/\.md-del[\s\S]*?text-decoration:\s*line-through/);
     expect(rendererAcss).toContain('.md-link--active');
   });
+
+  it('never per-char animates a list marker (would split "1." across lines)', () => {
+    // 流式动画把文本拆成逐字 <text>，但列表 marker（.md-list-marker，仅 28rpx 宽的 flex 项）
+    // 拆开后 "1" 和 "." 会分行。marker 必须整体渲染，故动画分支门控排除 marker。
+    const axml = readFileSync(
+      resolve(root, 'src/components/alipay/MiniNodeRenderer/index.axml'),
+      'utf8',
+    );
+    const sjs = readFileSync(
+      resolve(root, 'src/components/alipay/MiniNodeRenderer/index.sjs'),
+      'utf8',
+    );
+    expect(axml).toContain('u.isText(node.name) && animation && !u.isMarker(node)');
+    expect(sjs).toMatch(/function isMarker\(node\)\s*\{[\s\S]*?md-list-marker/);
+    expect(sjs).toContain('isMarker: isMarker');
+  });
 });

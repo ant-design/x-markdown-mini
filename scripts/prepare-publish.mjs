@@ -37,6 +37,11 @@ const pub = {
       import: './index.mjs',
       require: './index.js',
     },
+    // 无扩展名子路径显式映射：小程序 usingComponents 不能带扩展名，而 Node exports 的 `*`
+    // 通配不会自动补扩展名，导致 Minifish 尊重 exports 时解析 `.../es/Markdown/index` 失败、
+    // 组件加载不出来。这里补上直达 .js 的精确映射（比 `./es/*` 通配更具体，优先命中）。
+    './es/Markdown/index': './es/Markdown/index.js',
+    './es/MiniNodeRenderer/index': './es/MiniNodeRenderer/index.js',
     './es/*': './es/*',
     './shared/*': './shared/*',
     './components/*': './components/*',

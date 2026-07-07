@@ -3,9 +3,10 @@
 <block a:if="{{katexReflow}}">
 <block a:for="{{nodes}}" a:for-item="node" a:for-index="i" a:key="k">
   <!-- text leaf: 流式时逐字淡入（Alipay 不能嵌套 <text>，用 inline <view> 包裹字符 <text>，
-       按下标 key 复用，只有新字触发动画）；非流式时整段渲染为单个 <text>。 -->
+       按下标 key 复用，只有新字触发动画）；非流式时整段渲染为单个 <text>。
+       列表 marker 例外：结构性原子文本，逐字拆分会在窄容器里分行，始终整体渲染（走下面的 elif）。 -->
   <view
-    a:if="{{u.isText(node.name) && animation}}"
+    a:if="{{u.isText(node.name) && animation && !u.isMarker(node)}}"
     class="md-anim-text {{u.classOf(node)}}"
   >
     <text

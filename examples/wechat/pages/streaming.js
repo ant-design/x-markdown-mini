@@ -2,8 +2,8 @@
 // 与真实聊天接口的前端消费方式一致。页面卸载或关闭开关时必须取消定时器。
 function createStreamPlayer(options) {
   const content = options.content;
-  const chunkSize = options.chunkSize == null ? 1 : options.chunkSize;
-  const interval = options.interval == null ? 120 : options.interval;
+  const chunkSize = options.chunkSize == null ? 4 : options.chunkSize;
+  const interval = options.interval == null ? 30 : options.interval;
   const chars = Array.from(content);
   const chunks = [];
   for (let i = 0; i < chars.length; i += chunkSize) {
@@ -14,8 +14,8 @@ function createStreamPlayer(options) {
   let runId = 0;
 
   function delayAfter(chunk) {
-    if (/\n\s*$/.test(chunk)) return interval + 180;
-    if (/[。！？；：.!?]\s*$/.test(chunk)) return interval + 100;
+    if (/\n\s*$/.test(chunk)) return interval + 40;
+    if (/[。！？；：.!?]\s*$/.test(chunk)) return interval + 20;
     return interval;
   }
 

@@ -22,10 +22,14 @@ function copy(src, dest) {
 // Main library CJS bundle
 copy(join(distRoot, 'index.js'), join(mpRoot, 'index.js'));
 
-// Shared helper
+// Shared helpers
 copy(
   join(distRoot, 'shared', 'flattenInline.js'),
   join(mpRoot, 'shared', 'flattenInline.js'),
 );
+copy(
+  join(distRoot, 'shared', 'loadKatexFonts.js'),
+  join(mpRoot, 'shared', 'loadKatexFonts.js'),
+);
 
-console.log('[x-markdown-mini] copied index.js + shared/flattenInline.js to miniprogram_dist');
+console.log('[x-markdown-mini] copied index.js + shared/{flattenInline,loadKatexFonts}.js to miniprogram_dist');

@@ -44,7 +44,7 @@ describe('mini-program streaming examples', () => {
       vi.useRealTimers();
     });
 
-    it(`${platform} defaults to a human-visible LLM-like pace`, () => {
+    it(`${platform} defaults to a brisk LLM-like pace`, () => {
       const helper = resolve(root, `examples/${platform}/pages/streaming.js`);
       const { createStreamPlayer } = require(helper) as {
         createStreamPlayer: (options: {
@@ -62,12 +62,13 @@ describe('mini-program streaming examples', () => {
       });
 
       player.play();
-      vi.advanceTimersByTime(100);
+      // 初始空帧同步发出；首个 chunk 在默认 30ms 间隔后到达（远快于旧的 120ms/字）。
       expect(frames.at(-1)).toEqual(['', true, 'streaming']);
 
       vi.advanceTimersByTime(30);
       const firstBurst = frames.at(-1)!;
-      expect(firstBurst[0].length).toBeGreaterThan(0);
+      // 默认每帧显现多个字符（chunkSize>1），而不是逐字——这就是「快一点」。
+      expect(firstBurst[0].length).toBeGreaterThan(1);
       expect(firstBurst[0].length).toBeLessThan(content.length);
       expect(firstBurst[1]).toBe(true);
 
@@ -76,7 +77,7 @@ describe('mini-program streaming examples', () => {
       vi.useRealTimers();
     });
 
-    it(`${platform} reveals one character per upstream frame by default`, () => {
+    it(`${platform} reveals multiple characters per frame by default`, () => {
       const helper = resolve(root, `examples/${platform}/pages/streaming.js`);
       const { createStreamPlayer } = require(helper) as {
         createStreamPlayer: (options: {
@@ -88,13 +89,14 @@ describe('mini-program streaming examples', () => {
 
       vi.useFakeTimers();
       const frames: string[] = [];
+      // 默认 chunkSize=4：5 字 → ['逐字逐字','逐']，两帧显现（比逐字更快）。
       createStreamPlayer({
-        content: '逐字',
+        content: '逐字逐字逐',
         interval: 20,
         onFrame: (content) => frames.push(content),
       }).play();
       vi.runAllTimers();
-      expect(frames).toEqual(['', '逐', '逐字']);
+      expect(frames).toEqual(['', '逐字逐字', '逐字逐字逐']);
       vi.useRealTimers();
     });
   }

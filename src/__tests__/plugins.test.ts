@@ -187,26 +187,28 @@ describe('Latex — tokenizer', () => {
   });
 
   it('registers KaTeX fonts globally only when latex is enabled', () => {
-    // 真机修复：组件作用域 @font-face 在支付宝真机不生效，改用 loadFontFace 全局注册；
-    // 且必须仅在开启 latex 时调用——没用公式的页面不应加载这些字体。
+    // 真机修复：组件作用域 @font-face 在支付宝真机不生效，改用 loadFontFace 全局注册（支付宝走
+    // 白名单 CDN ttf，微信本地 miniprogram_npm ttf 优先 + CDN 兜底）；且仅在开启 latex 时调用。
     const loader = readFileSync(
       new URL('../components/shared/loadKatexFonts.ts', import.meta.url),
       'utf8',
     );
     expect(loader).toContain('loadFontFace');
     expect(loader).toContain('global: true');
-    expect(loader).toContain('/node_modules/');
+    expect(loader).toContain('mdn.alipayobjects.com');
     expect(loader).toContain('/miniprogram_npm/');
     expect(loader).toContain('/katex-fonts');
+    // 支付宝分支不再引用包内本地路径（模拟器专属，真机不生效）。
+    expect(loader).not.toContain('/node_modules/');
 
     for (const platform of ['alipay', 'wechat']) {
       const src = readFileSync(
         new URL(`../components/${platform}/Markdown/index.ts`, import.meta.url),
         'utf8',
       );
-      expect(src).toContain('loadKatexFonts');
       // 调用必须门控在 latex 判断之后
-      expect(src).toMatch(/latex\)\s*loadKatexFonts\(/);
+      expect(src).toContain('ensureKatexFonts');
+      expect(src).toMatch(/latex[\s\S]{0,200}ensureKatexFonts\(\)/);
     }
   });
 
@@ -215,16 +217,16 @@ describe('Latex — tokenizer', () => {
       new URL('../components/alipay/MiniNodeRenderer/index.ts', import.meta.url),
       'utf8',
     );
-    expect(renderer).toContain('loadKatexFonts');
+    expect(renderer).toContain('ensureKatexFonts');
     expect(renderer).toContain("indexOf('katex')");
-    expect(renderer).toMatch(/if\s*\([^)]*\(this\.props\.nodes\)[^)]*\)\s*loadKatexFonts\(/);
+    expect(renderer).toMatch(/if\s*\([^)]*\(this\.props\.nodes\)[^)]*\)\s*ensureKatexFonts\(/);
     // Must reuse the shared all-faces loader, not a crippled local stub that only
     // registers one face (the JS-接入 page relies on this for every KaTeX font on
     // device — registering only KaTeX_Math left every other glyph in the system font).
     expect(renderer).toMatch(
-      /import\s*\{[^}]*loadKatexFonts[^}]*\}\s*from\s*'\.\.\/\.\.\/shared\/loadKatexFonts\.js'/,
+      /from\s*'\.\.\/\.\.\/shared\/loadKatexFonts\.js'/,
     );
-    expect(renderer).not.toMatch(/function\s+loadKatexFonts\s*\(/);
+    expect(renderer).not.toMatch(/function\s+ensureKatexFonts\s*\(/);
 
     // The shared loader must register the full KaTeX face set, not just one family.
     const loader = readFileSync(
@@ -236,7 +238,7 @@ describe('Latex — tokenizer', () => {
     }
   });
 
-  it('guards Alipay KaTeX reflow callbacks after component unmount', () => {
+  it('guards Alipay KaTeX reflow: once-only, idle-gated, unmount-safe', () => {
     const files = [
       '../components/alipay/Markdown/index.ts',
       '../components/alipay/MiniNodeRenderer/index.ts',
@@ -247,7 +249,14 @@ describe('Latex — tokenizer', () => {
       expect(src, file).toContain('mounted: false');
       expect(src, file).toContain('this.mounted = true;');
       expect(src, file).toContain('this.mounted = false;');
-      expect(src, file).toContain('if (this.mounted) this._katexFontReflow();');
+      // 每实例至多重排一次 + 空闲态门控（消除流式全页闪）。
+      expect(src, file).toContain('_maybeKatexReflow');
+      expect(src, file).toContain('areKatexFontsReady()');
+      expect(src, file).toMatch(/if \(this\._isStreaming\) return;/);
+      // 就绪回调里 unmount / 已重排 / 仍在流式 均跳过，再执行卸载-重挂重绘。
+      expect(src, file).toMatch(
+        /if \(!this\.mounted \|\| this\._katexReflowed \|\| this\._isStreaming\) return;\s*this\._katexReflowed = true;\s*this\._katexFontReflow\(\);/s,
+      );
       expect(src, file).toMatch(
         /this\.setData\(\{ katexReflow: false \}, \(\) => \{\s*if \(this\.mounted\) this\.setData\(\{ katexReflow: true \}\);/s,
       );

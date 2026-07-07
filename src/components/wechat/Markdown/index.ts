@@ -6,7 +6,7 @@ import type {
   MarkedExtension,
 } from '../../../index.js';
 import { flattenInlineNodes } from '../../shared/flattenInline.js';
-import { loadKatexFonts } from '../../shared/loadKatexFonts.js';
+import { ensureKatexFonts } from '../../shared/loadKatexFonts.js';
 import {
   createTextAnimationState,
   reconcileTextAnimation,
@@ -87,8 +87,8 @@ Component({
   methods: {
     _build(this: any) {
       const components = (this.data.components as string[] | null) ?? [];
-      // 仅在开启 latex 时把 KaTeX 字体注册到全局（真机 @font-face 修复）；未开启则零开销。
-      if (this.data.latex) loadKatexFonts();
+      // 仅在开启 latex 时把 KaTeX 字体注册到全局（rich-text 靠 loadFontFace 解析字形）；未开启则零开销。
+      if (this.data.latex) ensureKatexFonts();
       const extensions = bakeExtensions(!!this.data.latex, !!this.data.highlight);
       this.md?.reset();
       resetTextAnimation(this.textAnimation);
