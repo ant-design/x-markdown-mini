@@ -33,6 +33,13 @@ function isRich(node) {
 function isSlot(name, slotComponents) {
   return !!slotComponents && slotComponents.indexOf(name) > -1;
 }
+// 列表 marker（"1." / "•"）是结构性原子文本，绝不能逐字拆分：拆成多个 <text> 会在字符间产生
+// 换行机会，而 .md-list-marker 是仅 28rpx 宽的 flex 项，容纳不下两个字符盒 → "1" 和 "." 会分行。
+// 因此即便处于流式动画态，marker 也整体渲染为单个 <text>（与微信 isListItem 分支的原子渲染一致）。
+function isMarker(node) {
+  var cls = (node.attrs || {})['class'] || '';
+  return cls.indexOf('md-list-marker') > -1;
+}
 function classOf(node) {
   var attrs = node.attrs || {};
   var cls = attrs['class'] || '';
@@ -132,6 +139,7 @@ export default {
   copyOf: copyOf,
   isRich: isRich,
   isSlot: isSlot,
+  isMarker: isMarker,
   classOf: classOf,
   segClassOf: segClassOf,
   charsOf: charsOf,
