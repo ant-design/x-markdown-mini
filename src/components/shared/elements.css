@@ -157,6 +157,9 @@
   background: #fafafa;
 }
 .md-details-arrow {
+  /* Explicit inline-block: some older engines ignore transforms on inline
+     <text> even when it is blockified as a flex item. */
+  display: inline-block;
   flex: none;
   margin-right: 12rpx;
   font-size: 20rpx;

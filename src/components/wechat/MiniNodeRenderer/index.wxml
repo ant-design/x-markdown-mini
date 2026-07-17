@@ -192,7 +192,7 @@
 
   <!-- details: collapsible section. Summary row toggles per-index open state;
        default open comes from the <details open> attribute on the node. -->
-  <view wx:elif="{{u.isDetails(node.name)}}" class="md-details">
+  <view wx:elif="{{u.isDetails(node.name)}}" class="{{u.classOf(node)}}">
     <view
       class="md-details-summary"
       data-i="{{i}}"

@@ -278,6 +278,18 @@ export class XMarkdownMini {
         childTokens: { ...ext.childTokens },
       };
     }
+    // use() likewise mutates existing defaults.renderer / defaults.tokenizer
+    // class instances in place (override slots are written onto the instance).
+    // Clone them preserving the prototype — a plain object spread would drop
+    // the prototype methods and break rendering after restore.
+    const cloneInstance = <T extends object>(o: T): T =>
+      Object.assign(Object.create(Object.getPrototypeOf(o)), o);
+    if (this.marked.defaults.renderer) {
+      saved.renderer = cloneInstance(this.marked.defaults.renderer);
+    }
+    if (this.marked.defaults.tokenizer) {
+      saved.tokenizer = cloneInstance(this.marked.defaults.tokenizer);
+    }
     this.marked.use(...(perCall as MarkedExtension[]));
     return saved;
   }

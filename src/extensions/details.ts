@@ -47,11 +47,14 @@ export const detailsExtension: XMarkdownExtension = {
         const body = (m[3] ?? '').trim();
         const tokens: Token[] = [];
         if (body) this.lexer.blockTokens(body, tokens);
+        // Strip quoted attribute values before probing for `open`, so e.g.
+        // <details class="foo open"> does not count as an open attribute.
+        const attrs = (m[1] ?? '').replace(/"[^"]*"|'[^']*'/g, '');
         return {
           type: 'details',
           raw: m[0],
           summary,
-          open: /(?:^|\s)open(?:\s|=|$)/i.test(m[1] ?? ''),
+          open: /(?:^|\s)open(?:\s|=|$)/i.test(attrs),
           tokens,
         };
       },

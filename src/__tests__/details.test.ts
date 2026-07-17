@@ -51,6 +51,14 @@ describe('<details> block support', () => {
     expect(out[0].attrs?.open).toBe(true);
   });
 
+  it('does not mistake "open" inside a quoted attribute value for the open attribute', () => {
+    const out = renderWechat(
+      '<details class="foo open">\n<summary>S</summary>\n\nbody\n\n</details>',
+    );
+    expect(out[0].name).toBe('details');
+    expect(out[0].attrs?.open).toBeUndefined();
+  });
+
   it('strips tags from the summary and tolerates a missing summary', () => {
     const tagged = renderWechat('<details><summary><b>Bold</b> label</summary>\n\nx\n\n</details>');
     expect(tagged[0].attrs?.summary).toBe('Bold label');
