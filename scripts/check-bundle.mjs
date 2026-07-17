@@ -63,10 +63,13 @@ const BUDGETS = [
   // raw +~0.3 KB：src/polyfills.ts 的 Array/String#at 守卫（修复 iOS<15.4 / 旧
   //   基础库 marked `.at(-1)` 抛 "x.at is not a function" 整包白屏；es-check 只查
   //   语法查不到运行时方法）。实测 mjs raw ~122.27 KB、index.js ~123.79 KB。
-  { file: 'index.mjs', rawMax: 123 * KB, gzipMax: 30 * KB },
-  { file: 'index.js', rawMax: 125 * KB, gzipMax: 31 * KB },
+  // raw +~1.3 KB / gzip +~0.4 KB: built-in <details> block tokenizer +
+  //   'details' MiniNode mapping + per-call extension snapshot deep-clone.
+  //   Measured mjs raw ~124.29 KB / gzip ~30.40 KB, index.js ~125.81 KB.
+  { file: 'index.mjs', rawMax: 126 * KB, gzipMax: 31 * KB },
+  { file: 'index.js', rawMax: 128 * KB, gzipMax: 32 * KB },
   // 微信专用主库副本（通过 package.json#miniprogram 进入）
-  { file: 'miniprogram_dist/index.js', rawMax: 125 * KB, gzipMax: 31 * KB },
+  { file: 'miniprogram_dist/index.js', rawMax: 128 * KB, gzipMax: 32 * KB },
   // 共享 helper（alipay 包根 + wechat 包根 各一份）。JS 接入复用时间戳
   // 动画协调器完整内联后约 7.59 KB，只让新增字符渐显，避免微信旧字符重复播放；
   // 入口必须自包含，不能留下未发布的 ./textAnimation.js require。

@@ -1,4 +1,5 @@
 import { Marked, type MarkedExtension, type MarkedOptions, type Token, type Tokens } from 'marked';
+import { detailsExtension } from './extensions/details.js';
 import { getPlatformRenderer, resolvePlatform } from './platforms/index.js';
 import { StreamingProcessor } from './streaming/StreamingProcessor.js';
 import {
@@ -208,7 +209,11 @@ export class XMarkdownMini {
       opts.components && opts.components.length > 0
         ? synthesizeComponentsExtension(opts.components)
         : undefined;
+    // Built-in <details> block tokenizer registered FIRST: marked unshifts
+    // block tokenizers per use() call, so later (user) registrations still
+    // run before it and can take over the token.
     const allMarkedExtensions: MarkedExtension[] = [
+      detailsExtension as MarkedExtension,
       ...(directExtensions as MarkedExtension[]),
       ...(this.componentsExtension ? [this.componentsExtension as MarkedExtension] : []),
     ];
@@ -256,6 +261,23 @@ export class XMarkdownMini {
   ): MarkedOptions | null {
     if (!perCall || perCall.length === 0) return null;
     const saved = { ...this.marked.defaults };
+    // marked's use() mutates an existing defaults.extensions container in
+    // place (tokenizers are unshifted into its arrays). Since the built-in
+    // details extension guarantees the container exists, a shallow defaults
+    // spread would alias the mutated container and restore nothing — clone
+    // its arrays/maps into the snapshot so restoreDefaults really reverts.
+    const ext = this.marked.defaults.extensions;
+    if (ext) {
+      saved.extensions = {
+        ...ext,
+        ...(ext.block ? { block: [...ext.block] } : {}),
+        ...(ext.inline ? { inline: [...ext.inline] } : {}),
+        ...(ext.startBlock ? { startBlock: [...ext.startBlock] } : {}),
+        ...(ext.startInline ? { startInline: [...ext.startInline] } : {}),
+        renderers: { ...ext.renderers },
+        childTokens: { ...ext.childTokens },
+      };
+    }
     this.marked.use(...(perCall as MarkedExtension[]));
     return saved;
   }

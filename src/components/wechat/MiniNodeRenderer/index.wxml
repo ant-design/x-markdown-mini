@@ -190,6 +190,32 @@
     </view>
   </view>
 
+  <!-- details: collapsible section. Summary row toggles per-index open state;
+       default open comes from the <details open> attribute on the node. -->
+  <view wx:elif="{{u.isDetails(node.name)}}" class="md-details">
+    <view
+      class="md-details-summary"
+      data-i="{{i}}"
+      data-open="{{u.detailsOpenState(detailsOpen, i, node)}}"
+      catch:tap="_toggleDetails"
+    >
+      <text class="md-details-arrow {{u.detailsOpenState(detailsOpen, i, node) ? 'md-details-arrow--open' : ''}}">▶</text>
+      <text class="md-details-summary-text">{{u.summaryOf(node)}}</text>
+    </view>
+    <view wx:if="{{u.detailsOpenState(detailsOpen, i, node)}}" class="md-details-body">
+      <mini-node-renderer
+        wx:if="{{node.children}}"
+        generic:custom-slot="custom-slot"
+        nodes="{{node.children}}"
+        selectable="{{selectable}}"
+        animation="{{animation}}"
+        slotComponents="{{slotComponents}}"
+        bind:tap="_tap"
+        bind:appear="_appear"
+      />
+    </view>
+  </view>
+
   <!-- inline tag rendered as <text>: children are flat text runs -->
   <text
     wx:elif="{{u.isInline(node.name) && !u.isRich(node)}}"
