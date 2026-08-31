@@ -8,6 +8,14 @@ title: 更新日志
 
 > 官网 `/changelog` 时间轴由本文件生成（`docs-site/scripts/build-changelog.mjs` 解析 `## 版本`／`` `日期` ``／`- **类型**：…` 结构）。发版时在顶部新增一段即可，`npm run changelog` 可辅助从已合并 PR 拼条目。类型取 **破坏性** / **新增** / **修复** / **优化**。
 
+## 1.1.0
+
+`2026-08-31`
+
+- **新增**：内置 `<details>` 折叠块支持。此前 `<details><summary>…</summary>…</details>` 会渲染成原始文本——marked 的 html 分词器在空行处把这段切成互不相关的多个 token，开闭标签因而泄漏到已渲染内容的前后。现由内置块级分词器整块捕获：`<summary>` 取纯文本作标题（标签被剥离），正文按普通块级 markdown 解析（含空行分隔的段落与列表），`<details open>` 默认展开。内置 `MiniNodeRenderer`（微信 / 支付宝）渲染为可折叠区块，点击标题行展开收起，默认折叠。**行为变化：** `parse()` / `render()` 现在会产出新的 `details` token 类型，这段 markdown 不再走原 `html` 原始文本路径；注册 `name: 'details'` 的扩展仍可完全覆盖内置行为。
+- **修复**：`render(props)` / `renderNodes(props)` 的单次调用扩展会泄漏到后续调用。`applyPerCallExtensions` 用浅展开快照 `marked.defaults`，而 marked 的 `use()` 是**原地**改写既有的 `defaults.extensions` 容器及 `renderer` / `tokenizer` 实例，快照与被改写对象共享同一引用，还原等于没还原。此前只在实例已配置 `extensions` 时触发（容器已存在），现按原型克隆这三者。
+- **优化**：主库体积因内置 `<details>` 分词器增加约 1.3 KB（gzip 约 0.4 KB），`check-bundle` 体积预算已同步上调。
+
 ## 1.0.2
 
 `2026-07-07`

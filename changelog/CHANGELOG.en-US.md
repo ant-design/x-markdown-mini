@@ -8,6 +8,14 @@ User-facing API, build-output, and behavior changes are tracked here. Migration 
 
 > The site's `/changelog` timeline is generated from this file (`docs-site/scripts/build-changelog.mjs` parses the `## version` / `` `date` `` / `- **type**: …` structure). Add a new block at the top when releasing; `npm run changelog` helps assemble entries from merged PRs. Types are **Breaking** / **Added** / **Fixed** / **Improved**.
 
+## 1.1.0
+
+`2026-08-31`
+
+- **Added**: built-in `<details>` support. `<details><summary>…</summary>…</details>` previously rendered as raw text — marked's html tokenizer splits the region at blank lines into several unrelated tokens, so the opening and closing tags leaked around otherwise-rendered content. A built-in block tokenizer now captures the whole region: `<summary>` becomes a plain-text title (tags stripped), the body is lexed as regular block markdown (including blank-line-separated paragraphs and lists), and `<details open>` starts expanded. The bundled `MiniNodeRenderer` (WeChat / Alipay) renders it as a collapsible section — tapping the summary row toggles it, collapsed by default. **Behavior change:** `parse()` / `render()` now emit a new `details` token type and this markdown no longer takes the raw `html` text path; an extension registered as `name: 'details'` still overrides the built-in entirely.
+- **Fixed**: per-call extensions passed to `render(props)` / `renderNodes(props)` leaked into later calls. `applyPerCallExtensions` snapshotted `marked.defaults` with a shallow spread, but marked's `use()` mutates the existing `defaults.extensions` container and the `renderer` / `tokenizer` instances **in place**, so the snapshot aliased the very objects it was meant to restore. This previously only triggered when the instance already had `extensions` configured (container already present). All three are now cloned preserving their prototypes.
+- **Improved**: the built-in `<details>` tokenizer adds roughly 1.3 KB raw (~0.4 KB gzip) to the main library; `check-bundle` size budgets were raised to match.
+
 ## 1.0.2
 
 `2026-07-07`
