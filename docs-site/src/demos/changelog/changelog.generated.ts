@@ -16,6 +16,58 @@ export interface GeneratedRelease {
 
 export const ZH_RELEASES: GeneratedRelease[] = [
   {
+    "version": "1.1.0",
+    "date": "2026-08-31",
+    "items": [
+      {
+        "type": "feature",
+        "html": "内置 <code>&lt;details&gt;</code> 折叠块支持。此前 <code>&lt;details&gt;&lt;summary&gt;…&lt;/summary&gt;…&lt;/details&gt;</code> 会渲染成原始文本——marked 的 html 分词器在空行处把这段切成互不相关的多个 token，开闭标签因而泄漏到已渲染内容的前后。现由内置块级分词器整块捕获：<code>&lt;summary&gt;</code> 取纯文本作标题（标签被剥离），正文按普通块级 markdown 解析（含空行分隔的段落与列表），<code>&lt;details open&gt;</code> 默认展开。内置 <code>MiniNodeRenderer</code>（微信 / 支付宝）渲染为可折叠区块，点击标题行展开收起，默认折叠。<strong>行为变化：</strong> <code>parse()</code> / <code>render()</code> 现在会产出新的 <code>details</code> token 类型，这段 markdown 不再走原 <code>html</code> 原始文本路径；注册 <code>name: 'details'</code> 的扩展仍可完全覆盖内置行为。",
+        "notes": []
+      },
+      {
+        "type": "fix",
+        "html": "<code>render(props)</code> / <code>renderNodes(props)</code> 的单次调用扩展会泄漏到后续调用。<code>applyPerCallExtensions</code> 用浅展开快照 <code>marked.defaults</code>，而 marked 的 <code>use()</code> 是<strong>原地</strong>改写既有的 <code>defaults.extensions</code> 容器及 <code>renderer</code> / <code>tokenizer</code> 实例，快照与被改写对象共享同一引用，还原等于没还原。此前只在实例已配置 <code>extensions</code> 时触发（容器已存在），现按原型克隆这三者。",
+        "notes": []
+      },
+      {
+        "type": "perf",
+        "html": "主库体积因内置 <code>&lt;details&gt;</code> 分词器增加约 1.3 KB（gzip 约 0.4 KB），<code>check-bundle</code> 体积预算已同步上调。",
+        "notes": []
+      }
+    ]
+  },
+  {
+    "version": "1.0.2",
+    "date": "2026-07-07",
+    "items": [
+      {
+        "type": "fix",
+        "html": "支付宝真机上 KaTeX 公式回退成系统字体。真机 <code>my.loadFontFace</code> 只认「已加入下载合法域名白名单的 https 网络字体」，包内本地 ttf 路径与 base64 data URI 仅在模拟器生效（此前它们能在本仓库自带 examples 里工作，是因为 examples 把字体同步到了工程根目录）。现改为从白名单 CDN 加载 KaTeX 字体（<code>mdn.alipayobjects.com</code>，20 个 ttf）。<strong>使用方需将该字体 CDN 域名加入小程序「下载合法域名」白名单。</strong> 微信仍保留可解析的本地 <code>miniprogram_npm</code> ttf（优先）+ 共享 CDN（兜底）。",
+        "notes": []
+      },
+      {
+        "type": "fix",
+        "html": "流式渲染公式时整页反复闪动。此前 <code>MiniNodeRenderer</code> 每收到一个 chunk 都会重新注册字体就绪回调，字体缓存后回调又同步触发，导致整棵渲染树反复「卸载-重挂」。现每个组件实例至多重排一次，且仅在「有公式 + 字体尚未就绪 + 非流式进行中」时触发。",
+        "notes": []
+      },
+      {
+        "type": "fix",
+        "html": "流式时有序列表序号（如 <code>1.</code>）换行。逐字入场动画把 marker 拆成多个 <code>&lt;text&gt;</code>，在仅 28rpx 宽的 marker 列里 <code>1</code> 和 <code>.</code> 分行。marker 现整体渲染为单个 <code>&lt;text&gt;</code>，与微信一致。",
+        "notes": []
+      },
+      {
+        "type": "fix",
+        "html": "尊重 <code>package.json#exports</code> 的构建工具（如 Minifish 2.0）无法解析、加载不出 <code>&lt;markdown&gt;</code> 组件。新增 <code>./es/Markdown/index</code> 与 <code>./es/MiniNodeRenderer/index</code> 无扩展名子路径导出映射（Node 的 <code>*</code> 通配不会自动补扩展名）。",
+        "notes": []
+      },
+      {
+        "type": "perf",
+        "html": "移除内联 base64 字体数据模块（<code>katex-font-data.js</code>）与支付宝包根 ttf；字体 loader 抽为每个包根仅发一份的 <code>shared/loadKatexFonts.js</code>（不再内联进每个组件 wrapper）。包体减小。",
+        "notes": []
+      }
+    ]
+  },
+  {
     "version": "1.0.1",
     "date": "2026-07-05",
     "items": [
@@ -104,6 +156,58 @@ export const ZH_RELEASES: GeneratedRelease[] = [
 ];
 
 export const EN_RELEASES: GeneratedRelease[] = [
+  {
+    "version": "1.1.0",
+    "date": "2026-08-31",
+    "items": [
+      {
+        "type": "feature",
+        "html": "built-in <code>&lt;details&gt;</code> support. <code>&lt;details&gt;&lt;summary&gt;…&lt;/summary&gt;…&lt;/details&gt;</code> previously rendered as raw text — marked's html tokenizer splits the region at blank lines into several unrelated tokens, so the opening and closing tags leaked around otherwise-rendered content. A built-in block tokenizer now captures the whole region: <code>&lt;summary&gt;</code> becomes a plain-text title (tags stripped), the body is lexed as regular block markdown (including blank-line-separated paragraphs and lists), and <code>&lt;details open&gt;</code> starts expanded. The bundled <code>MiniNodeRenderer</code> (WeChat / Alipay) renders it as a collapsible section — tapping the summary row toggles it, collapsed by default. <strong>Behavior change:</strong> <code>parse()</code> / <code>render()</code> now emit a new <code>details</code> token type and this markdown no longer takes the raw <code>html</code> text path; an extension registered as <code>name: 'details'</code> still overrides the built-in entirely.",
+        "notes": []
+      },
+      {
+        "type": "fix",
+        "html": "per-call extensions passed to <code>render(props)</code> / <code>renderNodes(props)</code> leaked into later calls. <code>applyPerCallExtensions</code> snapshotted <code>marked.defaults</code> with a shallow spread, but marked's <code>use()</code> mutates the existing <code>defaults.extensions</code> container and the <code>renderer</code> / <code>tokenizer</code> instances <strong>in place</strong>, so the snapshot aliased the very objects it was meant to restore. This previously only triggered when the instance already had <code>extensions</code> configured (container already present). All three are now cloned preserving their prototypes.",
+        "notes": []
+      },
+      {
+        "type": "perf",
+        "html": "the built-in <code>&lt;details&gt;</code> tokenizer adds roughly 1.3 KB raw (~0.4 KB gzip) to the main library; <code>check-bundle</code> size budgets were raised to match.",
+        "notes": []
+      }
+    ]
+  },
+  {
+    "version": "1.0.2",
+    "date": "2026-07-07",
+    "items": [
+      {
+        "type": "fix",
+        "html": "KaTeX formulas fell back to the system font on the Alipay real device. On device <code>my.loadFontFace</code> only accepts an https network font whose domain is on the download allowlist; package-local ttf paths and base64 data URIs work only in the simulator (they appeared to work in this repo's own examples only because the examples sync the fonts to the project root). KaTeX fonts now load from a whitelisted CDN (<code>mdn.alipayobjects.com</code>, 20 ttf). <strong>Consumers must add the font CDN domain to their mini-program download allowlist.</strong> WeChat keeps its resolvable local <code>miniprogram_npm</code> ttf (first) + shared CDN (fallback).",
+        "notes": []
+      },
+      {
+        "type": "fix",
+        "html": "whole-page flicker while streaming formulas. <code>MiniNodeRenderer</code> re-registered a font-ready callback on every chunk, and the callback fired synchronously once fonts were cached, unmounting/remounting the entire render tree each chunk. Each component instance now reflows at most once, and only when there is a formula, fonts aren't ready yet, and streaming is not in progress.",
+        "notes": []
+      },
+      {
+        "type": "fix",
+        "html": "ordered-list markers (e.g. <code>1.</code>) wrapped across lines while streaming. The per-character entrance animation split the marker into separate <code>&lt;text&gt;</code> boxes, so <code>1</code> and <code>.</code> broke onto different lines inside the 28rpx-wide marker column. Markers now render as a single <code>&lt;text&gt;</code>, matching WeChat.",
+        "notes": []
+      },
+      {
+        "type": "fix",
+        "html": "bundlers that honor <code>package.json#exports</code> (e.g. Minifish 2.0) couldn't resolve and failed to load the <code>&lt;markdown&gt;</code> component. Added <code>./es/Markdown/index</code> and <code>./es/MiniNodeRenderer/index</code> no-extension subpath export maps (Node's <code>*</code> glob does not auto-append extensions).",
+        "notes": []
+      },
+      {
+        "type": "perf",
+        "html": "removed the inlined base64 font data module (<code>katex-font-data.js</code>) and the Alipay-root ttf; the font loader is now shipped once per package root (<code>shared/loadKatexFonts.js</code>) instead of inlined into every component wrapper. Smaller package.",
+        "notes": []
+      }
+    ]
+  },
   {
     "version": "1.0.1",
     "date": "2026-07-05",
