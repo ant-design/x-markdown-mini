@@ -103,6 +103,41 @@ describe('XMarkdownMini — extensions', () => {
     expect((afterPara.tokens ?? []).some((t) => t.type === 'mention')).toBe(false);
   });
 
+  it('per-call tokenizer overrides do not leak after completion', () => {
+    // Constructor-level tokenizer override forces defaults.tokenizer to exist,
+    // so the per-call use() mutates that instance in place — the case the
+    // snapshot in applyPerCallExtensions must deep-clone to restore.
+    const passthrough: MarkedExtension = { tokenizer: { br: () => false } };
+    const shoutCodespan: MarkedExtension = {
+      tokenizer: {
+        codespan(src: string) {
+          const m = /^`([^`]+)`/.exec(src);
+          if (!m) return false;
+          return { type: 'codespan', raw: m[0], text: m[1].toUpperCase() } as Tokens.Codespan;
+        },
+      },
+    };
+    const md = new XMarkdownMini({ extensions: [passthrough] });
+
+    let tokens: Token[] = [];
+    md.render({
+      content: 'see `code`',
+      streaming: { hasNextChunk: false },
+      extensions: [shoutCodespan],
+      onPatch: (next) => {
+        tokens = next;
+      },
+    });
+    const streamedPara = tokens.find((t) => t.type === 'paragraph') as Tokens.Paragraph;
+    const streamedCode = (streamedPara.tokens ?? []).find((t) => t.type === 'codespan') as Tokens.Codespan;
+    expect(streamedCode.text).toBe('CODE');
+
+    const after = md.parse('see `code`');
+    const afterPara = after.find((t) => t.type === 'paragraph') as Tokens.Paragraph;
+    const afterCode = (afterPara.tokens ?? []).find((t) => t.type === 'codespan') as Tokens.Codespan;
+    expect(afterCode.text).toBe('code');
+  });
+
   it('no extensions: legacy XMarkdownMini behavior preserved (mention is plain text)', () => {
     const md = new XMarkdownMini();
     const tokens = md.parse('hi @alice');

@@ -53,6 +53,9 @@ Component({
   props: defaultProps,
   data: {
     shadows: {} as Record<string, EdgeShadowState>,
+    // Per-node-index override of <details> open state; unset = node's own
+    // `open` attr (see sjs detailsOpenState).
+    detailsOpen: {} as Record<string, boolean>,
     // 字体就绪后卸载-重挂一次，强制公式 <text> 用已注册字体重画（仅最外层实例会被回调，见 loadKatexFonts）。
     katexReflow: true,
   },
@@ -128,6 +131,12 @@ Component({
     _copy(this: any, e: any) {
       const ds = e && e.currentTarget && e.currentTarget.dataset;
       copyToClipboard((ds && ds.copy) || '');
+    },
+    _toggleDetails(this: any, e: any) {
+      const ds = (e && e.currentTarget && e.currentTarget.dataset) || {};
+      const detailsOpen = Object.assign({}, this.data.detailsOpen);
+      detailsOpen[ds.i] = !ds.open;
+      this.setData({ detailsOpen });
     },
     _scheduleMeasure(this: any) {
       if (this.timer !== null) clearTimeout(this.timer);

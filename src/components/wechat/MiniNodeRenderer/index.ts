@@ -44,6 +44,9 @@ Component({
   },
   data: {
     tableShadows: {} as Record<string, { left: boolean; right: boolean }>,
+    // Per-node-index override of <details> open state; unset = node's own
+    // `open` attr (see wxs detailsOpenState).
+    detailsOpen: {} as Record<string, boolean>,
   },
   _tableViewportWidths: {} as Record<string, number>,
   _tableContentWidths: {} as Record<string, number>,
@@ -89,6 +92,10 @@ Component({
     _copy(this: any, e: any) {
       const ds = e && e.currentTarget && e.currentTarget.dataset;
       copyToClipboard((ds && ds.copy) || '');
+    },
+    _toggleDetails(this: any, e: any) {
+      const ds = (e && e.currentTarget && e.currentTarget.dataset) || {};
+      this.setData({ ['detailsOpen.' + ds.i]: !ds.open });
     },
     _scheduleTableMeasure(this: any) {
       if (this._tableMeasureTimer !== null) clearTimeout(this._tableMeasureTimer);

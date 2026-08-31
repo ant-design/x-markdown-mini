@@ -224,6 +224,19 @@ function blockTok(
       const raw = (t.text ?? t.raw ?? '').replace(/\s+$/, '');
       return block('div', raw ? [{ name: 'text', attrs: { value: raw } }] : [], animate, adapter, tok);
     }
+    case 'details': {
+      // Emitted by the built-in <details> block tokenizer (extensions/details.ts).
+      // An extension named 'details' with a miniRenderer/renderer overrides it.
+      const t = tok as unknown as { summary?: string; open?: boolean; tokens?: Token[] };
+      const custom = renderCustomToken(tok, ctx);
+      if (custom.length) {
+        return custom.length === 1 ? custom[0] : block('div', custom, animate, adapter, tok);
+      }
+      const children = blockTokens(t.tokens ?? [], adapter, animate, enc, ctx);
+      const attrs: MiniNodeAttrs = { class: 'md-details', summary: enc(t.summary ?? '') };
+      if (t.open) attrs.open = true;
+      return block('details', children, animate, adapter, tok, attrs);
+    }
     case 'table': {
       const t = tok as Tokens.Table;
       // Extension override: an extension whose miniRenderer/renderer is named

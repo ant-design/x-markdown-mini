@@ -15,6 +15,14 @@ function isHr(name) { return name === 'hr'; }
 function isPre(name) { return name === 'pre'; }
 function isTable(name) { return name === 'table'; }
 function isCopy(name) { return name === 'copy-button'; }
+function isDetails(name) { return name === 'details'; }
+function summaryOf(node) { return (node.attrs || {}).summary || 'Details'; }
+// Open state: a user toggle in detailsOpen[i] wins; otherwise fall back to
+// the node's own `open` attribute (<details open>).
+function detailsOpenState(map, key, node) {
+  if (map && map[key] !== undefined) return !!map[key];
+  return !!((node.attrs || {}).open);
+}
 function copyOf(node) {
   var attrs = node.attrs || {};
   return attrs['data-copy'] || '';
@@ -136,6 +144,9 @@ export default {
   isPre: isPre,
   isTable: isTable,
   isCopy: isCopy,
+  isDetails: isDetails,
+  summaryOf: summaryOf,
+  detailsOpenState: detailsOpenState,
   copyOf: copyOf,
   isRich: isRich,
   isSlot: isSlot,

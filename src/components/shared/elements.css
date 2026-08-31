@@ -142,6 +142,44 @@
   background: linear-gradient(270deg, rgba(51, 51, 51, 0.16), rgba(51, 51, 51, 0));
 }
 
+/* Collapsible <details> section */
+.md-details {
+  display: block;
+  margin: 16rpx 0;
+  border: 1px solid #e5e5e5;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+.md-details-summary {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  background: #fafafa;
+}
+.md-details-arrow {
+  /* Explicit inline-block: some older engines ignore transforms on inline
+     <text> even when it is blockified as a flex item. */
+  display: inline-block;
+  flex: none;
+  margin-right: 12rpx;
+  font-size: 20rpx;
+  color: #999;
+  transition: transform 0.2s ease;
+}
+.md-details-arrow--open {
+  transform: rotate(90deg);
+}
+.md-details-summary-text {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+.md-details-body {
+  display: block;
+  padding: 16rpx 20rpx 4rpx;
+  border-top: 1px solid #e5e5e5;
+}
+
 /* 荧光标记 / 上下标 */
 .md-mark {
   border-radius: 4rpx;

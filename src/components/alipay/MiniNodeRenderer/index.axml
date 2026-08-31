@@ -173,6 +173,33 @@
     </view>
   </view>
 
+  <!-- details: collapsible section. Summary row toggles per-index open state;
+       default open comes from the <details open> attribute on the node. -->
+  <view a:elif="{{u.isDetails(node.name)}}" class="{{u.classOf(node)}}">
+    <view
+      class="md-details-summary"
+      data-i="{{i}}"
+      data-open="{{u.detailsOpenState(detailsOpen, i, node)}}"
+      catchTap="_toggleDetails"
+    >
+      <text class="md-details-arrow {{u.detailsOpenState(detailsOpen, i, node) ? 'md-details-arrow--open' : ''}}">▶</text>
+      <text class="md-details-summary-text">{{u.summaryOf(node)}}</text>
+    </view>
+    <view a:if="{{u.detailsOpenState(detailsOpen, i, node)}}" class="md-details-body">
+      <mini-node-renderer
+        a:if="{{node.children}}"
+        nodes="{{node.children}}"
+        selectable="{{selectable}}"
+        animation="{{animation}}"
+        slotComponents="{{slotComponents}}"
+        onTap="onTap"
+        onAppear="onAppear"
+      >
+        <slot slot-scope="prop" data="{{prop.data}}" />
+      </mini-node-renderer>
+    </view>
+  </view>
+
   <!-- anchor：flatten 已把链接展开成「自带 value、无 children」的叶子 run（每段文本一个
        a 节点，br 单独成兄弟节点走上面的 isBr 分支）。这里直接渲染为单个可点击 <text>，
        与前后文本同级——外包 <view> 即使 display:inline 也会生成布局盒、打断行内排版。
