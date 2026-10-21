@@ -94,14 +94,14 @@ function stampFontClasses(list: MiniNode[], inherited: string): void {
 
 // --- Tokenizers ---
 
-const inlineRule = /^(?:\$(?!\$)([^$\n]+?)\$(?!\$)|\\\((.+?)\\\))/;
+const inlineRule = /^(?:(\${1,2})(?!\$)([^$\n]+?)\1(?!\$)|\\\((.+?)\\\))/;
 const blockRule =
   /^(?:(\${1,2})\n([\s\S]+?)\n\1|\$\$([\s\S]+?)\$\$)(?:\n|$)|^\\\[((?:\\.|[^\\])+?)\\\]/;
 
 function inlineKatexTokenizer(this: any, src: string): Tokens.Generic | undefined {
   const match = src.match(inlineRule);
   if (!match) return undefined;
-  const text = replaceAlign((match[1] || match[2]).trim());
+  const text = replaceAlign((match[2] || match[3]).trim());
   return {
     type: 'inlineKatex',
     raw: match[0],

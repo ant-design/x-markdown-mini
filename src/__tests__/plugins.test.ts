@@ -281,6 +281,26 @@ describe('Latex — tokenizer', () => {
     expect(types).toContain('inlineKatex');
   });
 
+  it('keeps double-dollar math in a sentence inline', async () => {
+    const { default: Latex } = await import('../plugins/Latex/index.js');
+    const md = new XMarkdownMini({ extensions: [Latex()] });
+    const content = 'Energy is $$E=mc^2$$ in text.';
+    const tokens = md.parse(content);
+
+    expect(tokens.map((token) => token.type)).toEqual(['paragraph']);
+    expect((tokens[0] as any).tokens).toEqual([
+      expect.objectContaining({ type: 'text', text: 'Energy is ' }),
+      expect.objectContaining({ type: 'inlineKatex', raw: '$$E=mc^2$$', text: 'E=mc^2', displayMode: false }),
+      expect.objectContaining({ type: 'text', text: ' in text.' }),
+    ]);
+    for (const platform of ['wechat', 'alipay'] as const) {
+      const rendered = JSON.stringify(md.renderNodes({ content, platform }));
+      expect(rendered).toContain('katex-inline');
+      expect(rendered).not.toContain('katex-display');
+      expect(rendered).not.toContain('$$');
+    }
+  });
+
   it('tokenizes block math $$...$$', async () => {
     const { default: Latex } = await import('../plugins/Latex/index.js');
     const md = new XMarkdownMini({ extensions: [Latex()] });
