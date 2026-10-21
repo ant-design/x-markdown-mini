@@ -249,7 +249,8 @@ console.log('\nCompatibility (ES2018 syntax via es-check):');
 function runEsCheck(label, extraArgs, files) {
   if (files.length === 0) return;
   const esCheckBin = join(dirname(require.resolve('es-check/package.json')), 'index.js');
-  const args = [esCheckBin, ...extraArgs, 'es2018', ...files.map((f) => join('dist', f))];
+  // es-check treats these as glob patterns, which need forward slashes on Windows.
+  const args = [esCheckBin, ...extraArgs, 'es2018', ...files.map((f) => `dist/${f}`)];
   const r = spawnSync(process.execPath, args, { cwd: root, encoding: 'utf8' });
   if (r.status === 0) {
     console.log(`  OK    ${label} (${files.length} file${files.length === 1 ? '' : 's'})`);
