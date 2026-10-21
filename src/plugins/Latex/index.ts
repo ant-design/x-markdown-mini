@@ -139,7 +139,9 @@ function blockStart(src: string): number | undefined {
     const bracket = src.indexOf('\\[', from);
     if (dollar === -1 && bracket === -1) return undefined;
     const index = Math.min(dollar === -1 ? Infinity : dollar, bracket === -1 ? Infinity : bracket);
-    const startsLine = index === 0 || src.charCodeAt(index - 1) === 10;
+    // Marked passes src.slice(1) here; index 0 is not a verified line start.
+    // Blocks at the actual input start are handled directly by the tokenizer.
+    const startsLine = index > 0 && src.charCodeAt(index - 1) === 10;
     if (startsLine && blockRule.test(src.slice(index))) return index;
     from = index + 1;
   }

@@ -301,6 +301,24 @@ describe('Latex — tokenizer', () => {
     }
   });
 
+  it('keeps double-dollar math immediately after one character inline', async () => {
+    const { default: Latex } = await import('../plugins/Latex/index.js');
+    const md = new XMarkdownMini({ extensions: [Latex()] });
+    const content = 'a$$x$$';
+    const tokens = md.parse(content);
+
+    expect(tokens.map((token) => token.type)).toEqual(['paragraph']);
+    expect((tokens[0] as any).tokens).toEqual([
+      expect.objectContaining({ type: 'text', text: 'a' }),
+      expect.objectContaining({ type: 'inlineKatex', raw: '$$x$$', text: 'x', displayMode: false }),
+    ]);
+    for (const platform of ['wechat', 'alipay'] as const) {
+      const rendered = JSON.stringify(md.renderNodes({ content, platform }));
+      expect(rendered).toContain('katex-inline');
+      expect(rendered).not.toContain('katex-display');
+    }
+  });
+
   it('tokenizes block math $$...$$', async () => {
     const { default: Latex } = await import('../plugins/Latex/index.js');
     const md = new XMarkdownMini({ extensions: [Latex()] });
