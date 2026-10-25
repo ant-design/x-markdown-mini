@@ -94,13 +94,14 @@ function stampFontClasses(list: MiniNode[], inherited: string): void {
 
 // --- Tokenizers ---
 
-const inlineRule = /^(?:\${1,2}([^\$\n]+?)\${1,2}|\\\((.+?)\\\))/;
-const blockRule = /^(\${1,2})\n([\s\S]+?)\n\1(?:\n|$)|^\\\[((?:\\.|[^\\])+?)\\\]/;
+const inlineRule = /^(?:(\${1,2})(?!\$)([^$\n]+?)\1(?!\$)|\\\((.+?)\\\))/;
+const blockRule =
+  /^(?:(\${1,2})\n([\s\S]+?)\n\1|\$\$((?:[^$]|\$(?!\$))+?)\$\$)(?:\n|$)|^\\\[((?:\\.|[^\\])+?)\\\]/;
 
 function inlineKatexTokenizer(this: any, src: string): Tokens.Generic | undefined {
   const match = src.match(inlineRule);
   if (!match) return undefined;
-  const text = replaceAlign((match[1] || match[2]).trim());
+  const text = replaceAlign((match[2] || match[3]).trim());
   return {
     type: 'inlineKatex',
     raw: match[0],
@@ -112,7 +113,7 @@ function inlineKatexTokenizer(this: any, src: string): Tokens.Generic | undefine
 function blockKatexTokenizer(this: any, src: string): Tokens.Generic | undefined {
   const match = src.match(blockRule);
   if (!match) return undefined;
-  const text = replaceAlign((match[2] || match[3]).trim());
+  const text = replaceAlign((match[2] || match[3] || match[4]).trim());
   return {
     type: 'blockKatex',
     raw: match[0],
@@ -138,7 +139,10 @@ function blockStart(src: string): number | undefined {
     const bracket = src.indexOf('\\[', from);
     if (dollar === -1 && bracket === -1) return undefined;
     const index = Math.min(dollar === -1 ? Infinity : dollar, bracket === -1 ? Infinity : bracket);
-    if (blockRule.test(src.slice(index))) return index;
+    // Marked passes src.slice(1) here; index 0 is not a verified line start.
+    // Blocks at the actual input start are handled directly by the tokenizer.
+    const startsLine = index > 0 && src.charCodeAt(index - 1) === 10;
+    if (startsLine && blockRule.test(src.slice(index))) return index;
     from = index + 1;
   }
   return undefined;
