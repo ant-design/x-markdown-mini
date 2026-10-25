@@ -301,6 +301,31 @@ describe('Latex — tokenizer', () => {
     }
   });
 
+  it('keeps two double-dollar formulas on one line inline', async () => {
+    const { default: Latex } = await import('../plugins/Latex/index.js');
+    const md = new XMarkdownMini({ extensions: [Latex()] });
+    const tokens = md.parse('$$a$$ and $$b$$');
+
+    expect(tokens.map((token) => token.type)).toEqual(['paragraph']);
+    expect((tokens[0] as any).tokens).toEqual([
+      expect.objectContaining({ type: 'inlineKatex', text: 'a' }),
+      expect.objectContaining({ type: 'text', text: ' and ' }),
+      expect.objectContaining({ type: 'inlineKatex', text: 'b' }),
+    ]);
+  });
+
+  it('does not merge double-dollar formulas across paragraphs into one block', async () => {
+    const { default: Latex } = await import('../plugins/Latex/index.js');
+    const md = new XMarkdownMini({ extensions: [Latex()] });
+    const tokens = md.parse('$$a$$ text\n\nmore paragraph $$b$$');
+
+    expect(tokens.some((token) => token.type === 'blockKatex')).toBe(false);
+    const paragraphs = tokens.filter((token) => token.type === 'paragraph') as any[];
+    expect(paragraphs).toHaveLength(2);
+    expect(paragraphs[0].tokens[0]).toEqual(expect.objectContaining({ type: 'inlineKatex', text: 'a' }));
+    expect(paragraphs[1].tokens[1]).toEqual(expect.objectContaining({ type: 'inlineKatex', text: 'b' }));
+  });
+
   it('keeps double-dollar math immediately after one character inline', async () => {
     const { default: Latex } = await import('../plugins/Latex/index.js');
     const md = new XMarkdownMini({ extensions: [Latex()] });

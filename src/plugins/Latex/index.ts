@@ -96,7 +96,7 @@ function stampFontClasses(list: MiniNode[], inherited: string): void {
 
 const inlineRule = /^(?:(\${1,2})(?!\$)([^$\n]+?)\1(?!\$)|\\\((.+?)\\\))/;
 const blockRule =
-  /^(?:(\${1,2})\n([\s\S]+?)\n\1|\$\$([\s\S]+?)\$\$)(?:\n|$)|^\\\[((?:\\.|[^\\])+?)\\\]/;
+  /^(?:(\${1,2})\n([\s\S]+?)\n\1|\$\$((?:[^$]|\$(?!\$))+?)\$\$)(?:\n|$)|^\\\[((?:\\.|[^\\])+?)\\\]/;
 
 function inlineKatexTokenizer(this: any, src: string): Tokens.Generic | undefined {
   const match = src.match(inlineRule);
