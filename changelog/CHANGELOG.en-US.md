@@ -8,6 +8,12 @@ User-facing API, build-output, and behavior changes are tracked here. Migration 
 
 > The site's `/changelog` timeline is generated from this file (`docs-site/scripts/build-changelog.mjs` parses the `## version` / `` `date` `` / `- **type**: …` structure). Add a new block at the top when releasing; `npm run changelog` helps assemble entries from merged PRs. Types are **Breaking** / **Added** / **Fixed** / **Improved**.
 
+## 1.1.1
+
+`2026-10-25`
+
+- **Fixed**: the `Latex` plugin did not recognize compact block math (#19). `$$x^2+y^2=z^2$$` on its own line rendered as inline math, and `$$` written directly against `\begin{…}` / `\end{…}` (e.g. `$$\begin{cases} … \end{cases}$$`) was left as raw text and broke tokenization of the inline formula that followed. Both forms now render as display math, including when the delimiters arrive split across streaming chunks. `$$…$$` inside a sentence (`Energy is $$E=mc^2$$ in text.`, `a$$x$$`) stays inline, and two formulas on one line (`$$a$$ and $$b$$`) or in separate paragraphs are no longer merged into a single block (#20).
+
 ## 1.1.0
 
 `2026-08-31`
